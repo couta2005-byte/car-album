@@ -1,0 +1,38 @@
+.ranking-box {
+  background: rgba(255,255,255,0.03);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.ranking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+#ranking-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.04);
+}
+
+.rank-1 {
+  background: linear-gradient(90deg, #ffb347, #ffcc33);
+  font-weight: bold;
+  box-shadow: 0 0 12px rgba(255,200,50,0.6);
+}
+
+.rank-like {
+  color: #ff6b6b;
+}

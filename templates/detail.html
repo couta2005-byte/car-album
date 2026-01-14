@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>投稿詳細</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #0b1220;
+  color: white;
+}
+
+.container {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 0 16px;
+}
+
+img {
+  max-width: 100%;
+  border-radius: 12px;
+}
+a { color: #60a5fa; text-decoration: none; }
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<a href="/">← 戻る</a>
+
+<h2>{{ post.username }}</h2>
+<p>車名：{{ post.car_name }}</p>
+<p>{{ post.content }}</p>
+
+{% if post.image_path %}
+<img src="/static/{{ post.image_path.replace('static/', '') }}">
+{% endif %}
+
+<p>👍 {{ post.like_count }}</p>
+<p>{{ post.created_at }}</p>
+
+</div>
+</body>
+</html>

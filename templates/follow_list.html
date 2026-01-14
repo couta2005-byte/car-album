@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }} | {{ username }}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h1 class="title">{{ username }} の{{ title }}</h1>
+
+<div class="posts">
+{% if users %}
+    {% for u in users %}
+    <div class="post">
+        <a href="/user/{{ u }}"><b>{{ u }}</b></a>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="post">まだ{{ title }}はいません</div>
+{% endif %}
+</div>
+
+<div class="back">
+    <a href="/user/{{ username }}">← プロフィールへ戻る</a>
+</div>
+
+</body>
+</html>

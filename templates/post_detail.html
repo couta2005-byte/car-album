@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/static/style.css">
+    <title>投稿詳細</title>
+</head>
+<body>
+
+<a href="/">← 戻る</a>
+
+<h2>{{ post.username }}</h2>
+<p>車名：{{ post.car_name }}</p>
+<p>{{ post.content }}</p>
+
+{% if post.image_path %}
+  <img src="/static/{{ post.image_path }}" style="max-width:100%;">
+{% endif %}
+
+<p>{{ post.created_at }}</p>
+
+</body>
+</html>

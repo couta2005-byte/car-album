@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>{{ username }} | Car Album</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h1 class="title">{{ username }}</h1>
+
+<div style="text-align:center; margin-bottom:20px;">
+    <a href="/user/{{ username }}/follows">
+        フォロー {{ follow_count }}
+    </a>
+    |
+    <a href="/user/{{ username }}/followers">
+        フォロワー {{ follower_count }}
+    </a>
+</div>
+
+{% if profile %}
+<div class="profile-form">
+    <div>メーカー：{{ profile[0] }}</div>
+    <div>車種：{{ profile[1] }}</div>
+    <div>地域：{{ profile[2] }}</div>
+    <p>{{ profile[3] }}</p>
+</div>
+{% else %}
+<p style="text-align:center;">プロフィールは未設定です</p>
+{% endif %}
+
+{% if me and me != username %}
+<form method="post" action="{% if is_following %}/unfollow/{{ username }}{% else %}/follow/{{ username }}{% endif %}">
+    <button>
+        {% if is_following %}フォロー解除{% else %}フォローする{% endif %}
+    </button>
+</form>
+{% endif %}
+
+<div class="posts">
+{% for p in posts %}
+<div class="post">
+    <div>{{ p[0] }}</div>
+    {% if p[1] %}<img src="{{ p[1] }}">{% endif %}
+    <div>{{ p[2] }}</div>
+</div>
+{% endfor %}
+</div>
+
+<div class="back">
+<a href="/">← 戻る</a>
+</div>
+
+</body>
+</html>

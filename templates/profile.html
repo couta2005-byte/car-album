@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>{{ username }} | Car Album</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Car Album</a>
+    <nav>
+      <a href="/">ホーム</a>
+      <a href="/ranking?period=day">ランキング</a>
+      {% if me %}
+        <form action="/logout" method="post" class="logout-form">
+          <button class="logout-btn">ログアウト</button>
+        </form>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+<div class="card profile-card">
+  <h2>{{ username }}</h2>
+  <div class="profile-stats">
+    フォロー {{ follow_count }} ／ フォロワー {{ follower_count }}
+  </div>
+
+  {% if profile %}
+    <div>メーカー：{{ profile[0] }}</div>
+    <div>車種：{{ profile[1] }}</div>
+    <div>地域：{{ profile[2] }}</div>
+    {% if profile[3] %}
+      <div class="bio">{{ profile[3] }}</div>
+    {% endif %}
+  {% endif %}
+</div>
+
+{% if me == username %}
+<div class="card">
+  <form action="/profile/edit" method="post">
+    <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile }}">
+    <input name="car" placeholder="車種" value="{{ profile[1] if profile }}">
+    <input name="region" placeholder="地域" value="{{ profile[2] if profile }}">
+    <textarea name="bio" placeholder="自己紹介">{{ profile[3] if profile }}</textarea>
+    <button>保存</button>
+  </form>
+</div>
+{% elif me %}
+<form method="post" action="{% if is_following %}/unfollow/{{ username }}{% else %}/follow/{{ username }}{% endif %}">
+  <button class="follow-btn">
+    {% if is_following %}フォロー解除{% else %}フォローする{% endif %}
+  </button>
+</form>
+{% endif %}
+
+<div class="posts">
+{% for p in posts %}
+  <div class="post-card">
+    <div class="post-car">{{ p[2] }}</div>
+    <div class="post-text">{{ p[3] }}</div>
+    {% if p[4] %}
+      <img src="{{ p[4] }}" class="post-image">
+    {% endif %}
+    <div class="post-date">{{ p[5] }}</div>
+  </div>
+{% endfor %}
+</div>
+
+</main>
+</body>
+</html>

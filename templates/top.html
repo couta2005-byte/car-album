@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h1 class="title">{{ title }}</h1>
+
+<div class="top-tabs">
+  <a href="/top?range=daily" class="{% if range=='daily' %}active{% endif %}">今日</a>
+  <a href="/top?range=weekly" class="{% if range=='weekly' %}active{% endif %}">今週</a>
+  <a href="/top?range=monthly" class="{% if range=='monthly' %}active{% endif %}">今月</a>
+</div>
+
+<div class="posts">
+{% for post in posts %}
+  <div class="post">
+    <div class="post-header">
+      <strong>{{ loop.index }}位 {{ post.username }}（{{ post.car }}）</strong>
+      <span class="time">{{ post.created_at }}</span>
+    </div>
+
+    {% if post.image %}
+      <img src="{{ post.image }}" class="thumb">
+    {% endif %}
+
+    <p>{{ post.comment }}</p>
+    <div class="likes">👍 {{ post.likes }}</div>
+  </div>
+{% endfor %}
+</div>
+
+<div style="text-align:center;margin:20px;">
+  <a href="/">← 新着に戻る</a>
+</div>
+
+</body>
+</html>

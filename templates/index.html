@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Car Album</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Car Album</a>
+
+    <nav class="nav">
+      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
+
+      {% if user %}
+        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
+      {% endif %}
+
+      <a href="/ranking?period=day" class="nav-link {% if mode=='ranking_day' or mode=='ranking_week' or mode=='ranking_month' %}active{% endif %}">ランキング</a>
+
+      {% if user %}
+        <a href="/user/{{ user }}" class="nav-link">プロフィール</a>
+        <form action="/logout" method="post" class="logout-form">
+          <button class="logout-btn" type="submit">ログアウト</button>
+        </form>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+{% if mode=='ranking_day' or mode=='ranking_week' or mode=='ranking_month' %}
+<div class="ranking-tabs">
+  <a href="/ranking?period=day" class="{% if mode=='ranking_day' %}active{% endif %}">日</a>
+  <a href="/ranking?period=week" class="{% if mode=='ranking_week' %}active{% endif %}">週</a>
+  <a href="/ranking?period=month" class="{% if mode=='ranking_month' %}active{% endif %}">月</a>
+</div>
+{% endif %}
+
+{% if ranking_title %}
+<h2 class="page-title">{{ ranking_title }}</h2>
+{% endif %}
+
+<form method="get" class="card search-form">
+  <div class="grid-3">
+    <input name="maker" placeholder="メーカー" value="{{ maker }}">
+    <input name="car" placeholder="車種" value="{{ car }}">
+    <input name="region" placeholder="地域" value="{{ region }}">
+  </div>
+  <button class="primary-btn" type="submit">検索</button>
+</form>
+
+{% if not user %}
+<div class="grid-2">
+  <div class="card">
+    <h3 class="card-title">ログイン</h3>
+    <form action="/login" method="post">
+      <input name="username" placeholder="ユーザー名">
+      <input name="password" type="password" placeholder="パスワード">
+      <button class="primary-btn" type="submit">ログイン</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3 class="card-title">新規登録</h3>
+    <form action="/register" method="post">
+      <input name="username" placeholder="新規ユーザー名">
+      <input name="password" type="password" placeholder="新規パスワード">
+      <button class="primary-btn" type="submit">新規登録</button>
+    </form>
+  </div>
+</div>
+{% else %}
+
+{% if mode=="home" %}
+<div class="card">
+  <h3 class="card-title">投稿</h3>
+  <form action="/post" method="post" enctype="multipart/form-data">
+    <div class="grid-3">
+      <input name="maker" placeholder="メーカー">
+      <input name="region" placeholder="地域">
+      <input name="car" placeholder="車名">
+    </div>
+    <textarea name="comment" placeholder="ひとこと"></textarea>
+    <input type="file" name="image">
+    <button class="primary-btn" type="submit">投稿</button>
+  </form>
+</div>
+{% endif %}
+{% endif %}
+
+<div class="posts">
+{% for post in posts %}
+  <article class="post-card">
+    <div class="post-top">
+      <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
+      <div class="post-meta">
+        <span class="post-date">{{ post.created_at }}</span>
+      </div>
+    </div>
+
+    <div class="post-car">{{ post.car }}</div>
+
+    {% if post.comment %}
+      <div class="post-text">{{ post.comment }}</div>
+    {% endif %}
+
+    {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+    {% endif %}
+
+    <div class="post-actions">
+      <form method="post" action="{% if post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}">
+        <button class="like-btn" type="submit">
+          {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %} {{ post.likes }}
+        </button>
+      </form>
+
+      {% if user and user == post.username %}
+      <form method="post" action="/delete/{{ post.id }}" onsubmit="return confirm('この投稿を削除しますか？');">
+        <button class="delete-btn" type="submit">削除</button>
+      </form>
+      {% endif %}
+    </div>
+
+    {% if post.comments %}
+    <div class="comments">
+      {% for c in post.comments %}
+        <div class="comment"><b>{{ c[1] }}</b> {{ c[2] }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if user %}
+    <form action="/comment/{{ post.id }}" method="post" class="comment-form">
+      <input name="comment" placeholder="コメントを書く">
+      <button class="secondary-btn" type="submit">送信</button>
+    </form>
+    {% endif %}
+  </article>
+{% endfor %}
+</div>
+
+</main>
+</body>
+</html>

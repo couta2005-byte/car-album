@@ -1,0 +1,51 @@
+<!-- templates/ranking.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ title }} | Car Album</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="page">
+    <h1 class="title">{{ title }}</h1>
+
+    <div class="top10-links">
+      <a href="/ranking?type=daily" class="top10-link">🔥 当日TOP10</a>
+      <a href="/ranking?type=weekly" class="top10-link">🗓️ 週間TOP10</a>
+      <a href="/ranking?type=monthly" class="top10-link">🗓️ 当月TOP10</a>
+      <a href="/" class="top10-link back">← 戻る</a>
+    </div>
+
+    <div class="posts">
+      {% for post in posts %}
+      <div class="post">
+
+        {% if post.image %}
+        <div class="media">
+          <img src="{{ post.image }}" class="thumb" alt="thumb">
+        </div>
+        {% endif %}
+
+        <div class="body">
+          <div class="head">
+            <span class="rank">{{ loop.index }}位：</span>
+            <a class="user-link" href="/user/{{ post.username }}">{{ post.username }}</a>
+            <span class="car">（{{ post.car }}）</span>
+          </div>
+
+          <p class="comment">{{ post.comment }}</p>
+          <small class="meta">{{ post.created_at }}</small>
+
+          <div class="actions">
+            <span class="like-count">👍 {{ post.likes }}</span>
+          </div>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>
