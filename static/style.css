@@ -2,7 +2,9 @@
   box-sizing: border-box;
 }
 
-/* ===== Base ===== */
+/* =========================
+   Base
+========================= */
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -11,7 +13,9 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-/* ===== Header ===== */
+/* =========================
+   Header
+========================= */
 .header {
   background: #111;
   color: #fff;
@@ -66,7 +70,9 @@ body {
   font-weight: 800;
 }
 
-/* ===== Layout ===== */
+/* =========================
+   Layout
+========================= */
 .container {
   max-width: 980px;
   margin: 20px auto;
@@ -79,7 +85,9 @@ body {
   font-weight: 900;
 }
 
-/* ===== Cards & Forms ===== */
+/* =========================
+   Cards & Forms
+========================= */
 .card {
   background: #fff;
   border-radius: 18px;
@@ -96,7 +104,7 @@ textarea {
   border: 1px solid #d6dde5;
   background: #fff;
   margin-top: 10px;
-  font-size: 16px; /* ← スマホでズーム防止 */
+  font-size: 16px; /* ← iOSズーム防止 */
 }
 
 textarea {
@@ -120,7 +128,9 @@ textarea {
   color: #fff;
 }
 
-/* ===== Posts ===== */
+/* =========================
+   Posts
+========================= */
 .posts {
   display: grid;
   gap: 22px;
@@ -174,9 +184,12 @@ textarea {
   border-radius: 18px;
   margin-top: 14px;
   border: 1px solid #e7edf3;
+  object-fit: contain;
 }
 
-/* ===== Actions ===== */
+/* =========================
+   Actions
+========================= */
 .post-actions {
   margin-top: 14px;
   display: flex;
@@ -204,7 +217,9 @@ textarea {
   color: #b42318;
 }
 
-/* ===== Comments ===== */
+/* =========================
+   Comments
+========================= */
 .comments {
   margin-top: 14px;
   padding-top: 12px;
@@ -217,14 +232,19 @@ textarea {
 }
 
 /* =========================
-   📱 スマホ最適化ここから
-   ========================= */
+   📱 スマホ完全対応
+========================= */
 @media (max-width: 600px) {
 
+  body {
+    font-size: 14px;
+  }
+
+  /* Header */
   .header-inner {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    align-items: stretch;
+    gap: 10px;
   }
 
   .logo {
@@ -234,19 +254,52 @@ textarea {
   .nav {
     width: 100%;
     justify-content: space-between;
+    gap: 10px;
   }
 
+  .logout-btn {
+    width: 100%;
+  }
+
+  /* Layout */
   .container {
+    margin: 12px auto;
     padding: 0 10px;
   }
 
   .page-title {
     font-size: 22px;
+    margin: 12px 0;
   }
 
+  /* Forms */
+  input,
+  textarea {
+    font-size: 16px;
+  }
+
+  textarea {
+    min-height: 80px;
+  }
+
+  /* Posts */
   .post-card {
     padding: 14px;
-    border-radius: 20px;
+    border-radius: 18px;
+  }
+
+  .post-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .post-user {
+    font-size: 13px;
+  }
+
+  .post-date {
+    font-size: 11px;
   }
 
   .post-car {
@@ -257,16 +310,20 @@ textarea {
     font-size: 14px;
   }
 
+  .post-image {
+    max-height: 70vh;
+    border-radius: 16px;
+  }
+
+  /* Actions */
   .post-actions {
-    flex-direction: row;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .like-btn,
   .delete-btn {
-    padding: 12px 0;
-  }
-
-  .comment-form input {
-    font-size: 16px;
+    width: 100%;
+    font-size: 15px;
   }
 }
