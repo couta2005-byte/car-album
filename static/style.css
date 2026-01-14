@@ -46,8 +46,12 @@ body {
 .nav-link {
   color: #fff;
   text-decoration: none;
-  opacity: .9;
+  opacity: .85;
   font-weight: 700;
+}
+
+.nav-link:hover {
+  opacity: 1;
 }
 
 .nav-link.active {
@@ -64,7 +68,7 @@ body {
   color: #fff;
   border: none;
   padding: 8px 14px;
-  border-radius: 10px;
+  border-radius: 999px;
   cursor: pointer;
   font-weight: 800;
 }
@@ -85,7 +89,7 @@ body {
 /* ===== Cards & Forms ===== */
 .card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 16px;
   box-shadow: 0 10px 24px rgba(0,0,0,0.08);
   margin-bottom: 18px;
@@ -109,6 +113,11 @@ textarea {
   font-size: 14px;
 }
 
+input:focus,
+textarea:focus {
+  border-color: #3498db;
+}
+
 textarea {
   min-height: 90px;
   resize: vertical;
@@ -128,6 +137,10 @@ textarea {
 .primary-btn {
   background: #3498db;
   color: #fff;
+}
+
+.primary-btn:hover {
+  background: #2f89c5;
 }
 
 .secondary-btn {
@@ -174,13 +187,13 @@ textarea {
 /* ===== Posts ===== */
 .posts {
   display: grid;
-  gap: 18px;
+  gap: 22px;
 }
 
 .post-card {
   background: #fff;
-  border-radius: 18px;
-  padding: 16px;
+  border-radius: 20px;
+  padding: 18px;
   box-shadow: 0 12px 28px rgba(0,0,0,0.08);
   transition: transform .15s ease, box-shadow .15s ease;
 }
@@ -233,15 +246,15 @@ textarea {
 /* 画像 */
 .post-image {
   width: 100%;
-  border-radius: 14px;
-  margin-top: 12px;
+  border-radius: 16px;
+  margin-top: 14px;
   border: 1px solid #e7edf3;
   background: #f7f9fb;
 }
 
 /* アクション */
 .post-actions {
-  margin-top: 12px;
+  margin-top: 14px;
   display: flex;
   gap: 10px;
   align-items: center;
@@ -283,8 +296,8 @@ textarea {
 
 /* コメント欄 */
 .comments {
-  margin-top: 12px;
-  padding-top: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
   border-top: 1px solid #e7edf3;
 }
 
