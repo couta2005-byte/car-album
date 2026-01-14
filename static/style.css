@@ -104,7 +104,7 @@ textarea {
   border: 1px solid #d6dde5;
   background: #fff;
   margin-top: 10px;
-  font-size: 16px; /* ← iOSズーム防止 */
+  font-size: 16px; /* iOSズーム防止 */
 }
 
 textarea {
@@ -270,16 +270,6 @@ textarea {
   .page-title {
     font-size: 22px;
     margin: 12px 0;
-  }
-
-  /* Forms */
-  input,
-  textarea {
-    font-size: 16px;
-  }
-
-  textarea {
-    min-height: 80px;
   }
 
   /* Posts */
