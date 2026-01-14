@@ -2,6 +2,7 @@
   box-sizing: border-box;
 }
 
+/* ===== Base ===== */
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
@@ -19,11 +20,11 @@ body {
 .header-inner {
   max-width: 980px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
 
 .logo {
@@ -39,17 +40,14 @@ body {
   align-items: center;
   gap: 14px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .nav-link {
   color: #fff;
   text-decoration: none;
-  opacity: .85;
+  opacity: .9;
   font-weight: 700;
-}
-
-.nav-link:hover {
-  opacity: 1;
 }
 
 .nav-link.active {
@@ -71,19 +69,15 @@ body {
   font-weight: 800;
 }
 
-.logout-btn:hover {
-  background: #d63b2b;
-}
-
 /* ===== Layout ===== */
 .container {
   max-width: 980px;
-  margin: 22px auto;
-  padding: 0 16px;
+  margin: 20px auto;
+  padding: 0 14px;
 }
 
 .page-title {
-  margin: 20px 0 14px;
+  margin: 18px 0 12px;
   font-size: 28px;
   font-weight: 900;
 }
@@ -91,14 +85,14 @@ body {
 /* ===== Cards & Forms ===== */
 .card {
   background: #fff;
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
-  margin-bottom: 20px;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  margin-bottom: 18px;
 }
 
 .card-title {
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   font-size: 16px;
   font-weight: 900;
 }
@@ -106,7 +100,7 @@ body {
 input,
 textarea {
   width: 100%;
-  padding: 11px 13px;
+  padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid #d6dde5;
   outline: none;
@@ -116,7 +110,7 @@ textarea {
 }
 
 textarea {
-  min-height: 96px;
+  min-height: 90px;
   resize: vertical;
 }
 
@@ -127,7 +121,7 @@ textarea {
   border-radius: 12px;
   padding: 12px 14px;
   cursor: pointer;
-  margin-top: 14px;
+  margin-top: 12px;
   font-weight: 900;
 }
 
@@ -136,42 +130,34 @@ textarea {
   color: #fff;
 }
 
-.primary-btn:hover {
-  background: #2f89c6;
-}
-
 .secondary-btn {
   background: #eef3f8;
   color: #222;
   border: 1px solid #d6dde5;
 }
 
-.secondary-btn:hover {
-  background: #e4ecf4;
-}
-
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 18px;
 }
 
 .grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
 }
 
 /* ===== Ranking Tabs ===== */
 .ranking-tabs {
   display: flex;
   gap: 10px;
-  margin: 16px 0 12px;
+  margin: 14px 0 10px;
 }
 
 .ranking-tabs a {
   text-decoration: none;
-  padding: 8px 18px;
+  padding: 8px 16px;
   border-radius: 999px;
   background: #eef3f8;
   color: #222;
@@ -188,26 +174,35 @@ textarea {
 /* ===== Posts ===== */
 .posts {
   display: grid;
-  gap: 20px;
+  gap: 18px;
 }
 
 .post-card {
   background: #fff;
-  border-radius: 20px;
-  padding: 18px;
-  box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+  transition: transform .15s ease, box-shadow .15s ease;
 }
 
+.post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgba(0,0,0,0.12);
+}
+
+/* 上部（ユーザー＋日付） */
 .post-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #eef2f6;
 }
 
 .post-user {
   font-weight: 900;
-  color: #2f3e4d;
+  color: #3b4b5a;
   text-decoration: none;
 }
 
@@ -220,31 +215,33 @@ textarea {
   color: #6a7785;
 }
 
+/* 車名を主役に */
 .post-car {
-  margin-top: 10px;
-  font-size: 18px;
+  margin-top: 12px;
+  font-size: 20px;
   font-weight: 900;
+  letter-spacing: .3px;
 }
 
+/* コメント */
 .post-text {
   margin-top: 8px;
   font-size: 14px;
-  line-height: 1.65;
-  color: #333;
+  line-height: 1.6;
 }
 
+/* 画像 */
 .post-image {
   width: 100%;
-  max-height: 520px;
-  object-fit: contain;
   border-radius: 14px;
-  margin-top: 14px;
+  margin-top: 12px;
   border: 1px solid #e7edf3;
-  background: #fafafa;
+  background: #f7f9fb;
 }
 
+/* アクション */
 .post-actions {
-  margin-top: 14px;
+  margin-top: 12px;
   display: flex;
   gap: 10px;
   align-items: center;
@@ -255,13 +252,18 @@ textarea {
   border: 1px solid #d6dde5;
   background: #fff;
   border-radius: 999px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   cursor: pointer;
   font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .like-btn:hover {
-  background: #f2f6fa;
+  background: #f0f6ff;
+  border-color: #3498db;
+  color: #3498db;
 }
 
 .delete-btn {
@@ -269,19 +271,20 @@ textarea {
   background: #fff5f5;
   color: #b42318;
   border-radius: 999px;
-  padding: 8px 16px;
+  padding: 8px 14px;
   cursor: pointer;
   font-weight: 900;
+  opacity: .8;
 }
 
 .delete-btn:hover {
-  background: #ffecec;
+  opacity: 1;
 }
 
-/* ===== Comments ===== */
+/* コメント欄 */
 .comments {
-  margin-top: 14px;
-  padding-top: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
   border-top: 1px solid #e7edf3;
 }
 
