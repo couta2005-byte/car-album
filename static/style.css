@@ -37,25 +37,18 @@ body {
   text-decoration: none;
   font-weight: 800;
   font-size: 20px;
-  letter-spacing: .5px;
 }
 
 .nav {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .nav-link {
   color: #fff;
   text-decoration: none;
-  opacity: .85;
   font-weight: 700;
-}
-
-.nav-link.active {
-  opacity: 1;
-  text-decoration: underline;
+  opacity: .85;
 }
 
 .logout-btn {
@@ -64,7 +57,6 @@ body {
   border: none;
   padding: 8px 14px;
   border-radius: 999px;
-  cursor: pointer;
   font-weight: 800;
 }
 
@@ -74,57 +66,48 @@ body {
 .container {
   max-width: 980px;
   margin: 16px auto;
-  padding: 0 14px;
-}
-
-.page-title {
-  margin: 14px 0 10px;
-  font-size: 26px;
-  font-weight: 900;
+  padding: 0 12px;
 }
 
 /* =========================
-   Cards & Forms
+   Card / Form
 ========================= */
 .card {
   background: #fff;
   border-radius: 18px;
   padding: 14px;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
   margin-bottom: 16px;
 }
 
 .card form {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
 input,
 textarea {
   width: 100%;
-  padding: 11px 12px;
+  padding: 12px;
   border-radius: 14px;
   border: 1px solid #d6dde5;
-  background: #fff;
   font-size: 16px;
 }
 
 textarea {
-  min-height: 80px;
   grid-column: 1 / -1;
+  min-height: 70px;
 }
 
 .primary-btn {
   grid-column: 1 / -1;
-  border: none;
-  border-radius: 14px;
-  padding: 13px;
-  cursor: pointer;
-  font-weight: 900;
-  font-size: 16px;
   background: #3498db;
   color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  font-weight: 900;
 }
 
 /* =========================
@@ -138,35 +121,22 @@ textarea {
 .post-card {
   background: #fff;
   border-radius: 20px;
-  padding: 16px;
-  box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+  padding: 14px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
 }
 
-/* ユーザー＋日付 */
+/* ユーザー / 日付 */
 .post-top {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #eef2f6;
-}
-
-.post-user {
-  font-weight: 900;
-  font-size: 14px;
-  color: #3b4b5a;
-  text-decoration: none;
-}
-
-.post-date {
-  font-size: 11px;
-  color: #6a7785;
+  font-size: 12px;
+  color: #666;
 }
 
 /* 車名 */
 .post-car {
-  margin-top: 8px;
-  font-size: 20px;
+  margin-top: 6px;
+  font-size: 18px;
   font-weight: 900;
 }
 
@@ -177,37 +147,39 @@ textarea {
   line-height: 1.6;
 }
 
-/* 画像 */
+/* =========================
+   🔥 画像：スマホ最適化の核心
+========================= */
 .post-image {
   width: 100%;
+  max-height: 60vh;          /* ← デカすぎ防止 */
+  margin-top: 10px;
   border-radius: 16px;
-  margin-top: 12px;
-  border: 1px solid #e7edf3;
-  object-fit: contain;
+  object-fit: contain;      /* ← 切れない */
+  background: #f2f2f2;
 }
 
 /* =========================
    Actions
 ========================= */
 .post-actions {
-  margin-top: 12px;
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .like-btn,
 .delete-btn {
   flex: 1;
-  text-align: center;
   padding: 10px;
-  font-size: 14px;
   border-radius: 999px;
-  font-weight: 900;
-  background: #fff;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .like-btn {
   border: 1px solid #d6dde5;
+  background: #fff;
 }
 
 .delete-btn {
@@ -217,59 +189,25 @@ textarea {
 }
 
 /* =========================
-   Comments
-========================= */
-.comments {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid #e7edf3;
-}
-
-.comment {
-  font-size: 13px;
-  margin-top: 6px;
-}
-
-/* =========================
-   📱 Mobile（縦にしすぎない）
+   📱 Mobile 調整
 ========================= */
 @media (max-width: 600px) {
 
-  body {
-    font-size: 14px;
-  }
-
-  /* Header */
   .header-inner {
     flex-direction: row;
-    align-items: center;
   }
 
   .nav {
-    gap: 10px;
     overflow-x: auto;
     white-space: nowrap;
   }
 
-  .logo {
-    font-size: 18px;
-  }
-
-  /* Layout */
   .container {
-    margin: 10px auto;
     padding: 0 10px;
   }
 
-  .page-title {
-    font-size: 22px;
-    margin: 10px 0;
-  }
-
-  /* フォーム：2列を維持 */
   .card form {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr 1fr; /* ← 縦にしない */
   }
 
   textarea,
@@ -277,26 +215,10 @@ textarea {
     grid-column: 1 / -1;
   }
 
-  textarea {
-    min-height: 70px;
-  }
-
-  /* Posts */
-  .post-card {
-    padding: 14px;
-    border-radius: 18px;
-  }
-
-  .post-car {
-    font-size: 18px;
-  }
-
   .post-image {
-    max-height: 65vh;
-    border-radius: 14px;
+    max-height: 55vh; /* ← スマホではさらに抑える */
   }
 
-  /* Actions：横並び維持 */
   .post-actions {
     flex-direction: row;
   }
