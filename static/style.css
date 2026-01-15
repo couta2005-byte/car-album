@@ -3,7 +3,7 @@
 }
 
 /* =========================
-   Base（超デカ・最終）
+   Base（超デカ）
 ========================= */
 html {
   font-size: 26px;
@@ -42,7 +42,6 @@ body {
 .nav {
   display: flex;
   gap: 22px;
-  align-items: center;
 }
 
 .nav-link {
@@ -57,12 +56,11 @@ body {
 }
 
 .logout-btn {
-  font-size: 18px;
+  margin-left: 16px;
   padding: 10px 18px;
+  font-size: 18px;
   border-radius: 999px;
   border: none;
-  background: #333;
-  color: #fff;
   cursor: pointer;
 }
 
@@ -71,13 +69,11 @@ body {
 ========================= */
 .container {
   width: 100%;
-  max-width: none;
-  margin: 0;
   padding: 0;
 }
 
 /* =========================
-   Card / Form
+   Card
 ========================= */
 .card {
   padding: 28px 24px;
@@ -90,17 +86,42 @@ body {
   margin-bottom: 20px;
 }
 
-.page-title {
-  font-size: 34px;
-  font-weight: 900;
-}
-
-.card form {
+/* =========================
+   🔥 ランキング切替（日・週・月）
+========================= */
+.ranking-tabs {
   display: flex;
-  flex-direction: column;
   gap: 20px;
+  justify-content: center;
 }
 
+.rank-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 36px;
+  font-size: 24px;
+  font-weight: 900;
+  border-radius: 999px;
+  background: #eef3f4;
+  color: #536471;
+  text-decoration: none;
+  border: 3px solid transparent;
+}
+
+.rank-tab.active {
+  background: #1d9bf0;
+  color: #fff;
+  border-color: #1d9bf0;
+}
+
+.rank-tab:hover {
+  opacity: 0.9;
+}
+
+/* =========================
+   検索フォーム
+========================= */
 input,
 textarea {
   width: 100%;
@@ -114,9 +135,6 @@ textarea {
   min-height: 180px;
 }
 
-/* =========================
-   Buttons
-========================= */
 .primary-btn,
 .secondary-btn {
   width: 100%;
@@ -135,65 +153,27 @@ textarea {
 
 .secondary-btn {
   background: #eef3f4;
-  color: #0f1419;
-}
-
-/* =========================
-   ランキング（日・週・月）
-========================= */
-.ranking-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 28px;
-}
-
-.rank-tab {
-  min-width: 110px;
-  padding: 20px 40px;
-  font-size: 28px;
-  font-weight: 900;
-  border-radius: 999px;
-  background: #eef3f4;
-  color: #536471;
-  text-decoration: none;
-  transition: all 0.2s ease;
-}
-
-.rank-tab:hover {
-  background: #dbeafe;
-}
-
-.rank-tab.active {
-  background: #1d9bf0;
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(29,155,240,.35);
 }
 
 /* =========================
    投稿一覧
 ========================= */
-.posts {
-  width: 100%;
-}
-
 .post-card {
   padding: 30px 24px;
   border-bottom: 2px solid #eff3f4;
 }
 
-/* 上段 */
 .post-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 14px;
 }
 
 .post-user {
   font-size: 24px;
   font-weight: 900;
-  color: #0f1419;
   text-decoration: none;
+  color: #0f1419;
 }
 
 .post-date {
@@ -201,44 +181,32 @@ textarea {
   color: #536471;
 }
 
-/* 車名 */
 .post-car {
   font-size: 34px;
   font-weight: 900;
   margin-bottom: 12px;
 }
 
-/* コメント */
 .post-text {
   font-size: 26px;
   margin-bottom: 18px;
 }
 
-/* =========================
-   画像
-========================= */
 .post-image {
-  display: block;
   width: 100%;
-  height: auto;
-  margin: 18px 0;
   border-radius: 26px;
+  margin: 18px 0;
 }
 
-/* =========================
-   アクション
-========================= */
 .post-actions {
   display: flex;
   gap: 36px;
-  margin-top: 16px;
 }
 
 .like-btn,
 .delete-btn {
   background: none;
   border: none;
-  padding: 0;
   font-size: 22px;
   font-weight: 800;
   color: #536471;
@@ -258,23 +226,19 @@ textarea {
 }
 
 /* =========================
-   スマホ微強化
+   スマホ最適化
 ========================= */
 @media (max-width: 600px) {
   html {
     font-size: 28px;
   }
 
-  .logo {
-    font-size: 34px;
-  }
-
-  .nav-link {
-    font-size: 24px;
-  }
-
   .rank-tab {
-    font-size: 30px;
-    padding: 22px 44px;
+    font-size: 26px;
+    padding: 18px 40px;
+  }
+
+  .post-car {
+    font-size: 36px;
   }
 }
