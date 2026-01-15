@@ -26,8 +26,8 @@
 
       {% if user %}
         <a href="/user/{{ user }}" class="nav-link">プロフィール</a>
-        <form action="/logout" method="post">
-          <button class="logout-btn">ログアウト</button>
+        <form action="/logout" method="post" class="logout-form">
+          <button class="logout-btn" type="submit">ログアウト</button>
         </form>
       {% endif %}
     </nav>
@@ -38,47 +38,57 @@
 
   <!-- ===== ランキング切替 ===== -->
   {% if mode in ['ranking_day','ranking_week','ranking_month'] %}
-  <div class="ranking-tabs">
-    <a href="/ranking?period=day"
-       class="rank-tab {% if mode=='ranking_day' %}active{% endif %}">日</a>
-    <a href="/ranking?period=week"
-       class="rank-tab {% if mode=='ranking_week' %}active{% endif %}">週</a>
-    <a href="/ranking?period=month"
-       class="rank-tab {% if mode=='ranking_month' %}active{% endif %}">月</a>
+  <div class="ranking-tabs-wrap">
+    <div class="ranking-tabs">
+      <a href="/ranking?period=day"
+         class="rank-tab {% if mode=='ranking_day' %}active{% endif %}">
+        日
+      </a>
+      <a href="/ranking?period=week"
+         class="rank-tab {% if mode=='ranking_week' %}active{% endif %}">
+        週
+      </a>
+      <a href="/ranking?period=month"
+         class="rank-tab {% if mode=='ranking_month' %}active{% endif %}">
+        月
+      </a>
+    </div>
   </div>
   {% endif %}
 
   {% if ranking_title %}
-  <h2 class="page-title">{{ ranking_title }}</h2>
+  <h1 class="ranking-title">{{ ranking_title }}</h1>
   {% endif %}
 
   <!-- ===== 検索 ===== -->
-  <form method="get" class="card search-form">
-    <input name="maker" placeholder="メーカー">
-    <input name="car" placeholder="車種">
-    <input name="region" placeholder="地域">
-    <button class="primary-btn">検索</button>
+  <form method="get" class="search-form">
+    <input name="maker" placeholder="メーカー" value="{{ maker }}">
+    <input name="car" placeholder="車種" value="{{ car }}">
+    <input name="region" placeholder="地域" value="{{ region }}">
+    <button class="primary-btn" type="submit">検索</button>
   </form>
 
-  <!-- ===== 未ログイン（ランキング時は非表示） ===== -->
-  {% if not user and not mode.startswith('ranking') %}
-  <div class="card">
-    <h3>ログイン</h3>
-    <form action="/login" method="post">
-      <input name="username" placeholder="ユーザー名">
-      <input name="password" type="password" placeholder="パスワード">
-      <button class="primary-btn">ログイン</button>
-    </form>
-  </div>
+  <!-- ===== 未ログイン（ランキングでは非表示） ===== -->
+  {% if not user and mode == 'home' %}
+  <section class="auth-area">
+    <div class="auth-card">
+      <h2>ログイン</h2>
+      <form action="/login" method="post">
+        <input name="username" placeholder="ユーザー名">
+        <input name="password" type="password" placeholder="パスワード">
+        <button class="primary-btn">ログイン</button>
+      </form>
+    </div>
 
-  <div class="card">
-    <h3>新規登録</h3>
-    <form action="/register" method="post">
-      <input name="username" placeholder="新規ユーザー名">
-      <input name="password" type="password" placeholder="新規パスワード">
-      <button class="primary-btn">新規登録</button>
-    </form>
-  </div>
+    <div class="auth-card">
+      <h2>新規登録</h2>
+      <form action="/register" method="post">
+        <input name="username" placeholder="新規ユーザー名">
+        <input name="password" type="password" placeholder="新規パスワード">
+        <button class="primary-btn">新規登録</button>
+      </form>
+    </div>
+  </section>
   {% endif %}
 
 </main>
