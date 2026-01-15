@@ -2,9 +2,8 @@
   box-sizing: border-box;
 }
 
-/* ===== Base ===== */
 html {
-  font-size: 28px;
+  font-size: 26px;
 }
 
 body {
@@ -13,19 +12,19 @@ body {
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
   background: #fff;
   color: #0f1419;
-  line-height: 1.9;
+  line-height: 1.8;
 }
 
-/* ===== Header ===== */
+/* Header */
 .header {
   background: #000;
 }
 
 .header-inner {
-  padding: 22px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 22px;
 }
 
 .logo {
@@ -37,8 +36,7 @@ body {
 
 .nav {
   display: flex;
-  gap: 22px;
-  align-items: center;
+  gap: 20px;
 }
 
 .nav-link {
@@ -53,18 +51,20 @@ body {
 }
 
 .logout-btn {
-  font-size: 18px;
-  padding: 10px 16px;
-  border-radius: 999px;
+  background: #444;
+  color: #fff;
   border: none;
+  padding: 14px 22px;
+  font-size: 18px;
+  border-radius: 999px;
 }
 
-/* ===== Layout ===== */
+/* Layout */
 .container {
   width: 100%;
 }
 
-/* ===== Card ===== */
+/* Card */
 .card {
   padding: 28px;
   border-bottom: 2px solid #eff3f4;
@@ -73,62 +73,67 @@ body {
 .card-title {
   font-size: 30px;
   font-weight: 900;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
-/* ===== Form ===== */
-input, textarea {
+/* Inputs */
+input,
+textarea {
   width: 100%;
   padding: 24px;
   font-size: 24px;
   border-radius: 20px;
   border: 2px solid #cfd9de;
+  margin-bottom: 20px;
 }
 
 textarea {
   min-height: 180px;
 }
 
-.primary-btn {
-  margin-top: 16px;
+/* Buttons */
+.primary-btn,
+.secondary-btn {
+  width: 100%;
   padding: 26px;
   font-size: 24px;
   font-weight: 900;
   border-radius: 999px;
-  background: #1d9bf0;
-  color: #fff;
   border: none;
 }
 
-/* ===== Ranking Tabs ===== */
-.ranking-tabs {
-  display: flex;
-  gap: 16px;
-  padding: 20px;
+.primary-btn {
+  background: #1d9bf0;
+  color: #fff;
 }
 
-.ranking-tab {
-  flex: 1;
-  padding: 26px 0;
-  font-size: 28px;
+.secondary-btn {
+  background: #eef3f4;
+}
+
+/* Ranking tabs */
+.ranking-tabs {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.rank-tab {
+  padding: 18px 30px;
+  font-size: 26px;
   font-weight: 900;
-  text-align: center;
   border-radius: 999px;
   background: #eef3f4;
   color: #536471;
   text-decoration: none;
 }
 
-.ranking-tab.active {
+.rank-tab.active {
   background: #1d9bf0;
   color: #fff;
 }
 
-/* ===== Posts ===== */
-.posts {
-  width: 100%;
-}
-
+/* Posts */
 .post-card {
   padding: 30px;
   border-bottom: 2px solid #eff3f4;
@@ -136,20 +141,12 @@ textarea {
 
 .post-top {
   display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.rank {
-  font-size: 26px;
-  font-weight: 900;
+  justify-content: space-between;
 }
 
 .post-user {
   font-size: 24px;
   font-weight: 900;
-  text-decoration: none;
-  color: #0f1419;
 }
 
 .post-date {
@@ -160,7 +157,7 @@ textarea {
 .post-car {
   font-size: 34px;
   font-weight: 900;
-  margin: 12px 0;
+  margin: 14px 0;
 }
 
 .post-text {
@@ -171,11 +168,23 @@ textarea {
 .post-image {
   width: 100%;
   border-radius: 26px;
-  margin-bottom: 16px;
+  margin: 20px 0;
 }
 
-/* ===== Actions ===== */
 .post-actions {
+  display: flex;
+  gap: 40px;
   font-size: 22px;
-  font-weight: 800;
+}
+
+.like-btn,
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 22px;
+}
+
+/* Comment */
+.comment-form input {
+  font-size: 24px;
 }
