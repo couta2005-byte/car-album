@@ -1,51 +1,67 @@
-<!-- templates/ranking.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ title }} | Car Album</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <div class="page">
-    <h1 class="title">{{ title }}</h1>
 
-    <div class="top10-links">
-      <a href="/ranking?type=daily" class="top10-link">🔥 当日TOP10</a>
-      <a href="/ranking?type=weekly" class="top10-link">🗓️ 週間TOP10</a>
-      <a href="/ranking?type=monthly" class="top10-link">🗓️ 当月TOP10</a>
-      <a href="/" class="top10-link back">← 戻る</a>
-    </div>
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Car Album</a>
+  </div>
+</header>
 
-    <div class="posts">
-      {% for post in posts %}
-      <div class="post">
+<main class="container">
 
-        {% if post.image %}
-        <div class="media">
-          <img src="{{ post.image }}" class="thumb" alt="thumb">
-        </div>
-        {% endif %}
+  <div class="card">
+    <h2 class="page-title">{{ title }}</h2>
 
-        <div class="body">
-          <div class="head">
-            <span class="rank">{{ loop.index }}位：</span>
-            <a class="user-link" href="/user/{{ post.username }}">{{ post.username }}</a>
-            <span class="car">（{{ post.car }}）</span>
-          </div>
-
-          <p class="comment">{{ post.comment }}</p>
-          <small class="meta">{{ post.created_at }}</small>
-
-          <div class="actions">
-            <span class="like-count">👍 {{ post.likes }}</span>
-          </div>
-        </div>
-
-      </div>
-      {% endfor %}
+    <div class="ranking-tabs">
+      <a href="/ranking?period=day"
+         class="rank-tab {% if period=='day' %}active{% endif %}">
+        日
+      </a>
+      <a href="/ranking?period=week"
+         class="rank-tab {% if period=='week' %}active{% endif %}">
+        週
+      </a>
+      <a href="/ranking?period=month"
+         class="rank-tab {% if period=='month' %}active{% endif %}">
+        月
+      </a>
     </div>
   </div>
+
+  <div class="posts">
+    {% for post in posts %}
+    <article class="post-card">
+
+      <div class="post-top">
+        <span class="rank-badge">#{{ loop.index }}</span>
+        <a class="post-user" href="/user/{{ post.username }}">
+          {{ post.username }}
+        </a>
+      </div>
+
+      <div class="post-car">{{ post.car }}</div>
+
+      {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+      {% endif %}
+
+      <div class="post-text">{{ post.comment }}</div>
+
+      <div class="post-actions">
+        ❤️ {{ post.likes }}
+      </div>
+
+    </article>
+    {% endfor %}
+  </div>
+
+</main>
 </body>
 </html>
