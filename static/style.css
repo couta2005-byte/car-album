@@ -3,16 +3,19 @@
 }
 
 /* =========================
-   Base（スマホ最優先）
+   Base
 ========================= */
+html {
+  font-size: 16px;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
   background: #ffffff;
   color: #0f1419;
-  font-size: 18px;            /* ← 全体ベースを大きく */
-  line-height: 1.7;           /* ← 読みやすさUP */
+  line-height: 1.6;
 }
 
 /* =========================
@@ -31,44 +34,48 @@ body {
 
 .logo {
   color: #fff;
-  font-size: 20px;            /* ← ロゴも少し大きく */
+  font-size: 18px;
   font-weight: 800;
   text-decoration: none;
 }
 
 .nav {
   display: flex;
-  gap: 14px;
+  gap: 12px;
 }
 
 .nav-link {
   color: #ddd;
-  font-size: 15px;
+  font-size: 14px;
   text-decoration: none;
 }
 
+.nav-link.active {
+  color: #1d9bf0;
+}
+
 /* =========================
-   Layout（横幅フル）
+   Layout
 ========================= */
 .container {
   width: 100%;
   max-width: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 
 /* =========================
-   フォーム
+   Card / Form
 ========================= */
 .card {
-  padding: 14px;
+  padding: 16px;
   border-bottom: 1px solid #eff3f4;
 }
 
 .card-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 10px;
 }
 
 .card form {
@@ -80,9 +87,9 @@ body {
 input,
 textarea {
   width: 100%;
-  padding: 16px;              /* ← 入力欄を大きく */
-  font-size: 18px;            /* ← 超重要 */
-  border-radius: 12px;
+  padding: 16px;
+  font-size: 17px;
+  border-radius: 14px;
   border: 1px solid #cfd9de;
 }
 
@@ -90,18 +97,30 @@ textarea {
   min-height: 110px;
 }
 
+/* ボタンは指で押しやすく */
+.primary-btn,
+.secondary-btn {
+  width: 100%;
+  padding: 16px;
+  font-size: 17px;
+  font-weight: 700;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+}
+
 .primary-btn {
   background: #1d9bf0;
   color: #fff;
-  border: none;
-  padding: 16px;
-  font-size: 18px;            /* ← ボタン文字も大きく */
-  font-weight: 700;
-  border-radius: 999px;
+}
+
+.secondary-btn {
+  background: #eef3f4;
+  color: #0f1419;
 }
 
 /* =========================
-   投稿一覧（X風）
+   投稿一覧（X基準）
 ========================= */
 .posts {
   width: 100%;
@@ -109,11 +128,11 @@ textarea {
 
 /* 投稿1件 */
 .post-card {
-  padding: 14px;
+  padding: 16px;
   border-bottom: 1px solid #eff3f4;
 }
 
-/* 上段（ユーザー名＋日時） */
+/* 上段 */
 .post-top {
   display: flex;
   justify-content: space-between;
@@ -122,39 +141,40 @@ textarea {
 }
 
 .post-user {
-  font-size: 18px;            /* ← ユーザー名 */
-  font-weight: 700;
+  font-size: 17px;
+  font-weight: 800;
   color: #0f1419;
   text-decoration: none;
 }
 
 .post-date {
-  font-size: 14px;
+  font-size: 13px;
   color: #536471;
 }
 
 /* 車名 */
 .post-car {
-  font-size: 20px;            /* ← ここ超重要 */
-  font-weight: 800;
+  font-size: 19px;
+  font-weight: 900;
   margin-bottom: 6px;
 }
 
-/* コメント本文 */
+/* コメント */
 .post-text {
-  font-size: 18px;            /* ← 本文をしっかり大きく */
+  font-size: 17px;
   margin-bottom: 10px;
 }
 
 /* =========================
-   画像（切らない・拡大しすぎない）
+   画像（切らない・横フル）
 ========================= */
 .post-image {
   display: block;
   width: 100%;
   height: auto;
+  max-width: 100%;
   margin: 10px 0;
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
 /* =========================
@@ -162,8 +182,8 @@ textarea {
 ========================= */
 .post-actions {
   display: flex;
-  gap: 20px;
-  margin-top: 6px;
+  gap: 22px;
+  margin-top: 8px;
 }
 
 .like-btn,
@@ -171,18 +191,70 @@ textarea {
   background: none;
   border: none;
   padding: 0;
-  font-size: 16px;            /* ← いいね文字も大きく */
+  font-size: 15px;
   color: #536471;
+  cursor: pointer;
 }
 
 /* =========================
-   コメント欄
+   コメント
 ========================= */
-.comment-form input {
-  font-size: 17px;
+.comment-form {
+  margin-top: 10px;
 }
 
-.comment {
+.comment-form input {
   font-size: 16px;
-  margin-top: 4px;
+  padding: 14px;
+}
+
+/* =========================
+   スマホ専用 強制拡大
+========================= */
+@media (max-width: 600px) {
+
+  html {
+    font-size: 18px; /* ← 全体を一段階拡大 */
+  }
+
+  .header-inner {
+    padding: 14px;
+  }
+
+  .logo {
+    font-size: 19px;
+  }
+
+  .nav-link {
+    font-size: 15px;
+  }
+
+  input,
+  textarea {
+    font-size: 18px;
+    padding: 18px;
+  }
+
+  .primary-btn,
+  .secondary-btn {
+    font-size: 18px;
+    padding: 18px;
+  }
+
+  .post-user {
+    font-size: 18px;
+  }
+
+  .post-car {
+    font-size: 21px;
+  }
+
+  .post-text {
+    font-size: 18px;
+  }
+
+  .like-btn,
+  .delete-btn {
+    font-size: 16px;
+  }
 }
