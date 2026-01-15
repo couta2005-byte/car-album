@@ -4,7 +4,7 @@
 
 /* ===== ベース ===== */
 html {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 body {
@@ -22,34 +22,35 @@ body {
 .header-inner {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 16px;
-  overflow-x: auto; /* ← 重要 */
+  gap: 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
 }
 
+/* ロゴ */
 .logo {
   color: #fff;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 900;
   text-decoration: none;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-/* ナビ全体 */
+/* ナビ */
 .nav {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: nowrap;          /* ← 折り返さない */
-  white-space: nowrap;        /* ← 文字を縦にしない */
-  overflow-x: auto;           /* ← 横スクロール */
+  gap: 14px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  overflow-x: auto;
 }
 
 /* ナビリンク */
 .nav-link {
   color: #ccc;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
@@ -61,18 +62,13 @@ body {
 }
 
 /* ログアウト */
-.logout-form {
-  margin-left: 8px;
-  flex-shrink: 0;
-}
-
 .logout-btn {
-  background: #fff;
-  color: #000;
+  background: #2f2f2f;
+  color: #fff;
   border: none;
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -82,43 +78,7 @@ body {
   padding: 16px;
 }
 
-/* ===== ランキング切替 ===== */
-.ranking-tabs-wrap {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0 12px;
-}
-
-.ranking-tabs {
-  display: flex;
-  gap: 12px;
-}
-
-.rank-tab {
-  min-width: 56px;
-  padding: 10px 0;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 800;
-  color: #536471;
-  background: #eef3f4;
-  border-radius: 999px;
-  text-decoration: none;
-}
-
-.rank-tab.active {
-  background: #1d9bf0;
-  color: #fff;
-}
-
-/* ===== タイトル ===== */
-.ranking-title {
-  font-size: 28px;
-  font-weight: 900;
-  margin: 20px 0;
-}
-
-/* ===== 検索 ===== */
+/* ===== フォーム ===== */
 .search-form {
   display: flex;
   flex-direction: column;
@@ -127,17 +87,43 @@ body {
 
 input {
   padding: 14px;
-  font-size: 16px;
+  font-size: 15px;
   border-radius: 14px;
   border: 2px solid #cfd9de;
 }
 
+/* ボタン */
 .primary-btn {
   padding: 14px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   border-radius: 999px;
   border: none;
+  background: #1d9bf0;
+  color: #fff;
+}
+
+/* ===== ランキング切替（日・週・月） ===== */
+.ranking-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.rank-tab {
+  min-width: 56px;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: #536471;
+  background: #eef3f4;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.rank-tab.active {
   background: #1d9bf0;
   color: #fff;
 }
