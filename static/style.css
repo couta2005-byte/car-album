@@ -3,7 +3,7 @@
 }
 
 /* =========================
-   Base（X基準）
+   Base（X完全準拠）
 ========================= */
 body {
   margin: 0;
@@ -11,7 +11,7 @@ body {
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
   background: #ffffff;
   color: #0f1419;
-  font-size: 16px;
+  font-size: 17px; /* ← 重要：全体を1段階大きく */
   line-height: 1.6;
 }
 
@@ -26,7 +26,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
+  padding: 10px 14px;
 }
 
 .logo {
@@ -38,7 +38,7 @@ body {
 
 .nav {
   display: flex;
-  gap: 12px;
+  gap: 14px;
 }
 
 .nav-link {
@@ -48,7 +48,7 @@ body {
 }
 
 /* =========================
-   Layout（制限全解除）
+   Layout（横幅制限完全撤廃）
 ========================= */
 .container {
   width: 100%;
@@ -58,11 +58,32 @@ body {
 }
 
 /* =========================
-   フォーム系
+   Grid（HTMLで使ってるのに無かった）
+========================= */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+/* =========================
+   Card / Form
 ========================= */
 .card {
-  padding: 12px;
+  padding: 14px;
   border-bottom: 1px solid #eff3f4;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 6px;
 }
 
 .card form {
@@ -76,7 +97,7 @@ textarea {
   width: 100%;
   padding: 14px;
   font-size: 16px;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #cfd9de;
 }
 
@@ -95,7 +116,7 @@ textarea {
 }
 
 /* =========================
-   タイムライン（X方式）
+   Timeline（X方式）
 ========================= */
 .posts {
   width: 100%;
@@ -103,7 +124,7 @@ textarea {
 
 /* 投稿1件 */
 .post-card {
-  padding: 12px;
+  padding: 14px;
   border-bottom: 1px solid #eff3f4;
 }
 
@@ -111,12 +132,15 @@ textarea {
 .post-top {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   margin-bottom: 4px;
 }
 
 .post-user {
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 800;
+  color: #0f1419;
+  text-decoration: none;
 }
 
 .post-date {
@@ -126,8 +150,8 @@ textarea {
 
 /* 車名 */
 .post-car {
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 900;
   margin-bottom: 4px;
 }
 
@@ -138,14 +162,13 @@ textarea {
 }
 
 /* =========================
-   画像（X完全再現）
+   画像（Xの核心）
 ========================= */
 .post-image {
   display: block;
   width: 100%;
   height: auto;
-  max-width: none;
-  margin: 8px 0;
+  margin: 10px 0;
   border-radius: 16px;
 }
 
@@ -154,7 +177,7 @@ textarea {
 ========================= */
 .post-actions {
   display: flex;
-  gap: 18px;
+  gap: 20px;
   margin-top: 6px;
 }
 
@@ -163,6 +186,6 @@ textarea {
   background: none;
   border: none;
   padding: 0;
-  font-size: 14px;
+  font-size: 15px;
   color: #536471;
 }
