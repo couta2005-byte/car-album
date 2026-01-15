@@ -3,31 +3,31 @@
 }
 
 /* =========================
-   Base
+   Base（X基準）
 ========================= */
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont,
                "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
-  background: #f2f3f5;
-  color: #111;
-  line-height: 1.7;
+  background: #fff;
+  color: #0f1419;
+  line-height: 1.6;
+  font-size: 16px;
 }
 
 /* =========================
    Header
 ========================= */
 .header {
-  background: #111;
+  background: #000;
   color: #fff;
 }
 
 .header-inner {
-  max-width: 100%;
-  padding: 12px;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
 }
 
 .logo {
@@ -49,145 +49,121 @@ body {
 }
 
 /* =========================
-   Layout
+   Layout（幅制限撤廃）
 ========================= */
 .container {
+  width: 100%;
   max-width: 100%;
-  padding: 10px;
+  padding: 0;
 }
 
 /* =========================
-   Card
+   検索・ログイン系
 ========================= */
 .card {
-  background: #fff;
-  border-radius: 14px;
-  padding: 14px;
-  margin-bottom: 14px;
+  padding: 12px;
+  border-bottom: 1px solid #eff3f4;
 }
 
-/* =========================
-   Form
-========================= */
 .card form {
-  display: grid;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 input,
 textarea {
   width: 100%;
   padding: 14px;
-  font-size: 17px;
-  border-radius: 12px;
-  border: 1px solid #ddd;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #cfd9de;
 }
 
 textarea {
-  min-height: 100px;
+  min-height: 90px;
 }
 
 .primary-btn {
-  background: #3498db;
+  background: #1d9bf0;
   color: #fff;
   border: none;
-  padding: 16px;
-  font-size: 17px;
+  padding: 14px;
+  font-size: 16px;
   font-weight: 700;
-  border-radius: 12px;
+  border-radius: 999px;
 }
 
 /* =========================
-   Posts
+   投稿（X風タイムライン）
 ========================= */
 .posts {
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 
+/* 投稿1件 */
 .post-card {
-  background: #fff;
-  border-radius: 14px;
   padding: 12px;
+  border-bottom: 1px solid #eff3f4;
 }
 
-/* 投稿上部 */
+/* ユーザー名＋日付 */
 .post-top {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .post-user {
   font-size: 16px;
-  font-weight: 800;
-  color: #0b5ed7;
+  font-weight: 700;
+  color: #0f1419;
 }
 
 .post-date {
   font-size: 13px;
-  color: #777;
+  color: #536471;
 }
 
 /* 車名 */
 .post-car {
-  font-size: 19px;
-  font-weight: 900;
-  margin-bottom: 6px;
+  font-size: 17px;
+  font-weight: 800;
+  margin-bottom: 4px;
 }
 
 /* コメント */
 .post-text {
   font-size: 16px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 /* =========================
-   🔥 画像（完全修正版）
+   画像（Xと同じ挙動）
 ========================= */
 .post-image {
-  width: 100vw;              /* 画面いっぱい */
-  max-width: 100vw;
+  width: 100%;
   height: auto;
+  border-radius: 16px;
   display: block;
-  margin: 0 -10px;           /* containerのpaddingを打ち消す */
-  border-radius: 0;
-  background: #fff;
+  margin-top: 6px;
 }
 
 /* =========================
-   Actions
+   アクション
 ========================= */
 .post-actions {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 16px;
+  margin-top: 8px;
 }
 
 .like-btn,
 .delete-btn {
-  flex: 1;
-  padding: 12px;
-  font-size: 15px;
-  border-radius: 999px;
-  border: 1px solid #ddd;
-  background: #fff;
-}
-
-/* =========================
-   Mobile 微調整
-========================= */
-@media (max-width: 600px) {
-  body {
-    font-size: 16px;
-  }
-
-  .post-car {
-    font-size: 18px;
-  }
-
-  .post-text {
-    font-size: 16px;
-  }
+  font-size: 14px;
+  background: none;
+  border: none;
+  color: #536471;
+  padding: 0;
 }
