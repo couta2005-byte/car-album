@@ -7,9 +7,9 @@
 ========================= */
 body {
   margin: 0;
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-  background: #f4f6f8;
-  color: #222;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #f2f3f5;
+  color: #111;
 }
 
 /* =========================
@@ -17,13 +17,11 @@ body {
 ========================= */
 .header {
   background: #111;
-  color: #fff;
-  padding: 12px 0;
+  padding: 10px 0;
 }
 
 .header-inner {
-  max-width: 980px;
-  margin: 0 auto;
+  max-width: 100%;
   padding: 0 12px;
   display: flex;
   align-items: center;
@@ -31,39 +29,39 @@ body {
 }
 
 .logo {
-  font-weight: 900;
-  font-size: 18px;
   color: #fff;
+  font-size: 16px;
+  font-weight: 900;
   text-decoration: none;
 }
 
 .nav {
   display: flex;
-  gap: 10px;
+  gap: 8px;
+  overflow-x: auto;
 }
 
 .nav-link {
   color: #fff;
-  font-size: 13px;
-  text-decoration: none;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .logout-btn {
   background: #e74c3c;
   border: none;
   color: #fff;
-  padding: 6px 12px;
+  padding: 6px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
 }
 
 /* =========================
    Layout
 ========================= */
 .container {
-  max-width: 980px;
-  margin: 12px auto;
-  padding: 0 10px;
+  max-width: 100%;
+  padding: 8px;
 }
 
 /* =========================
@@ -71,18 +69,17 @@ body {
 ========================= */
 .card {
   background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 6px 18px rgba(0,0,0,.08);
-  margin-bottom: 14px;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
 }
 
 /* =========================
-   Form（スマホ主役）
+   Form（スマホ特化）
 ========================= */
 .card form {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
@@ -90,78 +87,74 @@ input,
 textarea {
   width: 100%;
   padding: 14px;
-  border-radius: 14px;
-  border: 1.5px solid #d6dde5;
   font-size: 16px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
 }
 
 textarea {
-  min-height: 140px;
+  min-height: 120px;
 }
 
 .primary-btn {
   padding: 14px;
+  font-size: 16px;
+  font-weight: 800;
   border-radius: 14px;
   border: none;
   background: #3498db;
   color: #fff;
-  font-weight: 900;
-  font-size: 16px;
 }
 
 /* =========================
    Posts
 ========================= */
 .posts {
-  display: grid;
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .post-card {
   background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 8px 22px rgba(0,0,0,.08);
+  border-radius: 14px;
+  padding: 12px;
 }
 
 /* ユーザー・日付 */
 .post-top {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: #555;
+  font-size: 11px;
+  color: #666;
 }
 
 .post-user {
   font-weight: 800;
 }
 
-.post-date {
-  color: #999;
-}
-
 /* 車名 */
 .post-car {
-  margin-top: 6px;
-  font-size: 16px;
+  margin-top: 4px;
+  font-size: 15px;
   font-weight: 900;
 }
 
 /* コメント */
 .post-text {
-  margin-top: 4px;
+  margin-top: 2px;
   font-size: 14px;
 }
 
 /* =========================
-   🔥 画像（超重要）
+   🔥 画像（最重要修正）
 ========================= */
 .post-image {
   width: 100%;
-  height: 180px;              /* ← 強制サムネ */
-  margin-top: 10px;
-  border-radius: 14px;
-  object-fit: cover;          /* ← 中央トリミング */
+  height: 140px;        /* ← ここが効く */
+  margin-top: 8px;
+  border-radius: 12px;
+  object-fit: cover;   /* 中央トリミング */
   background: #000;
 }
 
@@ -169,9 +162,9 @@ textarea {
    Actions
 ========================= */
 .post-actions {
-  margin-top: 10px;
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .like-btn,
@@ -186,16 +179,15 @@ textarea {
 
 .delete-btn {
   color: #c0392b;
-  border-color: #f5c6cb;
 }
 
 /* =========================
    Comments
 ========================= */
 .comments {
-  margin-top: 10px;
+  margin-top: 8px;
   border-top: 1px solid #eee;
-  padding-top: 8px;
+  padding-top: 6px;
 }
 
 .comment {
