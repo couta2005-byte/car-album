@@ -3,7 +3,7 @@
 }
 
 /* =========================
-   Base（X完全準拠）
+   Base（X基準・可読性重視）
 ========================= */
 body {
   margin: 0;
@@ -11,8 +11,8 @@ body {
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
   background: #ffffff;
   color: #0f1419;
-  font-size: 17px; /* ← 重要：全体を1段階大きく */
-  line-height: 1.6;
+  font-size: 17px;              /* ← 全体を1段階大きく */
+  line-height: 1.7;
 }
 
 /* =========================
@@ -20,6 +20,9 @@ body {
 ========================= */
 .header {
   background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .header-inner {
@@ -38,7 +41,7 @@ body {
 
 .nav {
   display: flex;
-  gap: 14px;
+  gap: 12px;
 }
 
 .nav-link {
@@ -47,29 +50,28 @@ body {
   text-decoration: none;
 }
 
+.nav-link.active {
+  color: #1d9bf0;
+  font-weight: 700;
+}
+
+.logout-btn {
+  background: #e0245e;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
 /* =========================
-   Layout（横幅制限完全撤廃）
+   Layout（横幅制限なし）
 ========================= */
 .container {
   width: 100%;
   max-width: none;
   padding: 0;
   margin: 0;
-}
-
-/* =========================
-   Grid（HTMLで使ってるのに無かった）
-========================= */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.grid-3 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
 }
 
 /* =========================
@@ -83,13 +85,27 @@ body {
 .card-title {
   font-size: 18px;
   font-weight: 800;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .card form {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.grid-2,
+.grid-3 {
+  display: grid;
   gap: 10px;
+}
+
+.grid-2 {
+  grid-template-columns: 1fr;
+}
+
+.grid-3 {
+  grid-template-columns: 1fr;
 }
 
 input,
@@ -115,6 +131,36 @@ textarea {
   border-radius: 999px;
 }
 
+.secondary-btn {
+  background: #eff3f4;
+  color: #0f1419;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 999px;
+}
+
+/* =========================
+   Ranking Tabs
+========================= */
+.ranking-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+.ranking-tabs a {
+  text-decoration: none;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #536471;
+}
+
+.ranking-tabs a.active {
+  background: #1d9bf0;
+  color: #fff;
+}
+
 /* =========================
    Timeline（X方式）
 ========================= */
@@ -133,14 +179,14 @@ textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .post-user {
-  font-size: 16px;
+  font-size: 17px;      /* ← 強化 */
   font-weight: 800;
-  color: #0f1419;
   text-decoration: none;
+  color: #0f1419;
 }
 
 .post-date {
@@ -148,27 +194,28 @@ textarea {
   color: #536471;
 }
 
-/* 車名 */
+/* 車名（主役） */
 .post-car {
-  font-size: 18px;
-  font-weight: 900;
-  margin-bottom: 4px;
+  font-size: 19px;      /* ← ここ重要 */
+  font-weight: 800;
+  margin-bottom: 6px;
 }
 
 /* コメント */
 .post-text {
-  font-size: 16px;
+  font-size: 17px;      /* ← X基準 */
   margin-bottom: 8px;
 }
 
 /* =========================
-   画像（Xの核心）
+   画像（切らない・拡大）
 ========================= */
 .post-image {
   display: block;
-  width: 100%;
-  height: auto;
-  margin: 10px 0;
+  width: 100%;          /* 横幅フル */
+  height: auto;         /* 切らない */
+  max-width: none;
+  margin: 8px 0;
   border-radius: 16px;
 }
 
@@ -177,7 +224,7 @@ textarea {
 ========================= */
 .post-actions {
   display: flex;
-  gap: 20px;
+  gap: 18px;
   margin-top: 6px;
 }
 
@@ -186,6 +233,43 @@ textarea {
   background: none;
   border: none;
   padding: 0;
-  font-size: 15px;
+  font-size: 15px;      /* ← 少し大きく */
   color: #536471;
+}
+
+/* =========================
+   コメント
+========================= */
+.comments {
+  margin-top: 6px;
+}
+
+.comment {
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.comment-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.comment-form input {
+  flex: 1;
+  font-size: 16px;
+}
+
+/* =========================
+   PCだけ少し余裕
+========================= */
+@media (min-width: 768px) {
+  body {
+    font-size: 16px;
+  }
+
+  .container {
+    max-width: 600px;   /* PCはX同様センター */
+    margin: 0 auto;
+  }
 }
