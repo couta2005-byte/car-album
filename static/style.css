@@ -27,8 +27,8 @@ body {
   margin: 0 auto;
   padding: 12px 14px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
 .logo {
@@ -52,15 +52,6 @@ body {
 .nav-link.active {
   color: #fff;
   font-weight: 700;
-}
-
-.logout-btn {
-  background: #e74c3c;
-  border: none;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 13px;
 }
 
 /* =========================
@@ -87,7 +78,6 @@ body {
 ========================= */
 .card form {
   display: grid;
-  grid-template-columns: 1fr;
   gap: 10px;
 }
 
@@ -129,11 +119,10 @@ textarea {
   padding: 12px;
 }
 
-/* ユーザー名・日付 */
+/* ユーザー・日付 */
 .post-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 6px;
 }
 
@@ -141,7 +130,6 @@ textarea {
   font-size: 15px;
   font-weight: 700;
   color: #0b5ed7;
-  text-decoration: none;
 }
 
 .post-date {
@@ -163,12 +151,14 @@ textarea {
 }
 
 /* =========================
-   画像（最重要修正ポイント）
+   画像（★最終解決★）
 ========================= */
 .post-image {
   width: 100%;
-  height: 130px;          /* ← スマホで見やすい固定高さ */
-  object-fit: cover;     /* ← 黒帯ゼロ・SNS仕様 */
+  height: auto;
+  max-height: 60vh;       /* スマホでデカすぎ防止 */
+  object-fit: contain;   /* 切れない */
+  background: #fff;      /* 黒帯防止 */
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   display: block;
@@ -193,34 +183,12 @@ textarea {
   background: #fff;
 }
 
-.delete-btn {
-  color: #c0392b;
-  border-color: #f5c6cb;
-}
-
 /* =========================
-   Comments
-========================= */
-.comments {
-  margin-top: 8px;
-}
-
-.comment {
-  font-size: 14px;
-  padding: 6px 0;
-  border-top: 1px solid #eee;
-}
-
-/* =========================
-   Mobile only 微調整
+   Mobile 微調整
 ========================= */
 @media (max-width: 600px) {
   body {
     font-size: 15px;
-  }
-
-  .post-image {
-    height: 120px;   /* ← さらに圧縮 */
   }
 
   .post-car {
@@ -229,5 +197,9 @@ textarea {
 
   .post-text {
     font-size: 15px;
+  }
+
+  .post-image {
+    max-height: 55vh;
   }
 }
