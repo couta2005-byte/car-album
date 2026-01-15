@@ -36,28 +36,22 @@
 
 <main class="container">
 
-  <!-- ===== ランキング切替 ===== -->
+  <!-- ===== ランキング切替（日・週・月） ===== -->
   {% if mode in ['ranking_day','ranking_week','ranking_month'] %}
   <div class="ranking-tabs-wrap">
     <div class="ranking-tabs">
       <a href="/ranking?period=day"
-         class="rank-tab {% if mode=='ranking_day' %}active{% endif %}">
-        日
-      </a>
+         class="rank-tab {% if mode=='ranking_day' %}active{% endif %}">日</a>
       <a href="/ranking?period=week"
-         class="rank-tab {% if mode=='ranking_week' %}active{% endif %}">
-        週
-      </a>
+         class="rank-tab {% if mode=='ranking_week' %}active{% endif %}">週</a>
       <a href="/ranking?period=month"
-         class="rank-tab {% if mode=='ranking_month' %}active{% endif %}">
-        月
-      </a>
+         class="rank-tab {% if mode=='ranking_month' %}active{% endif %}">月</a>
     </div>
   </div>
   {% endif %}
 
   {% if ranking_title %}
-  <h1 class="ranking-title">{{ ranking_title }}</h1>
+    <h1 class="ranking-title">{{ ranking_title }}</h1>
   {% endif %}
 
   <!-- ===== 検索 ===== -->
@@ -68,7 +62,22 @@
     <button class="primary-btn" type="submit">検索</button>
   </form>
 
-  <!-- ===== 未ログイン（ランキングでは非表示） ===== -->
+  <!-- ===== 投稿（ログインしてたら常に表示） ===== -->
+  {% if user %}
+  <section class="post-area">
+    <h2 class="section-title">投稿</h2>
+    <form action="/post" method="post" enctype="multipart/form-data" class="post-form">
+      <input name="maker" placeholder="メーカー">
+      <input name="region" placeholder="地域">
+      <input name="car" placeholder="車名">
+      <textarea name="comment" placeholder="ひとこと"></textarea>
+      <input type="file" name="image">
+      <button class="primary-btn" type="submit">投稿</button>
+    </form>
+  </section>
+  {% endif %}
+
+  <!-- ===== 未ログイン（おすすめのみ） ===== -->
   {% if not user and mode == 'home' %}
   <section class="auth-area">
     <div class="auth-card">
@@ -90,6 +99,44 @@
     </div>
   </section>
   {% endif %}
+
+  <!-- ===== 投稿一覧 ===== -->
+  <section class="posts">
+    {% for post in posts %}
+    <article class="post-card">
+      <div class="post-top">
+        <a href="/user/{{ post.username }}" class="post-user">{{ post.username }}</a>
+        <span class="post-date">{{ post.created_at }}</span>
+      </div>
+
+      <div class="post-car">{{ post.car }}</div>
+
+      {% if post.comment %}
+        <div class="post-text">{{ post.comment }}</div>
+      {% endif %}
+
+      {% if post.image %}
+        <img src="{{ post.image }}" class="post-image">
+      {% endif %}
+
+      <div class="post-actions">
+        <form method="post"
+          action="{% if post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}">
+          <button class="like-btn">
+            {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
+            {{ post.likes }}
+          </button>
+        </form>
+
+        {% if user == post.username %}
+        <form method="post" action="/delete/{{ post.id }}">
+          <button class="delete-btn">削除</button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </section>
 
 </main>
 </body>
