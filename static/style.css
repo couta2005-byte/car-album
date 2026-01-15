@@ -3,7 +3,7 @@
 }
 
 /* =========================
-   Base
+   Base（超デカ・最終）
 ========================= */
 html {
   font-size: 26px;
@@ -15,7 +15,7 @@ body {
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
   background: #ffffff;
   color: #0f1419;
-  line-height: 1.8;
+  line-height: 1.9;
 }
 
 /* =========================
@@ -27,9 +27,9 @@ body {
 
 .header-inner {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 22px;
+  justify-content: space-between;
+  padding: 20px;
 }
 
 .logo {
@@ -41,7 +41,8 @@ body {
 
 .nav {
   display: flex;
-  gap: 20px;
+  gap: 22px;
+  align-items: center;
 }
 
 .nav-link {
@@ -56,23 +57,30 @@ body {
 }
 
 .logout-btn {
-  background: #444;
-  color: #fff;
-  border: none;
-  padding: 14px 22px;
   font-size: 18px;
+  padding: 10px 18px;
   border-radius: 999px;
+  border: none;
+  background: #333;
+  color: #fff;
+  cursor: pointer;
 }
 
 /* =========================
-   Layout / Card
+   Layout
 ========================= */
 .container {
   width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
 }
 
+/* =========================
+   Card / Form
+========================= */
 .card {
-  padding: 28px;
+  padding: 28px 24px;
   border-bottom: 2px solid #eff3f4;
 }
 
@@ -82,9 +90,17 @@ body {
   margin-bottom: 20px;
 }
 
-/* =========================
-   Inputs
-========================= */
+.page-title {
+  font-size: 34px;
+  font-weight: 900;
+}
+
+.card form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 input,
 textarea {
   width: 100%;
@@ -92,7 +108,6 @@ textarea {
   font-size: 24px;
   border-radius: 20px;
   border: 2px solid #cfd9de;
-  margin-bottom: 20px;
 }
 
 textarea {
@@ -110,6 +125,7 @@ textarea {
   font-weight: 900;
   border-radius: 999px;
   border: none;
+  cursor: pointer;
 }
 
 .primary-btn {
@@ -119,24 +135,21 @@ textarea {
 
 .secondary-btn {
   background: #eef3f4;
+  color: #0f1419;
 }
 
-/* =====================================================
-   ★ ランキング 日・週・月（ここが本題）
-===================================================== */
+/* =========================
+   ランキング（日・週・月）
+========================= */
 .ranking-tabs {
   display: flex;
   justify-content: center;
-  gap: 22px;
-  margin: 10px 0 20px;
+  gap: 28px;
 }
 
 .rank-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 90px;
-  padding: 18px 34px;
+  min-width: 110px;
+  padding: 20px 40px;
   font-size: 28px;
   font-weight: 900;
   border-radius: 999px;
@@ -153,28 +166,27 @@ textarea {
 .rank-tab.active {
   background: #1d9bf0;
   color: #fff;
-  box-shadow: 0 6px 18px rgba(29,155,240,0.35);
+  box-shadow: 0 10px 24px rgba(29,155,240,.35);
 }
 
 /* =========================
-   Ranking title
+   投稿一覧
 ========================= */
-.page-title {
-  font-size: 34px;
-  font-weight: 900;
+.posts {
+  width: 100%;
 }
 
-/* =========================
-   Posts
-========================= */
 .post-card {
-  padding: 30px;
+  padding: 30px 24px;
   border-bottom: 2px solid #eff3f4;
 }
 
+/* 上段 */
 .post-top {
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
 }
 
 .post-user {
@@ -189,53 +201,80 @@ textarea {
   color: #536471;
 }
 
+/* 車名 */
 .post-car {
   font-size: 34px;
   font-weight: 900;
-  margin: 14px 0;
+  margin-bottom: 12px;
 }
 
+/* コメント */
 .post-text {
   font-size: 26px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
+/* =========================
+   画像
+========================= */
 .post-image {
+  display: block;
   width: 100%;
+  height: auto;
+  margin: 18px 0;
   border-radius: 26px;
-  margin: 20px 0;
 }
 
+/* =========================
+   アクション
+========================= */
 .post-actions {
   display: flex;
-  gap: 40px;
-  font-size: 22px;
+  gap: 36px;
+  margin-top: 16px;
 }
 
 .like-btn,
 .delete-btn {
   background: none;
   border: none;
+  padding: 0;
   font-size: 22px;
+  font-weight: 800;
+  color: #536471;
+  cursor: pointer;
 }
 
 /* =========================
-   Comment
+   コメント
 ========================= */
+.comment-form {
+  margin-top: 18px;
+}
+
 .comment-form input {
   font-size: 24px;
+  padding: 22px;
 }
 
 /* =========================
-   Mobile boost
+   スマホ微強化
 ========================= */
 @media (max-width: 600px) {
   html {
     font-size: 28px;
   }
 
+  .logo {
+    font-size: 34px;
+  }
+
+  .nav-link {
+    font-size: 24px;
+  }
+
   .rank-tab {
     font-size: 30px;
-    padding: 20px 36px;
+    padding: 22px 44px;
   }
 }
