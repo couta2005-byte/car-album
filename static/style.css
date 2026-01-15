@@ -242,3 +242,33 @@ textarea {
     font-size: 36px;
   }
 }
+/* =========================
+   ランキングタブ（日・週・月）
+========================= */
+.ranking-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin: 24px 0 10px;
+}
+
+.rank-tab {
+  padding: 16px 28px;
+  font-size: 24px;
+  font-weight: 900;
+  border-radius: 999px;
+  background: #eef3f4;
+  color: #0f1419;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.rank-tab.active {
+  background: #1d9bf0;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(29,155,240,0.4);
+}
+
+.rank-tab:hover {
+  transform: scale(1.05);
+}
