@@ -16,7 +16,9 @@
       <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
 
       {% if user %}
-        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
+        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">
+          フォロー中
+        </a>
       {% endif %}
 
       <a href="/ranking?period=day"
@@ -62,17 +64,17 @@
     <button class="primary-btn" type="submit">検索</button>
   </form>
 
-  <!-- ===== 投稿（ログインしてたら常に表示） ===== -->
-  {% if user %}
-  <section class="post-area">
-    <h2 class="section-title">投稿</h2>
-    <form action="/post" method="post" enctype="multipart/form-data" class="post-form">
+  <!-- ===== 投稿（おすすめのみ） ===== -->
+  {% if user and mode == 'home' %}
+  <section class="post-form">
+    <h2>投稿</h2>
+    <form action="/post" method="post" enctype="multipart/form-data">
       <input name="maker" placeholder="メーカー">
       <input name="region" placeholder="地域">
       <input name="car" placeholder="車名">
       <textarea name="comment" placeholder="ひとこと"></textarea>
       <input type="file" name="image">
-      <button class="primary-btn" type="submit">投稿</button>
+      <button class="primary-btn">投稿</button>
     </form>
   </section>
   {% endif %}
@@ -100,40 +102,36 @@
   </section>
   {% endif %}
 
-  <!-- ===== 投稿一覧 ===== -->
+  <!-- ===== 投稿一覧 / ランキング ===== -->
   <section class="posts">
     {% for post in posts %}
-    <article class="post-card">
-      <div class="post-top">
-        <a href="/user/{{ post.username }}" class="post-user">{{ post.username }}</a>
-        <span class="post-date">{{ post.created_at }}</span>
-      </div>
+    <article class="post-card {% if mode.startswith('ranking') %}ranking-card rank-{{ loop.index }}{% endif %}">
 
-      <div class="post-car">{{ post.car }}</div>
+      {% if mode.startswith('ranking') %}
+        <div class="rank-badge">{{ loop.index }}</div>
+      {% endif %}
 
-      {% if post.comment %}
+      <div class="post-body">
+        <div class="post-top">
+          <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
+          <span class="post-date">{{ post.created_at }}</span>
+        </div>
+
+        <div class="post-car">{{ post.car }}</div>
+
+        {% if post.comment %}
         <div class="post-text">{{ post.comment }}</div>
-      {% endif %}
-
-      {% if post.image %}
-        <img src="{{ post.image }}" class="post-image">
-      {% endif %}
-
-      <div class="post-actions">
-        <form method="post"
-          action="{% if post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}">
-          <button class="like-btn">
-            {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
-            {{ post.likes }}
-          </button>
-        </form>
-
-        {% if user == post.username %}
-        <form method="post" action="/delete/{{ post.id }}">
-          <button class="delete-btn">削除</button>
-        </form>
         {% endif %}
+
+        {% if post.image %}
+        <img src="{{ post.image }}" class="post-image">
+        {% endif %}
+
+        <div class="post-actions">
+          ❤️ {{ post.likes }}
+        </div>
       </div>
+
     </article>
     {% endfor %}
   </section>
