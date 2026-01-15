@@ -2,39 +2,35 @@
   box-sizing: border-box;
 }
 
-/* =========================
-   Base（超デカ・最終）
-========================= */
+/* ===== Base ===== */
 html {
-  font-size: 26px; /* ← ここが全体の要 */
+  font-size: 28px;
 }
 
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
-  background: #ffffff;
+  background: #fff;
   color: #0f1419;
   line-height: 1.9;
 }
 
-/* =========================
-   Header
-========================= */
+/* ===== Header ===== */
 .header {
   background: #000;
 }
 
 .header-inner {
+  padding: 22px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 20px 20px;
+  align-items: center;
 }
 
 .logo {
   color: #fff;
-  font-size: 32px; /* Car Album */
+  font-size: 32px;
   font-weight: 900;
   text-decoration: none;
 }
@@ -42,11 +38,12 @@ body {
 .nav {
   display: flex;
   gap: 22px;
+  align-items: center;
 }
 
 .nav-link {
   color: #ddd;
-  font-size: 22px; /* ナビ全部 */
+  font-size: 22px;
   font-weight: 800;
   text-decoration: none;
 }
@@ -55,38 +52,32 @@ body {
   color: #1d9bf0;
 }
 
-/* =========================
-   Layout
-========================= */
-.container {
-  width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
+.logout-btn {
+  font-size: 18px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: none;
 }
 
-/* =========================
-   Card / Form
-========================= */
+/* ===== Layout ===== */
+.container {
+  width: 100%;
+}
+
+/* ===== Card ===== */
 .card {
-  padding: 28px 24px;
+  padding: 28px;
   border-bottom: 2px solid #eff3f4;
 }
 
 .card-title {
   font-size: 30px;
   font-weight: 900;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
-.card form {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-input,
-textarea {
+/* ===== Form ===== */
+input, textarea {
   width: 100%;
   padding: 24px;
   font-size: 24px;
@@ -98,55 +89,67 @@ textarea {
   min-height: 180px;
 }
 
-/* =========================
-   Buttons（最優先）
-========================= */
-.primary-btn,
-.secondary-btn {
-  width: 100%;
+.primary-btn {
+  margin-top: 16px;
   padding: 26px;
   font-size: 24px;
   font-weight: 900;
   border-radius: 999px;
+  background: #1d9bf0;
+  color: #fff;
   border: none;
-  cursor: pointer;
 }
 
-.primary-btn {
+/* ===== Ranking Tabs ===== */
+.ranking-tabs {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+}
+
+.ranking-tab {
+  flex: 1;
+  padding: 26px 0;
+  font-size: 28px;
+  font-weight: 900;
+  text-align: center;
+  border-radius: 999px;
+  background: #eef3f4;
+  color: #536471;
+  text-decoration: none;
+}
+
+.ranking-tab.active {
   background: #1d9bf0;
   color: #fff;
 }
 
-.secondary-btn {
-  background: #eef3f4;
-  color: #0f1419;
-}
-
-/* =========================
-   投稿一覧
-========================= */
+/* ===== Posts ===== */
 .posts {
   width: 100%;
 }
 
 .post-card {
-  padding: 30px 24px;
+  padding: 30px;
   border-bottom: 2px solid #eff3f4;
 }
 
-/* 上段 */
 .post-top {
   display: flex;
-  justify-content: space-between;
+  gap: 16px;
   align-items: center;
-  margin-bottom: 14px;
+}
+
+.rank {
+  font-size: 26px;
+  font-weight: 900;
 }
 
 .post-user {
   font-size: 24px;
   font-weight: 900;
-  color: #0f1419;
   text-decoration: none;
+  color: #0f1419;
 }
 
 .post-date {
@@ -154,109 +157,25 @@ textarea {
   color: #536471;
 }
 
-/* 車名（最重要） */
 .post-car {
   font-size: 34px;
   font-weight: 900;
-  margin-bottom: 12px;
+  margin: 12px 0;
 }
 
-/* コメント本文 */
 .post-text {
   font-size: 26px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
-/* =========================
-   画像
-========================= */
 .post-image {
-  display: block;
   width: 100%;
-  height: auto;
-  margin: 18px 0;
   border-radius: 26px;
+  margin-bottom: 16px;
 }
 
-/* =========================
-   アクション
-========================= */
+/* ===== Actions ===== */
 .post-actions {
-  display: flex;
-  gap: 36px;
-  margin-top: 16px;
-}
-
-.like-btn,
-.delete-btn {
-  background: none;
-  border: none;
-  padding: 0;
   font-size: 22px;
   font-weight: 800;
-  color: #536471;
-  cursor: pointer;
-}
-
-/* =========================
-   コメント
-========================= */
-.comment-form {
-  margin-top: 18px;
-}
-
-.comment-form input {
-  font-size: 24px;
-  padding: 22px;
-}
-
-.comment-form button {
-  margin-top: 12px;
-}
-
-/* =========================
-   スマホはさらに強化
-========================= */
-@media (max-width: 600px) {
-
-  html {
-    font-size: 28px;
-  }
-
-  .logo {
-    font-size: 34px;
-  }
-
-  .nav-link {
-    font-size: 24px;
-  }
-
-  input,
-  textarea {
-    font-size: 26px;
-    padding: 26px;
-  }
-
-  .primary-btn,
-  .secondary-btn {
-    font-size: 26px;
-    padding: 28px;
-  }
-
-  .post-user {
-    font-size: 26px;
-  }
-
-  .post-car {
-    font-size: 36px;
-  }
-
-  .post-text {
-    font-size: 28px;
-  }
-
-  .like-btn,
-  .delete-btn {
-    font-size: 24px;
-  }
 }
