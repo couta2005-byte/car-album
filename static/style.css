@@ -10,7 +10,6 @@ body {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
   background: #f4f6f8;
   color: #222;
-  -webkit-text-size-adjust: 100%;
 }
 
 /* =========================
@@ -19,53 +18,43 @@ body {
 .header {
   background: #111;
   color: #fff;
-  padding: 14px 0;
+  padding: 12px 0;
 }
 
 .header-inner {
   max-width: 980px;
   margin: 0 auto;
-  padding: 0 14px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
 }
 
 .logo {
+  font-weight: 900;
+  font-size: 18px;
   color: #fff;
   text-decoration: none;
-  font-weight: 800;
-  font-size: 20px;
-  letter-spacing: .5px;
 }
 
 .nav {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 
 .nav-link {
   color: #fff;
+  font-size: 13px;
   text-decoration: none;
-  opacity: .85;
-  font-weight: 700;
-}
-
-.nav-link.active {
-  opacity: 1;
-  text-decoration: underline;
 }
 
 .logout-btn {
   background: #e74c3c;
-  color: #fff;
   border: none;
-  padding: 8px 14px;
+  color: #fff;
+  padding: 6px 12px;
   border-radius: 999px;
-  cursor: pointer;
-  font-weight: 800;
+  font-size: 12px;
 }
 
 /* =========================
@@ -73,75 +62,51 @@ body {
 ========================= */
 .container {
   max-width: 980px;
-  margin: 20px auto;
-  padding: 0 14px;
-}
-
-.page-title {
-  margin: 18px 0 12px;
-  font-size: 28px;
-  font-weight: 900;
+  margin: 12px auto;
+  padding: 0 10px;
 }
 
 /* =========================
-   Cards & Forms
+   Card
 ========================= */
 .card {
   background: #fff;
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-  margin-bottom: 18px;
-}
-
-/* 投稿フォームを主役に */
-.card.post-form {
-  border: 2px solid #3498db22;
-  box-shadow: 0 16px 36px rgba(52,152,219,0.18);
-}
-
-.card form {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  margin-bottom: 14px;
 }
 
 /* =========================
-   Inputs（強調）
+   Form（スマホ主役）
 ========================= */
+.card form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
 input,
 textarea {
   width: 100%;
-  padding: 14px 16px;
-  border-radius: 16px;
-  border: 2px solid #d6dde5;
-  background: #fff;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1.5px solid #d6dde5;
   font-size: 16px;
-}
-
-input:focus,
-textarea:focus {
-  border-color: #3498db;
-  outline: none;
 }
 
 textarea {
-  min-height: 120px;
-  line-height: 1.6;
-  grid-column: 1 / -1;
+  min-height: 140px;
 }
 
 .primary-btn {
-  grid-column: 1 / -1;
-  border: none;
-  border-radius: 16px;
   padding: 14px;
-  cursor: pointer;
-  margin-top: 8px;
-  font-weight: 900;
-  font-size: 16px;
+  border-radius: 14px;
+  border: none;
   background: #3498db;
   color: #fff;
+  font-weight: 900;
+  font-size: 16px;
 }
 
 /* =========================
@@ -149,175 +114,90 @@ textarea {
 ========================= */
 .posts {
   display: grid;
-  gap: 22px;
+  gap: 14px;
 }
 
 .post-card {
   background: #fff;
-  border-radius: 22px;
-  padding: 18px;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.08);
 }
 
-/* ユーザー＋日付 */
+/* ユーザー・日付 */
 .post-top {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #eef2f6;
+  font-size: 12px;
+  color: #555;
 }
 
 .post-user {
-  font-weight: 900;
-  font-size: 14px;
-  color: #3b4b5a;
-  text-decoration: none;
+  font-weight: 800;
 }
 
 .post-date {
-  font-size: 11px;
-  color: #6a7785;
+  color: #999;
 }
 
 /* 車名 */
 .post-car {
-  margin-top: 10px;
-  font-size: 20px;
+  margin-top: 6px;
+  font-size: 16px;
   font-weight: 900;
 }
 
 /* コメント */
 .post-text {
-  margin-top: 8px;
+  margin-top: 4px;
   font-size: 14px;
-  line-height: 1.6;
 }
 
-/* 画像（PC） */
+/* =========================
+   🔥 画像（超重要）
+========================= */
 .post-image {
   width: 100%;
-  max-height: 420px;
-  border-radius: 18px;
-  margin-top: 14px;
-  border: 1px solid #e7edf3;
-  object-fit: contain;
+  height: 180px;              /* ← 強制サムネ */
+  margin-top: 10px;
+  border-radius: 14px;
+  object-fit: cover;          /* ← 中央トリミング */
+  background: #000;
 }
 
 /* =========================
    Actions
 ========================= */
 .post-actions {
-  margin-top: 14px;
+  margin-top: 10px;
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .like-btn,
 .delete-btn {
   flex: 1;
-  text-align: center;
-  padding: 12px;
-  font-size: 14px;
+  padding: 10px;
+  font-size: 13px;
   border-radius: 999px;
-  font-weight: 900;
-}
-
-.like-btn {
+  border: 1px solid #ddd;
   background: #fff;
-  border: 1px solid #d6dde5;
 }
 
 .delete-btn {
-  background: #fff5f5;
-  border: 1px solid #ffd2d2;
-  color: #b42318;
+  color: #c0392b;
+  border-color: #f5c6cb;
 }
 
 /* =========================
    Comments
 ========================= */
 .comments {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid #e7edf3;
+  margin-top: 10px;
+  border-top: 1px solid #eee;
+  padding-top: 8px;
 }
 
 .comment {
   font-size: 13px;
-  margin-top: 6px;
-}
-
-/* =========================
-   📱 Mobile 最適化
-========================= */
-@media (max-width: 600px) {
-
-  body {
-    font-size: 14px;
-  }
-
-  /* Header */
-  .header-inner {
-    flex-direction: row;
-    align-items: center;
-  }
-
-  .nav {
-    gap: 10px;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
-  .logo {
-    font-size: 18px;
-  }
-
-  /* Layout */
-  .container {
-    margin: 12px auto;
-    padding: 0 10px;
-  }
-
-  /* フォーム：1列でデカく */
-  .card form {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  input,
-  textarea {
-    font-size: 17px;
-    padding: 16px;
-  }
-
-  textarea {
-    min-height: 150px;
-  }
-
-  .primary-btn {
-    padding: 16px;
-    font-size: 17px;
-  }
-
-  /* 投稿カード */
-  .post-card {
-    padding: 14px;
-    border-radius: 18px;
-  }
-
-  .post-car {
-    font-size: 18px;
-  }
-
-  /* 画像：スマホでは控えめ */
-  .post-image {
-    max-height: 240px;   /* ← ここが超重要 */
-    border-radius: 14px;
-  }
-
-  /* Actions */
-  .post-actions {
-    flex-direction: row;
-  }
 }
