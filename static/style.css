@@ -8,11 +8,11 @@
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont,
-               "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
-  background: #fff;
+    "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  background: #ffffff;
   color: #0f1419;
-  line-height: 1.6;
   font-size: 16px;
+  line-height: 1.6;
 }
 
 /* =========================
@@ -20,7 +20,6 @@ body {
 ========================= */
 .header {
   background: #000;
-  color: #fff;
 }
 
 .header-inner {
@@ -31,9 +30,9 @@ body {
 }
 
 .logo {
+  color: #fff;
   font-size: 18px;
   font-weight: 800;
-  color: #fff;
   text-decoration: none;
 }
 
@@ -49,16 +48,17 @@ body {
 }
 
 /* =========================
-   Layout（幅制限撤廃）
+   Layout（制限全解除）
 ========================= */
 .container {
   width: 100%;
-  max-width: 100%;
+  max-width: none;
   padding: 0;
+  margin: 0;
 }
 
 /* =========================
-   検索・ログイン系
+   フォーム系
 ========================= */
 .card {
   padding: 12px;
@@ -95,11 +95,10 @@ textarea {
 }
 
 /* =========================
-   投稿（X風タイムライン）
+   タイムライン（X方式）
 ========================= */
 .posts {
-  display: flex;
-  flex-direction: column;
+  width: 100%;
 }
 
 /* 投稿1件 */
@@ -108,7 +107,7 @@ textarea {
   border-bottom: 1px solid #eff3f4;
 }
 
-/* ユーザー名＋日付 */
+/* 上段 */
 .post-top {
   display: flex;
   justify-content: space-between;
@@ -118,7 +117,6 @@ textarea {
 .post-user {
   font-size: 16px;
   font-weight: 700;
-  color: #0f1419;
 }
 
 .post-date {
@@ -140,14 +138,15 @@ textarea {
 }
 
 /* =========================
-   画像（Xと同じ挙動）
+   画像（X完全再現）
 ========================= */
 .post-image {
+  display: block;
   width: 100%;
   height: auto;
+  max-width: none;
+  margin: 8px 0;
   border-radius: 16px;
-  display: block;
-  margin-top: 6px;
 }
 
 /* =========================
@@ -155,15 +154,15 @@ textarea {
 ========================= */
 .post-actions {
   display: flex;
-  gap: 16px;
-  margin-top: 8px;
+  gap: 18px;
+  margin-top: 6px;
 }
 
 .like-btn,
 .delete-btn {
-  font-size: 14px;
   background: none;
   border: none;
-  color: #536471;
   padding: 0;
+  font-size: 14px;
+  color: #536471;
 }
