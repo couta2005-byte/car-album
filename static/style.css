@@ -4,7 +4,7 @@
 
 /* ===== ベース ===== */
 html {
-  font-size: 18px; /* ← ここが最重要 */
+  font-size: 18px;
 }
 
 body {
@@ -22,8 +22,9 @@ body {
 .header-inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
   padding: 14px 16px;
+  overflow-x: auto; /* ← 重要 */
 }
 
 .logo {
@@ -31,35 +32,52 @@ body {
   font-size: 26px;
   font-weight: 900;
   text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
+/* ナビ全体 */
 .nav {
   display: flex;
-  gap: 16px;
   align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap;          /* ← 折り返さない */
+  white-space: nowrap;        /* ← 文字を縦にしない */
+  overflow-x: auto;           /* ← 横スクロール */
 }
 
+/* ナビリンク */
 .nav-link {
   color: #ccc;
   font-size: 16px;
   font-weight: 700;
   text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-link.active {
   color: #1d9bf0;
 }
 
-.logout-btn {
-  background: #333;
-  color: #fff;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 14px;
+/* ログアウト */
+.logout-form {
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 
-/* ===== レイアウト ===== */
+.logout-btn {
+  background: #fff;
+  color: #000;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ===== コンテンツ ===== */
 .container {
   padding: 16px;
 }
@@ -68,7 +86,7 @@ body {
 .ranking-tabs-wrap {
   display: flex;
   justify-content: center;
-  margin: 20px 0 10px;
+  margin: 20px 0 12px;
 }
 
 .ranking-tabs {
@@ -122,16 +140,4 @@ input {
   border: none;
   background: #1d9bf0;
   color: #fff;
-}
-
-/* ===== 認証 ===== */
-.auth-area {
-  margin-top: 32px;
-  display: grid;
-  gap: 24px;
-}
-
-.auth-card h2 {
-  font-size: 22px;
-  margin-bottom: 10px;
 }
