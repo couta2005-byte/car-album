@@ -1,34 +1,21 @@
-<header class="header">
-  <div class="header-inner">
-    <a href="/" class="logo">Car Album</a>
+<nav class="nav">
+  <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
 
-    <nav class="nav">
-      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
+  {% if user %}
+    <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
+  {% endif %}
 
-      {% if user %}
-      <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">
-        フォロー中
-      </a>
-      {% endif %}
+  <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">検索</a>
 
-      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">
-        検索
-      </a>
+  <a href="/ranking?period=day"
+     class="nav-link {% if mode and mode.startswith('ranking') %}active{% endif %}">
+     ランキング
+  </a>
 
-      <a href="/ranking?period=day"
-         class="nav-link {% if mode and mode.startswith('ranking') %}active{% endif %}">
-        ランキング
-      </a>
-
-      {% if user %}
-      <a href="/user/{{ user }}"
-         class="nav-link {% if mode=='profile' %}active{% endif %}">
-        プロフィール
-      </a>
-
-      <!-- ★ ログアウトは GET にする -->
-      <a href="/logout" class="logout-btn">ログアウト</a>
-      {% endif %}
-    </nav>
-  </div>
-</header>
+  {% if user %}
+    <a href="/user/{{ user }}" class="nav-link {% if mode=='profile' %}active{% endif %}">プロフィール</a>
+    <form action="/logout" method="post" class="inline-form">
+      <button class="logout-btn">ログアウト</button>
+    </form>
+  {% endif %}
+</nav>
