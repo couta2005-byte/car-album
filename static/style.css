@@ -190,3 +190,54 @@ textarea {
   background: #cd7f32;
   color: #fff;
 }
+/* =========================
+   検索エリア（分離・固定感）
+========================= */
+.search-section {
+  padding: 20px 16px;
+  border-bottom: 1px solid #eff3f4;
+  background: #fff;
+}
+
+.search-card {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px;
+  border-radius: 20px;
+  background: #f7f9fa;
+}
+
+.search-title {
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 16px;
+}
+
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.search-form input {
+  padding: 18px;
+  font-size: 18px;
+  border-radius: 14px;
+  border: 1px solid #cfd9de;
+}
+
+.search-form .primary-btn {
+  font-size: 18px;
+  padding: 18px;
+}
+
+/* スマホ最適化 */
+@media (max-width: 600px) {
+  .search-title {
+    font-size: 20px;
+  }
+
+  .search-form input {
+    font-size: 18px;
+  }
+}

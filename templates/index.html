@@ -16,9 +16,7 @@
       <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
 
       {% if user %}
-        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">
-          フォロー中
-        </a>
+        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
       {% endif %}
 
       <a href="/ranking?period=day"
@@ -38,103 +36,61 @@
 
 <main class="container">
 
-  <!-- ===== ランキング切替（日・週・月） ===== -->
-  {% if mode in ['ranking_day','ranking_week','ranking_month'] %}
-  <div class="ranking-tabs-wrap">
-    <div class="ranking-tabs">
-      <a href="/ranking?period=day"
-         class="rank-tab {% if mode=='ranking_day' %}active{% endif %}">日</a>
-      <a href="/ranking?period=week"
-         class="rank-tab {% if mode=='ranking_week' %}active{% endif %}">週</a>
-      <a href="/ranking?period=month"
-         class="rank-tab {% if mode=='ranking_month' %}active{% endif %}">月</a>
-    </div>
-  </div>
-  {% endif %}
+  <!-- ===== 検索エリア（分離） ===== -->
+  <section class="search-section">
+    <div class="search-card">
+      <h2 class="search-title">🔍 車両検索</h2>
 
-  {% if ranking_title %}
-    <h1 class="ranking-title">{{ ranking_title }}</h1>
-  {% endif %}
-
-  <!-- ===== 検索 ===== -->
-  <form method="get" class="search-form">
-    <input name="maker" placeholder="メーカー" value="{{ maker }}">
-    <input name="car" placeholder="車種" value="{{ car }}">
-    <input name="region" placeholder="地域" value="{{ region }}">
-    <button class="primary-btn" type="submit">検索</button>
-  </form>
-
-  <!-- ===== 投稿（おすすめのみ） ===== -->
-  {% if user and mode == 'home' %}
-  <section class="post-form">
-    <h2>投稿</h2>
-    <form action="/post" method="post" enctype="multipart/form-data">
-      <input name="maker" placeholder="メーカー">
-      <input name="region" placeholder="地域">
-      <input name="car" placeholder="車名">
-      <textarea name="comment" placeholder="ひとこと"></textarea>
-      <input type="file" name="image">
-      <button class="primary-btn">投稿</button>
-    </form>
-  </section>
-  {% endif %}
-
-  <!-- ===== 未ログイン（おすすめのみ） ===== -->
-  {% if not user and mode == 'home' %}
-  <section class="auth-area">
-    <div class="auth-card">
-      <h2>ログイン</h2>
-      <form action="/login" method="post">
-        <input name="username" placeholder="ユーザー名">
-        <input name="password" type="password" placeholder="パスワード">
-        <button class="primary-btn">ログイン</button>
-      </form>
-    </div>
-
-    <div class="auth-card">
-      <h2>新規登録</h2>
-      <form action="/register" method="post">
-        <input name="username" placeholder="新規ユーザー名">
-        <input name="password" type="password" placeholder="新規パスワード">
-        <button class="primary-btn">新規登録</button>
+      <form method="get" class="search-form">
+        <input name="maker" placeholder="メーカー" value="{{ maker }}">
+        <input name="car" placeholder="車種" value="{{ car }}">
+        <input name="region" placeholder="地域" value="{{ region }}">
+        <button class="primary-btn" type="submit">検索する</button>
       </form>
     </div>
   </section>
-  {% endif %}
 
-  <!-- ===== 投稿一覧 / ランキング ===== -->
-  <section class="posts">
+  <!-- ===== 投稿一覧 ===== -->
+  <div class="posts">
     {% for post in posts %}
-    <article class="post-card {% if mode.startswith('ranking') %}ranking-card rank-{{ loop.index }}{% endif %}">
+    <article class="post-card">
 
-      {% if mode.startswith('ranking') %}
-        <div class="rank-badge">{{ loop.index }}</div>
+      <div class="post-top">
+        <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
+        <span class="post-date">{{ post.created_at }}</span>
+      </div>
+
+      <div class="post-car">{{ post.car }}</div>
+
+      {% if post.comment %}
+      <div class="post-text">{{ post.comment }}</div>
       {% endif %}
 
-      <div class="post-body">
-        <div class="post-top">
-          <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
-          <span class="post-date">{{ post.created_at }}</span>
-        </div>
+      {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+      {% endif %}
 
-        <div class="post-car">{{ post.car }}</div>
+      <div class="post-actions">
+        <form method="post"
+              action="{% if post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}">
+          <button class="like-btn" type="submit">
+            {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
+            {{ post.likes }}
+          </button>
+        </form>
 
-        {% if post.comment %}
-        <div class="post-text">{{ post.comment }}</div>
+        {% if user and user == post.username %}
+        <form method="post"
+              action="/delete/{{ post.id }}"
+              onsubmit="return confirm('この投稿を削除しますか？');">
+          <button class="delete-btn" type="submit">削除</button>
+        </form>
         {% endif %}
-
-        {% if post.image %}
-        <img src="{{ post.image }}" class="post-image">
-        {% endif %}
-
-        <div class="post-actions">
-          ❤️ {{ post.likes }}
-        </div>
       </div>
 
     </article>
     {% endfor %}
-  </section>
+  </div>
 
 </main>
 </body>
