@@ -1,25 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ username }} | Car Album</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
 {% include "_nav.html" %}
 
 <main class="container">
-  <h2>{{ username }}</h2>
+
+  <!-- プロフィールヘッダ -->
+  <section class="profile-card">
+    <h2 class="profile-name">{{ username }}</h2>
+
+    {% if profile %}
+    <div class="profile-meta">
+      <div>メーカー：{{ profile[0] }}</div>
+      <div>車名：{{ profile[1] }}</div>
+      <div>地域：{{ profile[2] }}</div>
+      {% if profile[3] %}
+      <div class="profile-bio">{{ profile[3] }}</div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="profile-follow">
+      <span>フォロー {{ follow_count }}</span>
+      <span>フォロワー {{ follower_count }}</span>
+    </div>
+
+    {% if me and me != username %}
+      {% if is_following %}
+      <form action="/unfollow/{{ username }}" method="post">
+        <button class="secondary-btn">フォロー解除</button>
+      </form>
+      {% else %}
+      <form action="/follow/{{ username }}" method="post">
+        <button class="primary-btn">フォロー</button>
+      </form>
+      {% endif %}
+    {% endif %}
+  </section>
+
+  <!-- 自分のときだけ編集 -->
+  {% if me == username %}
+  <section class="profile-edit">
+    <h3>プロフィール編集</h3>
+    <form action="/profile/edit" method="post">
+      <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile }}">
+      <input name="car" placeholder="車名" value="{{ profile[1] if profile }}">
+      <input name="region" placeholder="地域" value="{{ profile[2] if profile }}">
+      <textarea name="bio" placeholder="自己紹介">{{ profile[3] if profile }}</textarea>
+      <button class="primary-btn">保存</button>
+    </form>
+  </section>
+  {% endif %}
+
+  <!-- 投稿一覧 -->
+  <h3 class="section-title">投稿</h3>
 
   <div class="posts">
     {% for post in posts %}
-      <article class="post-card">
-        <div class="post-top">
-          <span class="post-date">{{ post.created_at }}</span>
-        </div>
+    <article class="post-card">
 
-        <div class="post-car">{{ post.car }}</div>
+      <div class="post-top">
+        <span class="post-user">{{ post.username }}</span>
+        <span class="post-date">{{ post.created_at }}</span>
+      </div>
 
-        {% if post.comment %}
-          <div class="post-text">{{ post.comment }}</div>
-        {% endif %}
+      <div class="post-car">{{ post.car }}</div>
 
-        {% if post.image %}
-          <img src="{{ post.image }}" class="post-image">
-        {% endif %}
-      </article>
+      {% if post.comment %}
+      <div class="post-text">{{ post.comment }}</div>
+      {% endif %}
+
+      {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+      {% endif %}
+
+    </article>
     {% endfor %}
   </div>
+
 </main>
+</body>
+</html>
