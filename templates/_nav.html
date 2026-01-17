@@ -3,9 +3,7 @@
     <a href="/" class="logo">Car Album</a>
 
     <nav class="nav">
-      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">
-        おすすめ
-      </a>
+      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
 
       {% if user %}
         <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">
@@ -18,7 +16,7 @@
       </a>
 
       <a href="/ranking?period=day"
-         class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
+         class="nav-link {% if mode is defined and mode.startswith('ranking') %}active{% endif %}">
         ランキング
       </a>
 
@@ -26,6 +24,7 @@
         <a href="/user/{{ user }}" class="nav-link {% if mode=='profile' %}active{% endif %}">
           プロフィール
         </a>
+
         <form action="/logout" method="post" class="inline-form">
           <button class="logout-btn" type="submit">ログアウト</button>
         </form>

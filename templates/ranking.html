@@ -14,19 +14,18 @@
 
 <div class="ranking-tabs-wrap">
   <div class="ranking-tabs">
-    <a class="rank-tab {% if period=='day' %}active{% endif %}" href="/ranking?period=day">日</a>
-    <a class="rank-tab {% if period=='week' %}active{% endif %}" href="/ranking?period=week">週</a>
-    <a class="rank-tab {% if period=='month' %}active{% endif %}" href="/ranking?period=month">月</a>
+    <a href="/ranking?period=day" class="rank-tab {% if period=='day' %}active{% endif %}">日</a>
+    <a href="/ranking?period=week" class="rank-tab {% if period=='week' %}active{% endif %}">週</a>
+    <a href="/ranking?period=month" class="rank-tab {% if period=='month' %}active{% endif %}">月</a>
   </div>
 </div>
 
-<div class="ranking-title">{{ ranking_title }}</div>
+<h2 class="ranking-title">{{ ranking_title }}</h2>
 
 <div class="posts">
 {% for post in posts %}
   <article class="post-card ranking-card rank-{{ loop.index }}">
     <div class="rank-badge">{{ loop.index }}</div>
-
     <div class="post-car">{{ post.car }}</div>
 
     {% if post.image %}
