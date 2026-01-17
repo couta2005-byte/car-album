@@ -70,36 +70,17 @@ init_db()
 # ======================
 # 共通
 # ======================
-def get_liked_posts(db, me):
-    if not me:
-        return set()
-    return {r[0] for r in db.execute(
-        "SELECT post_id FROM likes WHERE username=?", (me,)
-    ).fetchall()}
-
-def get_comments_map(db):
-    m = {}
-    for c in db.execute("""
-        SELECT post_id, username, comment, created_at
-        FROM comments ORDER BY id ASC
-    """).fetchall():
-        m.setdefault(c[0], []).append(c)
-    return m
-
 def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC"):
     rows = db.execute(f"""
-        SELECT
-            p.id, p.username, p.maker, p.region, p.car,
-            p.comment, p.image, p.created_at,
-            COUNT(l.post_id) AS like_count
+        SELECT p.id, p.username, p.maker, p.region, p.car,
+               p.comment, p.image, p.created_at,
+               COUNT(l.post_id)
         FROM posts p
         LEFT JOIN likes l ON p.id = l.post_id
         {where_sql}
         GROUP BY p.id
         {order_sql}
     """, params).fetchall()
-
-    comments = get_comments_map(db)
 
     return [{
         "id": r[0],
@@ -110,29 +91,60 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC"):
         "comment": r[5],
         "image": r[6],
         "created_at": r[7],
-        "likes": r[8],
-        "comments": comments.get(r[0], [])
+        "likes": r[8]
     } for r in rows]
 
 # ======================
-# トップ（おすすめ）
+# おすすめ（投稿＋TL）
 # ======================
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, user: str = Cookie(default=None)):
     me = unquote(user) if user else None
     db = get_db()
     posts = fetch_posts(db)
-    liked = get_liked_posts(db, me)
     db.close()
 
     return templates.TemplateResponse("index.html", {
         "request": request,
         "posts": posts,
         "user": me,
-        "liked_posts": liked,
         "mode": "home",
         "ranking_title": ""
     })
+
+# ======================
+# 投稿
+# ======================
+@app.post("/post")
+def post(
+    maker: str = Form(""),
+    region: str = Form(""),
+    car: str = Form(""),
+    comment: str = Form(""),
+    image: UploadFile = File(None),
+    user: str = Cookie(default=None)
+):
+    if not user:
+        return RedirectResponse("/", status_code=303)
+
+    filename = None
+    if image and image.filename:
+        os.makedirs("uploads", exist_ok=True)
+        name = f"{uuid.uuid4()}.{image.filename.split('.')[-1]}"
+        with open(f"uploads/{name}", "wb") as f:
+            f.write(image.file.read())
+        filename = f"/uploads/{name}"
+
+    db = get_db()
+    db.execute("""
+        INSERT INTO posts (username, maker, region, car, comment, image, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (unquote(user), maker, region, car, comment, filename,
+          datetime.now().strftime("%Y-%m-%d %H:%M")))
+    db.commit()
+    db.close()
+
+    return RedirectResponse("/", status_code=303)
 
 # ======================
 # 🔍 検索専用
@@ -145,89 +157,89 @@ def search(
     region: str = Query(""),
     user: str = Cookie(default=None)
 ):
-    me = unquote(user) if user else None
     db = get_db()
-
     posts = fetch_posts(
         db,
-        "WHERE p.maker LIKE ? AND p.car LIKE ? AND p.region LIKE ?",
+        "WHERE maker LIKE ? AND car LIKE ? AND region LIKE ?",
         (f"%{maker}%", f"%{car}%", f"%{region}%")
     )
-
-    liked = get_liked_posts(db, me)
     db.close()
 
     return templates.TemplateResponse("search.html", {
         "request": request,
         "posts": posts,
-        "user": me,
+        "user": unquote(user) if user else None,
         "maker": maker,
         "car": car,
         "region": region,
-        "liked_posts": liked,
         "mode": "search"
-    })
-
-# ======================
-# フォロー中
-# ======================
-@app.get("/following", response_class=HTMLResponse)
-def following(request: Request, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/", status_code=303)
-
-    me = unquote(user)
-    db = get_db()
-    posts = fetch_posts(
-        db,
-        "JOIN follows f ON p.username = f.followee WHERE f.follower=?",
-        (me,)
-    )
-    liked = get_liked_posts(db, me)
-    db.close()
-
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "posts": posts,
-        "user": me,
-        "liked_posts": liked,
-        "mode": "following",
-        "ranking_title": ""
     })
 
 # ======================
 # ランキング
 # ======================
 @app.get("/ranking", response_class=HTMLResponse)
-def ranking(request: Request, period: str = "day", user: str = Cookie(default=None)):
-    me = unquote(user) if user else None
-    now = datetime.now()
+def ranking(request: Request, period: str = "day"):
+    db = get_db()
 
     if period == "week":
-        since = now - timedelta(days=7)
-        title = "週間ランキング TOP10"
+        since = datetime.now() - timedelta(days=7)
+        title = "週間ランキング"
     elif period == "month":
-        since = now - timedelta(days=30)
-        title = "月間ランキング TOP10"
+        since = datetime.now() - timedelta(days=30)
+        title = "月間ランキング"
     else:
-        since = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        title = "日間ランキング TOP10"
+        since = datetime.now().replace(hour=0, minute=0, second=0)
+        title = "日間ランキング"
 
-    db = get_db()
     posts = fetch_posts(
         db,
-        "WHERE p.created_at >= ?",
+        "WHERE created_at >= ?",
         (since.strftime("%Y-%m-%d %H:%M"),),
-        order_sql="ORDER BY like_count DESC, p.id DESC LIMIT 10"
+        "ORDER BY COUNT(l.post_id) DESC LIMIT 10"
     )
-    liked = get_liked_posts(db, me)
     db.close()
 
     return templates.TemplateResponse("index.html", {
         "request": request,
         "posts": posts,
-        "user": me,
-        "liked_posts": liked,
-        "mode": f"ranking_{period}",
+        "user": None,
+        "mode": "ranking",
         "ranking_title": title
     })
+
+# ======================
+# 認証
+# ======================
+@app.post("/login")
+def login(username: str = Form(...), password: str = Form(...)):
+    db = get_db()
+    ok = db.execute(
+        "SELECT 1 FROM users WHERE username=? AND password=?",
+        (username, password)
+    ).fetchone()
+    db.close()
+
+    if not ok:
+        return RedirectResponse("/", status_code=303)
+
+    res = RedirectResponse("/", status_code=303)
+    res.set_cookie("user", quote(username))
+    return res
+
+@app.post("/register")
+def register(username: str = Form(...), password: str = Form(...)):
+    db = get_db()
+    db.execute("INSERT OR IGNORE INTO users VALUES (?, ?)", (username, password))
+    db.commit()
+    db.close()
+
+    res = RedirectResponse("/", status_code=303)
+    res.set_cookie("user", quote(username))
+    return res
+
+@app.post("/logout")
+def logout():
+    res = RedirectResponse("/", status_code=303)
+    res.delete_cookie("user")
+    return res
