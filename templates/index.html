@@ -11,17 +11,16 @@
 <header class="header">
   <div class="header-inner">
     <a href="/" class="logo">Car Album</a>
-
     <nav class="nav">
       <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
       <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">検索</a>
-
       {% if user %}
         <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
       {% endif %}
-
-      <a href="/ranking?period=day" class="nav-link">ランキング</a>
-
+      <a href="/ranking?period=day"
+         class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
+         ランキング
+      </a>
       {% if user %}
         <a href="/user/{{ user }}" class="nav-link">プロフィール</a>
         <form action="/logout" method="post">
@@ -40,13 +39,10 @@
         <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
         <span class="post-date">{{ post.created_at }}</span>
       </div>
-
       <div class="post-car">{{ post.car }}</div>
-
       {% if post.comment %}
         <div class="post-text">{{ post.comment }}</div>
       {% endif %}
-
       {% if post.image %}
         <img src="{{ post.image }}" class="post-image">
       {% endif %}

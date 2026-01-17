@@ -34,12 +34,12 @@
 <main class="container">
   <div class="posts">
     {% for post in posts %}
-      <article class="post-card">
-        <div class="post-car">{{ post.car }}</div>
-        {% if post.image %}
-          <img src="{{ post.image }}" class="post-image">
-        {% endif %}
-      </article>
+    <article class="post-card">
+      <div class="post-car">{{ post.car }}</div>
+      {% if post.image %}
+        <img src="{{ post.image }}" class="post-image">
+      {% endif %}
+    </article>
     {% endfor %}
   </div>
 </main>
