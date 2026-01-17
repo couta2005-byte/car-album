@@ -13,9 +13,14 @@
   </a>
 
   {% if user %}
-    <a href="/user/{{ user }}" class="nav-link {% if mode=='profile' %}active{% endif %}">プロフィール</a>
+    <a href="/user/{{ user }}" class="nav-link {% if mode=='profile' %}active{% endif %}">
+      プロフィール
+    </a>
     <form action="/logout" method="post" class="inline-form">
       <button class="logout-btn">ログアウト</button>
     </form>
+  {% else %}
+    <a href="/login" class="nav-link {% if mode=='login' %}active{% endif %}">ログイン</a>
+    <a href="/register" class="nav-link {% if mode=='register' %}active{% endif %}">新規登録</a>
   {% endif %}
 </nav>
