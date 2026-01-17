@@ -11,20 +11,90 @@
 {% include "_nav.html" %}
 
 <main class="container">
-  <h2 class="profile-name">{{ username }}</h2>
+
+  <div class="profile-card">
+    <div class="profile-top">
+      <div class="profile-name">{{ username }}</div>
+
+      {% if me and me != username %}
+        {% if is_following %}
+        <form method="post" action="/unfollow/{{ username }}" class="inline-form">
+          <button class="follow-btn is-following">フォロー解除</button>
+        </form>
+        {% else %}
+        <form method="post" action="/follow/{{ username }}" class="inline-form">
+          <button class="follow-btn">フォロー</button>
+        </form>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="profile-stats">
+      <div><strong>{{ follow_count }}</strong> フォロー</div>
+      <div><strong>{{ follower_count }}</strong> フォロワー</div>
+    </div>
+
+    <div class="profile-meta">
+      <div>メーカー：{{ profile[0] if profile else "" }}</div>
+      <div>車種：{{ profile[1] if profile else "" }}</div>
+      <div>地域：{{ profile[2] if profile else "" }}</div>
+      <div>自己紹介：{{ profile[3] if profile else "" }}</div>
+    </div>
+
+    {% if me == username %}
+    <details class="profile-edit">
+      <summary>プロフィール編集</summary>
+      <form method="post" action="/profile/edit">
+        <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
+        <input name="car" placeholder="車種" value="{{ profile[1] if profile else '' }}">
+        <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
+        <textarea name="bio">{{ profile[3] if profile else '' }}</textarea>
+        <button class="primary-btn">保存</button>
+      </form>
+    </details>
+    {% endif %}
+  </div>
+
+  <h2 class="section-title">投稿</h2>
 
   <div class="posts">
-  {% for post in posts %}
+    {% for post in posts %}
     <article class="post-card">
+      <div class="post-top">
+        <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
+        <span class="post-date">{{ post.created_at }}</span>
+      </div>
+
       <div class="post-car">{{ post.car }}</div>
 
-      {% if post.image %}
-        <img src="{{ post.image }}" class="post-image">
+      {% if post.comment %}
+      <div class="post-text">{{ post.comment }}</div>
       {% endif %}
-    </article>
-  {% endfor %}
-  </div>
-</main>
 
+      {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+      {% endif %}
+
+      <div class="post-actions">
+        <form method="post"
+              action="{% if me and post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}"
+              class="inline-form">
+          <button class="like-btn" {% if not me %}disabled{% endif %}>
+            {% if me and post.id in liked_posts %}❤️{% else %}🤍{% endif %}
+            {{ post.likes }}
+          </button>
+        </form>
+
+        {% if me == post.username %}
+        <form method="post" action="/delete/{{ post.id }}" class="inline-form">
+          <button class="delete-btn">削除</button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+</main>
 </body>
 </html>
