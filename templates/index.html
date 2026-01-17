@@ -8,30 +8,7 @@
 </head>
 <body>
 
-<header class="header">
-  <div class="header-inner">
-    <a href="/" class="logo">Car Album</a>
-    <nav class="nav">
-      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
-
-      {% if user %}
-        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
-      {% endif %}
-
-      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">検索</a>
-
-      <a href="/ranking?period=day"
-         class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">ランキング</a>
-
-      {% if user %}
-        <a href="/user/{{ user }}" class="nav-link {% if mode=='profile' %}active{% endif %}">プロフィール</a>
-        <form action="/logout" method="post" class="inline-form">
-          <button class="logout-btn" type="submit">ログアウト</button>
-        </form>
-      {% endif %}
-    </nav>
-  </div>
-</header>
+{% include "_nav.html" %}
 
 <main class="container">
 
@@ -66,10 +43,6 @@
     <button class="primary-btn">投稿</button>
   </div>
 </form>
-{% endif %}
-
-{% if ranking_title %}
-<h2 class="ranking-title">{{ ranking_title }}</h2>
 {% endif %}
 
 <div class="posts">

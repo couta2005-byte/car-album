@@ -8,21 +8,7 @@
 </head>
 <body>
 
-<header class="header">
-  <div class="header-inner">
-    <a href="/" class="logo">Car Album</a>
-    <nav class="nav">
-      <a href="/" class="nav-link">おすすめ</a>
-      <a href="/following" class="nav-link">フォロー中</a>
-      <a href="/search" class="nav-link">検索</a>
-      <a href="/ranking?period=day" class="nav-link">ランキング</a>
-      <a href="/user/{{ me }}" class="nav-link active">プロフィール</a>
-      <form action="/logout" method="post" class="inline-form">
-        <button class="logout-btn">ログアウト</button>
-      </form>
-    </nav>
-  </div>
-</header>
+{% include "_nav.html" %}
 
 <main class="container">
 <h2>{{ username }}</h2>
