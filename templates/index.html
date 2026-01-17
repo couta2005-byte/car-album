@@ -35,7 +35,7 @@
   <div class="form-row">
     <input name="maker" placeholder="メーカー">
     <input name="car" placeholder="車名">
-    <input name="region" placeholder="地域">
+    <input name="region" placeholder="地域（都道府県）">
   </div>
   <textarea name="comment" placeholder="コメント"></textarea>
   <div class="form-row bottom">
@@ -45,7 +45,31 @@
 </form>
 {% endif %}
 
-{% include "_posts.html" %}
+<div class="posts">
+{% for post in posts %}
+  <article class="post-card">
+    <div class="post-top">
+      <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
+      <span class="post-date">{{ post.created_at }}</span>
+    </div>
+
+    <div class="post-meta">
+      {% if post.maker %}<span class="chip">{{ post.maker }}</span>{% endif %}
+      {% if post.region %}<span class="chip">{{ post.region }}</span>{% endif %}
+    </div>
+
+    <div class="post-car">{{ post.car }}</div>
+
+    {% if post.comment %}
+      <div class="post-text">{{ post.comment }}</div>
+    {% endif %}
+
+    {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+    {% endif %}
+  </article>
+{% endfor %}
+</div>
 
 </main>
 </body>

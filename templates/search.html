@@ -24,8 +24,24 @@
 </section>
 
 <main class="container">
-  {% include "_posts.html" %}
-</main>
 
+<div class="posts">
+{% for post in posts %}
+  <article class="post-card">
+    <div class="post-top">
+      <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
+      <span class="post-date">{{ post.created_at }}</span>
+    </div>
+
+    <div class="post-car">{{ post.car }}</div>
+
+    {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+    {% endif %}
+  </article>
+{% endfor %}
+</div>
+
+</main>
 </body>
 </html>

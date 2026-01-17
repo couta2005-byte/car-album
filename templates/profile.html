@@ -11,8 +11,19 @@
 {% include "_nav.html" %}
 
 <main class="container">
-  <h2 class="section-title">{{ username }}</h2>
-  {% include "_posts.html" %}
+  <h2 class="profile-name">{{ username }}</h2>
+
+  <div class="posts">
+  {% for post in posts %}
+    <article class="post-card">
+      <div class="post-car">{{ post.car }}</div>
+
+      {% if post.image %}
+        <img src="{{ post.image }}" class="post-image">
+      {% endif %}
+    </article>
+  {% endfor %}
+  </div>
 </main>
 
 </body>
