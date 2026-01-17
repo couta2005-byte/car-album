@@ -5,62 +5,62 @@ from fastapi.templating import Jinja2Templates
 import sqlite3, os, uuid
 from datetime import datetime
 
+# ====================
+# App
+# ====================
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 templates = Jinja2Templates(directory="templates")
 
 DB = "app.db"
 
-# --------------------
+# ====================
 # DB
-# --------------------
+# ====================
 def get_db():
-    return sqlite3.connect(DB)
+    conn = sqlite3.connect(DB)
+    conn.row_factory = sqlite3.Row
+    return conn
 
-# --------------------
-# 共通：ログインユーザー
-# --------------------
+# ====================
+# Login User
+# ====================
 def get_login_user(request: Request):
     return request.cookies.get("user")
 
-# --------------------
-# 投稿取得系（共通）
-# --------------------
-def rows_to_posts(rows):
-    posts = []
-    for r in rows:
-        posts.append({
-            "id": r[0],
-            "username": r[1],
-            "maker": r[2],
-            "car": r[3],
-            "region": r[4],
-            "comment": r[5],
-            "image": r[6],
-            "created_at": r[7],
-            "likes": r[8],
-        })
-    return posts
+# ====================
+# Posts
+# ====================
+def row_to_post(r):
+    return {
+        "id": r["id"],
+        "username": r["username"],
+        "maker": r["maker"],
+        "car": r["car"],
+        "region": r["region"],
+        "comment": r["comment"],
+        "image": r["image"],
+        "created_at": r["created_at"],
+        "likes": r["likes"],
+    }
 
 def get_posts():
     db = get_db()
     rows = db.execute("""
-        SELECT id, username, maker, car, region, comment, image, created_at, likes
-        FROM posts
+        SELECT * FROM posts
         ORDER BY id DESC
     """).fetchall()
     db.close()
-    return rows_to_posts(rows)
+    return [row_to_post(r) for r in rows]
 
 def search_posts(maker, car, region):
     db = get_db()
-    query = """
-        SELECT id, username, maker, car, region, comment, image, created_at, likes
-        FROM posts WHERE 1=1
-    """
+    query = "SELECT * FROM posts WHERE 1=1"
     params = []
+
     if maker:
         query += " AND maker LIKE ?"
         params.append(f"%{maker}%")
@@ -70,45 +70,43 @@ def search_posts(maker, car, region):
     if region:
         query += " AND region LIKE ?"
         params.append(f"%{region}%")
-    query += " ORDER BY id DESC"
 
+    query += " ORDER BY id DESC"
     rows = db.execute(query, params).fetchall()
     db.close()
-    return rows_to_posts(rows)
+    return [row_to_post(r) for r in rows]
 
 def get_user_posts(username):
     db = get_db()
     rows = db.execute("""
-        SELECT id, username, maker, car, region, comment, image, created_at, likes
-        FROM posts
+        SELECT * FROM posts
         WHERE username=?
         ORDER BY id DESC
     """, (username,)).fetchall()
     db.close()
-    return rows_to_posts(rows)
+    return [row_to_post(r) for r in rows]
 
 def get_following_posts(user):
     db = get_db()
     rows = db.execute("""
-        SELECT p.id, p.username, p.maker, p.car, p.region, p.comment, p.image, p.created_at, p.likes
+        SELECT p.*
         FROM posts p
         JOIN follows f ON p.username = f.following
-        WHERE f.follower=?
+        WHERE f.follower = ?
         ORDER BY p.id DESC
     """, (user,)).fetchall()
     db.close()
-    return rows_to_posts(rows)
+    return [row_to_post(r) for r in rows]
 
 def get_ranking_posts():
     db = get_db()
     rows = db.execute("""
-        SELECT id, username, maker, car, region, comment, image, created_at, likes
-        FROM posts
+        SELECT * FROM posts
         ORDER BY likes DESC, id DESC
         LIMIT 10
     """).fetchall()
     db.close()
-    return rows_to_posts(rows)
+    return [row_to_post(r) for r in rows]
 
 def get_liked_posts(user):
     if not user:
@@ -119,11 +117,11 @@ def get_liked_posts(user):
         (user,)
     ).fetchall()
     db.close()
-    return [r[0] for r in rows]
+    return [r["post_id"] for r in rows]
 
-# --------------------
-# ページ
-# --------------------
+# ====================
+# Pages
+# ====================
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     user = get_login_user(request)
@@ -150,7 +148,6 @@ def search(request: Request, maker: str = "", car: str = "", region: str = ""):
             "maker": maker,
             "car": car,
             "region": region,
-            "liked_posts": get_liked_posts(user),
             "mode": "search"
         }
     )
@@ -167,7 +164,6 @@ def following(request: Request):
             "request": request,
             "user": user,
             "posts": get_following_posts(user),
-            "liked_posts": get_liked_posts(user),
             "mode": "following"
         }
     )
@@ -181,8 +177,7 @@ def ranking(request: Request):
             "request": request,
             "user": user,
             "posts": get_ranking_posts(),
-            "ranking_title": "ランキング TOP10",
-            "liked_posts": get_liked_posts(user),
+            "ranking_title": "ランキング",
             "mode": "ranking"
         }
     )
@@ -197,19 +192,18 @@ def profile(request: Request, username: str):
             "user": user,
             "username": username,
             "posts": get_user_posts(username),
-            "liked_posts": get_liked_posts(user),
             "mode": "profile"
         }
     )
 
-# --------------------
-# 認証
-# --------------------
+# ====================
+# Auth
+# ====================
 @app.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):
     db = get_db()
     row = db.execute(
-        "SELECT 1 FROM users WHERE username=? AND password=?",
+        "SELECT * FROM users WHERE username=? AND password=?",
         (username, password)
     ).fetchone()
     db.close()
@@ -225,9 +219,9 @@ def logout():
     res.delete_cookie("user")
     return res
 
-# --------------------
-# 投稿
-# --------------------
+# ====================
+# Post
+# ====================
 @app.post("/post")
 def post(
     request: Request,
@@ -255,8 +249,13 @@ def post(
         INSERT INTO posts (username, maker, car, region, comment, image, created_at, likes)
         VALUES (?, ?, ?, ?, ?, ?, ?, 0)
     """, (
-        user, maker, car, region, comment,
-        image_path, datetime.now().strftime("%Y-%m-%d %H:%M")
+        user,
+        maker,
+        car,
+        region,
+        comment,
+        image_path,
+        datetime.now().strftime("%Y-%m-%d %H:%M")
     ))
     db.commit()
     db.close()
