@@ -26,19 +26,9 @@ def get_login_user(request: Request):
     return request.cookies.get("user")
 
 # --------------------
-# 投稿取得系
+# 投稿取得系（共通）
 # --------------------
-def get_posts():
-    db = get_db()
-    cur = db.cursor()
-    cur.execute("""
-        SELECT id, username, maker, car, region, comment, image, created_at, likes
-        FROM posts
-        ORDER BY id DESC
-    """)
-    rows = cur.fetchall()
-    db.close()
-
+def rows_to_posts(rows):
     posts = []
     for r in rows:
         posts.append({
@@ -54,13 +44,23 @@ def get_posts():
         })
     return posts
 
+def get_posts():
+    db = get_db()
+    rows = db.execute("""
+        SELECT id, username, maker, car, region, comment, image, created_at, likes
+        FROM posts
+        ORDER BY id DESC
+    """).fetchall()
+    db.close()
+    return rows_to_posts(rows)
+
 def search_posts(maker, car, region):
     db = get_db()
-    cur = db.cursor()
-
-    query = "SELECT id, username, maker, car, region, comment, image, created_at, likes FROM posts WHERE 1=1"
+    query = """
+        SELECT id, username, maker, car, region, comment, image, created_at, likes
+        FROM posts WHERE 1=1
+    """
     params = []
-
     if maker:
         query += " AND maker LIKE ?"
         params.append(f"%{maker}%")
@@ -70,117 +70,54 @@ def search_posts(maker, car, region):
     if region:
         query += " AND region LIKE ?"
         params.append(f"%{region}%")
-
     query += " ORDER BY id DESC"
 
-    cur.execute(query, params)
-    rows = cur.fetchall()
+    rows = db.execute(query, params).fetchall()
     db.close()
-
-    posts = []
-    for r in rows:
-        posts.append({
-            "id": r[0],
-            "username": r[1],
-            "maker": r[2],
-            "car": r[3],
-            "region": r[4],
-            "comment": r[5],
-            "image": r[6],
-            "created_at": r[7],
-            "likes": r[8],
-        })
-    return posts
+    return rows_to_posts(rows)
 
 def get_user_posts(username):
     db = get_db()
-    cur = db.cursor()
-    cur.execute("""
+    rows = db.execute("""
         SELECT id, username, maker, car, region, comment, image, created_at, likes
         FROM posts
         WHERE username=?
         ORDER BY id DESC
-    """, (username,))
-    rows = cur.fetchall()
+    """, (username,)).fetchall()
     db.close()
-
-    posts = []
-    for r in rows:
-        posts.append({
-            "id": r[0],
-            "username": r[1],
-            "maker": r[2],
-            "car": r[3],
-            "region": r[4],
-            "comment": r[5],
-            "image": r[6],
-            "created_at": r[7],
-            "likes": r[8],
-        })
-    return posts
+    return rows_to_posts(rows)
 
 def get_following_posts(user):
     db = get_db()
-    cur = db.cursor()
-    cur.execute("""
+    rows = db.execute("""
         SELECT p.id, p.username, p.maker, p.car, p.region, p.comment, p.image, p.created_at, p.likes
         FROM posts p
         JOIN follows f ON p.username = f.following
-        WHERE f.follower = ?
+        WHERE f.follower=?
         ORDER BY p.id DESC
-    """, (user,))
-    rows = cur.fetchall()
+    """, (user,)).fetchall()
     db.close()
+    return rows_to_posts(rows)
 
-    posts = []
-    for r in rows:
-        posts.append({
-            "id": r[0],
-            "username": r[1],
-            "maker": r[2],
-            "car": r[3],
-            "region": r[4],
-            "comment": r[5],
-            "image": r[6],
-            "created_at": r[7],
-            "likes": r[8],
-        })
-    return posts
-
-def get_ranking_posts(period):
+def get_ranking_posts():
     db = get_db()
-    cur = db.cursor()
-    cur.execute("""
+    rows = db.execute("""
         SELECT id, username, maker, car, region, comment, image, created_at, likes
         FROM posts
-        ORDER BY likes DESC
+        ORDER BY likes DESC, id DESC
         LIMIT 10
-    """)
-    rows = cur.fetchall()
+    """).fetchall()
     db.close()
-
-    posts = []
-    for r in rows:
-        posts.append({
-            "id": r[0],
-            "username": r[1],
-            "maker": r[2],
-            "car": r[3],
-            "region": r[4],
-            "comment": r[5],
-            "image": r[6],
-            "created_at": r[7],
-            "likes": r[8],
-        })
-    return posts
+    return rows_to_posts(rows)
 
 def get_liked_posts(user):
     if not user:
         return []
     db = get_db()
-    cur = db.cursor()
-    cur.execute("SELECT post_id FROM likes WHERE username=?", (user,))
-    rows = cur.fetchall()
+    rows = db.execute(
+        "SELECT post_id FROM likes WHERE username=?",
+        (user,)
+    ).fetchall()
     db.close()
     return [r[0] for r in rows]
 
@@ -213,6 +150,7 @@ def search(request: Request, maker: str = "", car: str = "", region: str = ""):
             "maker": maker,
             "car": car,
             "region": region,
+            "liked_posts": get_liked_posts(user),
             "mode": "search"
         }
     )
@@ -229,21 +167,22 @@ def following(request: Request):
             "request": request,
             "user": user,
             "posts": get_following_posts(user),
+            "liked_posts": get_liked_posts(user),
             "mode": "following"
         }
     )
 
 @app.get("/ranking", response_class=HTMLResponse)
-def ranking(request: Request, period: str = "day"):
+def ranking(request: Request):
     user = get_login_user(request)
     return templates.TemplateResponse(
         "ranking.html",
         {
             "request": request,
             "user": user,
-            "posts": get_ranking_posts(period),
-            "period": period,
-            "ranking_title": "ランキング",
+            "posts": get_ranking_posts(),
+            "ranking_title": "ランキング TOP10",
+            "liked_posts": get_liked_posts(user),
             "mode": "ranking"
         }
     )
@@ -258,6 +197,7 @@ def profile(request: Request, username: str):
             "user": user,
             "username": username,
             "posts": get_user_posts(username),
+            "liked_posts": get_liked_posts(user),
             "mode": "profile"
         }
     )
@@ -268,16 +208,16 @@ def profile(request: Request, username: str):
 @app.post("/login")
 def login(username: str = Form(...), password: str = Form(...)):
     db = get_db()
-    cur = db.cursor()
-    cur.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
-    row = cur.fetchone()
+    row = db.execute(
+        "SELECT 1 FROM users WHERE username=? AND password=?",
+        (username, password)
+    ).fetchone()
     db.close()
 
+    res = RedirectResponse("/", status_code=303)
     if row:
-        res = RedirectResponse("/", status_code=303)
         res.set_cookie("user", username)
-        return res
-    return RedirectResponse("/", status_code=303)
+    return res
 
 @app.post("/logout")
 def logout():
@@ -303,6 +243,7 @@ def post(
 
     image_path = None
     if image and image.filename:
+        os.makedirs("uploads", exist_ok=True)
         ext = os.path.splitext(image.filename)[1]
         filename = f"{uuid.uuid4()}{ext}"
         image_path = f"/uploads/{filename}"
@@ -310,11 +251,13 @@ def post(
             f.write(image.file.read())
 
     db = get_db()
-    cur = db.cursor()
-    cur.execute("""
+    db.execute("""
         INSERT INTO posts (username, maker, car, region, comment, image, created_at, likes)
         VALUES (?, ?, ?, ?, ?, ?, ?, 0)
-    """, (user, maker, car, region, comment, image_path, datetime.now().strftime("%Y-%m-%d %H:%M")))
+    """, (
+        user, maker, car, region, comment,
+        image_path, datetime.now().strftime("%Y-%m-%d %H:%M")
+    ))
     db.commit()
     db.close()
 
