@@ -20,6 +20,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
+  gap: 12px;
 }
 
 .logo {
@@ -27,22 +28,31 @@ body {
   font-size: 26px;
   font-weight: 900;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
   gap: 16px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .nav-link {
   color: #ccc;
   font-size: 15px;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav-link.active {
   color: #1d9bf0;
+}
+
+.inline-form {
+  display: inline;
+  margin: 0;
 }
 
 .logout-btn {
@@ -51,6 +61,7 @@ body {
   border-radius: 999px;
   padding: 6px 12px;
   font-size: 13px;
+  cursor: pointer;
 }
 
 /* ===== Layout ===== */
@@ -98,6 +109,15 @@ body {
   margin-bottom: 20px;
 }
 
+.form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.form-row.bottom {
+  align-items: center;
+}
+
 input,
 textarea {
   width: 100%;
@@ -120,6 +140,19 @@ textarea {
   background: #1d9bf0;
   color: #fff;
   font-weight: 800;
+  cursor: pointer;
+}
+
+/* ===== Auth ===== */
+.auth-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.auth-title {
+  font-weight: 900;
+  margin-bottom: 8px;
 }
 
 /* ===== Posts ===== */
@@ -136,12 +169,34 @@ textarea {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
+  gap: 10px;
 }
 
 .post-user {
   font-weight: 700;
   text-decoration: none;
   color: #0f1419;
+}
+
+.post-date {
+  color: #536471;
+  white-space: nowrap;
+}
+
+.post-meta {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: #eef3f4;
+  color: #536471;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .post-car {
@@ -158,6 +213,81 @@ textarea {
   width: 100%;
   border-radius: 16px;
   margin: 8px 0;
+}
+
+/* ===== Actions ===== */
+.post-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.like-btn,
+.delete-btn,
+.comment-btn,
+.follow-btn {
+  border: 1px solid #cfd9de;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.like-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delete-btn {
+  border-color: #ffd1d1;
+}
+
+/* ===== Comments ===== */
+.comments {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f7f9fa;
+  border-radius: 14px;
+}
+
+.comment-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #e6ecf0;
+}
+.comment-row:last-child {
+  border-bottom: none;
+}
+
+.comment-user {
+  font-weight: 900;
+}
+.comment-text {
+  color: #0f1419;
+}
+.comment-date {
+  color: #536471;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.comment-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.comment-form input {
+  margin-bottom: 0;
+}
+.comment-btn {
+  width: auto;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
 }
 
 /* ===== Ranking ===== */
@@ -190,6 +320,7 @@ textarea {
   background: #cd7f32;
   color: #fff;
 }
+
 /* =========================
    検索エリア（分離・固定感）
 ========================= */
@@ -231,6 +362,65 @@ textarea {
   padding: 18px;
 }
 
+/* ===== Profile ===== */
+.profile-card {
+  background: #f7f9fa;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.profile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.profile-name {
+  font-size: 22px;
+  font-weight: 900;
+}
+.profile-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+.stat-num {
+  font-weight: 900;
+  margin-right: 6px;
+}
+.stat-label {
+  color: #536471;
+}
+.profile-meta {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+}
+.label {
+  font-weight: 900;
+}
+.profile-edit summary {
+  cursor: pointer;
+  font-weight: 900;
+  margin-top: 12px;
+}
+.profile-form textarea {
+  min-height: 80px;
+}
+.follow-btn {
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+}
+.follow-btn.is-following {
+  background: #536471;
+}
+.section-title {
+  font-size: 18px;
+  font-weight: 900;
+  margin: 8px 0;
+}
+
 /* スマホ最適化 */
 @media (max-width: 600px) {
   .search-title {
@@ -239,5 +429,13 @@ textarea {
 
   .search-form input {
     font-size: 18px;
+  }
+
+  .logo {
+    font-size: 22px;
+  }
+
+  .nav-link {
+    font-size: 14px;
   }
 }

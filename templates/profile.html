@@ -1,21 +1,28 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>{{ username }} | Car Album</title>
-<link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8">
+  <title>{{ username }} | Car Album</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
 <header class="header">
   <div class="header-inner">
     <a href="/" class="logo">Car Album</a>
-    <nav>
-      <a href="/">ホーム</a>
-      <a href="/ranking?period=day">ランキング</a>
+
+    <nav class="nav">
+      <a href="/" class="nav-link">おすすめ</a>
+      <a href="/search" class="nav-link">検索</a>
       {% if me %}
-        <form action="/logout" method="post" class="logout-form">
-          <button class="logout-btn">ログアウト</button>
+        <a href="/following" class="nav-link">フォロー中</a>
+      {% endif %}
+      <a href="/ranking?period=day" class="nav-link">ランキング</a>
+      {% if me %}
+        <a href="/user/{{ me }}" class="nav-link active">プロフィール</a>
+        <form action="/logout" method="post" class="inline-form">
+          <button class="logout-btn" type="submit">ログアウト</button>
         </form>
       {% endif %}
     </nav>
@@ -24,53 +31,119 @@
 
 <main class="container">
 
-<div class="card profile-card">
-  <h2>{{ username }}</h2>
-  <div class="profile-stats">
-    フォロー {{ follow_count }} ／ フォロワー {{ follower_count }}
+  <div class="profile-card">
+    <div class="profile-top">
+      <div class="profile-name">{{ username }}</div>
+
+      {% if me and me != username %}
+        {% if is_following %}
+        <form method="post" action="/unfollow/{{ username }}" class="inline-form">
+          <button type="submit" class="follow-btn is-following">フォロー解除</button>
+        </form>
+        {% else %}
+        <form method="post" action="/follow/{{ username }}" class="inline-form">
+          <button type="submit" class="follow-btn">フォロー</button>
+        </form>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="profile-stats">
+      <div class="stat"><span class="stat-num">{{ follow_count }}</span><span class="stat-label">フォロー</span></div>
+      <div class="stat"><span class="stat-num">{{ follower_count }}</span><span class="stat-label">フォロワー</span></div>
+    </div>
+
+    <div class="profile-meta">
+      <div><span class="label">メーカー</span>：{{ profile[0] if profile else "" }}</div>
+      <div><span class="label">車種</span>：{{ profile[1] if profile else "" }}</div>
+      <div><span class="label">地域</span>：{{ profile[2] if profile else "" }}</div>
+      <div class="bio"><span class="label">自己紹介</span>：{{ profile[3] if profile else "" }}</div>
+    </div>
+
+    {% if me and me == username %}
+    <details class="profile-edit">
+      <summary>プロフィール編集</summary>
+      <form method="post" action="/profile/edit" class="profile-form">
+        <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
+        <input name="car" placeholder="車種" value="{{ profile[1] if profile else '' }}">
+        <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
+        <textarea name="bio" placeholder="自己紹介">{{ profile[3] if profile else '' }}</textarea>
+        <button class="primary-btn" type="submit">保存</button>
+      </form>
+    </details>
+    {% endif %}
   </div>
 
-  {% if profile %}
-    <div>メーカー：{{ profile[0] }}</div>
-    <div>車種：{{ profile[1] }}</div>
-    <div>地域：{{ profile[2] }}</div>
-    {% if profile[3] %}
-      <div class="bio">{{ profile[3] }}</div>
-    {% endif %}
-  {% endif %}
-</div>
+  <h2 class="section-title">投稿</h2>
 
-{% if me == username %}
-<div class="card">
-  <form action="/profile/edit" method="post">
-    <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile }}">
-    <input name="car" placeholder="車種" value="{{ profile[1] if profile }}">
-    <input name="region" placeholder="地域" value="{{ profile[2] if profile }}">
-    <textarea name="bio" placeholder="自己紹介">{{ profile[3] if profile }}</textarea>
-    <button>保存</button>
-  </form>
-</div>
-{% elif me %}
-<form method="post" action="{% if is_following %}/unfollow/{{ username }}{% else %}/follow/{{ username }}{% endif %}">
-  <button class="follow-btn">
-    {% if is_following %}フォロー解除{% else %}フォローする{% endif %}
-  </button>
-</form>
-{% endif %}
+  <div class="posts">
+    {% for post in posts %}
+    <article class="post-card">
 
-<div class="posts">
-{% for p in posts %}
-  <div class="post-card">
-    <div class="post-car">{{ p[2] }}</div>
-    <div class="post-text">{{ p[3] }}</div>
-    {% if p[4] %}
-      <img src="{{ p[4] }}" class="post-image">
-    {% endif %}
-    <div class="post-date">{{ p[5] }}</div>
+      <div class="post-top">
+        <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
+        <span class="post-date">{{ post.created_at }}</span>
+      </div>
+
+      <div class="post-meta">
+        {% if post.maker %}<span class="chip">{{ post.maker }}</span>{% endif %}
+        {% if post.region %}<span class="chip">{{ post.region }}</span>{% endif %}
+      </div>
+
+      <div class="post-car">{{ post.car }}</div>
+
+      {% if post.comment %}
+      <div class="post-text">{{ post.comment }}</div>
+      {% endif %}
+
+      {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+      {% endif %}
+
+      <div class="post-actions">
+        <form method="post"
+              action="{% if me and post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}"
+              class="inline-form">
+          <button class="like-btn" type="submit" {% if not me %}disabled title="ログインが必要"{% endif %}>
+            {% if me and post.id in liked_posts %}❤️{% else %}🤍{% endif %}
+            {{ post.likes }}
+          </button>
+        </form>
+
+        {% if me and me == post.username %}
+        <form method="post" action="/delete/{{ post.id }}" class="inline-form"
+              onsubmit="return confirm('この投稿を削除しますか？');">
+          <button class="delete-btn" type="submit">削除</button>
+        </form>
+        {% endif %}
+      </div>
+
+      {% if post.comments and post.comments|length > 0 %}
+      <div class="comments">
+        {% for c in post.comments %}
+          {% if c[0] == post.id %}
+          <div class="comment-row">
+            <span class="comment-user">{{ c[1] }}</span>
+            <span class="comment-text">{{ c[2] }}</span>
+            <span class="comment-date">{{ c[3] }}</span>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if me %}
+      <form method="post" action="/comment/{{ post.id }}" class="comment-form">
+        <input name="comment" placeholder="コメントを書く">
+        <button type="submit" class="comment-btn">送信</button>
+      </form>
+      {% endif %}
+
+    </article>
+    {% endfor %}
   </div>
-{% endfor %}
-</div>
 
 </main>
+
 </body>
 </html>
