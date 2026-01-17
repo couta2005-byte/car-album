@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>検索 | Car Album</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Car Album</a>
+    <nav class="nav">
+      <a href="/" class="nav-link">おすすめ</a>
+      <a href="/search" class="nav-link active">検索</a>
+      <a href="/ranking?period=day" class="nav-link">ランキング</a>
+    </nav>
+  </div>
+</header>
+
+<section class="search-section">
+  <div class="search-card">
+    <h2 class="search-title">🔍 車両検索</h2>
+    <form method="get" class="search-form">
+      <input name="maker" placeholder="メーカー" value="{{ maker }}">
+      <input name="car" placeholder="車種" value="{{ car }}">
+      <input name="region" placeholder="地域" value="{{ region }}">
+      <button class="primary-btn">検索</button>
+    </form>
+  </div>
+</section>
+
+<main class="container">
+  <div class="posts">
+    {% for post in posts %}
+      <article class="post-card">
+        <div class="post-car">{{ post.car }}</div>
+        {% if post.image %}
+          <img src="{{ post.image }}" class="post-image">
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
+</main>
+
+</body>
+</html>

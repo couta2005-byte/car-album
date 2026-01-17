@@ -14,20 +14,18 @@
 
     <nav class="nav">
       <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
+      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">検索</a>
 
       {% if user %}
         <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
       {% endif %}
 
-      <a href="/ranking?period=day"
-         class="nav-link {% if mode in ['ranking_day','ranking_week','ranking_month'] %}active{% endif %}">
-        ランキング
-      </a>
+      <a href="/ranking?period=day" class="nav-link">ランキング</a>
 
       {% if user %}
         <a href="/user/{{ user }}" class="nav-link">プロフィール</a>
-        <form action="/logout" method="post" class="logout-form">
-          <button class="logout-btn" type="submit">ログアウト</button>
+        <form action="/logout" method="post">
+          <button class="logout-btn">ログアウト</button>
         </form>
       {% endif %}
     </nav>
@@ -35,26 +33,9 @@
 </header>
 
 <main class="container">
-
-  <!-- ===== 検索エリア（分離） ===== -->
-  <section class="search-section">
-    <div class="search-card">
-      <h2 class="search-title">🔍 車両検索</h2>
-
-      <form method="get" class="search-form">
-        <input name="maker" placeholder="メーカー" value="{{ maker }}">
-        <input name="car" placeholder="車種" value="{{ car }}">
-        <input name="region" placeholder="地域" value="{{ region }}">
-        <button class="primary-btn" type="submit">検索する</button>
-      </form>
-    </div>
-  </section>
-
-  <!-- ===== 投稿一覧 ===== -->
   <div class="posts">
     {% for post in posts %}
     <article class="post-card">
-
       <div class="post-top">
         <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
         <span class="post-date">{{ post.created_at }}</span>
@@ -63,35 +44,16 @@
       <div class="post-car">{{ post.car }}</div>
 
       {% if post.comment %}
-      <div class="post-text">{{ post.comment }}</div>
+        <div class="post-text">{{ post.comment }}</div>
       {% endif %}
 
       {% if post.image %}
-      <img src="{{ post.image }}" class="post-image">
+        <img src="{{ post.image }}" class="post-image">
       {% endif %}
-
-      <div class="post-actions">
-        <form method="post"
-              action="{% if post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}">
-          <button class="like-btn" type="submit">
-            {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
-            {{ post.likes }}
-          </button>
-        </form>
-
-        {% if user and user == post.username %}
-        <form method="post"
-              action="/delete/{{ post.id }}"
-              onsubmit="return confirm('この投稿を削除しますか？');">
-          <button class="delete-btn" type="submit">削除</button>
-        </form>
-        {% endif %}
-      </div>
-
     </article>
     {% endfor %}
   </div>
-
 </main>
+
 </body>
 </html>
