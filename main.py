@@ -18,8 +18,8 @@ DB = "app.db"
 
 
 def get_db():
-    conn = sqlite3.connect(DB)
-    return conn
+    # check_same_thread=False は付けない（FastAPI同期なら不要）
+    return sqlite3.connect(DB)
 
 
 # ======================
@@ -114,9 +114,15 @@ def get_comments_map(db):
 
 
 # ======================
-# 共通：投稿一覧取得（検索/ランキング/フォローTL/プロフィールで使う）
+# 共通：投稿一覧取得
 # ======================
-def fetch_posts(db, where_sql: str = "", params=(), order_sql: str = "ORDER BY p.id DESC", limit_sql: str = ""):
+def fetch_posts(
+    db,
+    where_sql: str = "",
+    params=(),
+    order_sql: str = "ORDER BY p.id DESC",
+    limit_sql: str = ""
+):
     rows = db.execute(f"""
         SELECT
             p.id, p.username, p.maker, p.region, p.car,
@@ -149,16 +155,14 @@ def fetch_posts(db, where_sql: str = "", params=(), order_sql: str = "ORDER BY p
 
 
 # ======================
-# トップ（おすすめ＝投稿 + TL）
+# トップ（おすすめ）
 # ======================
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, user: str = Cookie(default=None)):
     me = unquote(user) if user else None
     db = get_db()
-
     posts = fetch_posts(db)
     liked_posts = get_liked_posts(db, me)
-
     db.close()
 
     return templates.TemplateResponse("index.html", {
@@ -173,7 +177,7 @@ def index(request: Request, user: str = Cookie(default=None)):
 
 
 # ======================
-# 🔍 検索専用ページ（分離）
+# 検索
 # ======================
 @app.get("/search", response_class=HTMLResponse)
 def search(
@@ -264,10 +268,10 @@ def ranking(
 
     db = get_db()
 
-    # 期間内のいいね多い順
+    # ✅ SQLiteで安全に日時比較（TEXTの文字列比較事故を防ぐ）
     posts = fetch_posts(
         db,
-        where_sql="WHERE p.created_at >= ?",
+        where_sql="WHERE datetime(p.created_at) >= datetime(?)",
         params=(since_str,),
         order_sql="ORDER BY like_count DESC, p.id DESC",
         limit_sql="LIMIT 10"
@@ -332,7 +336,12 @@ def post(
 # コメント
 # ======================
 @app.post("/comment/{post_id}")
-def add_comment(request: Request, post_id: int, comment: str = Form(...), user: str = Cookie(default=None)):
+def add_comment(
+    request: Request,
+    post_id: int,
+    comment: str = Form(...),
+    user: str = Cookie(default=None)
+):
     if not user:
         return RedirectResponse("/", status_code=303)
 
@@ -357,7 +366,8 @@ def add_comment(request: Request, post_id: int, comment: str = Form(...), user: 
 def like(request: Request, post_id: int, user: str = Cookie(default=None)):
     if user:
         db = get_db()
-        db.execute("INSERT OR IGNORE INTO likes VALUES (?, ?)", (unquote(user), post_id))
+        db.execute("INSERT OR IGNORE INTO likes VALUES (?, ?)",
+                   (unquote(user), post_id))
         db.commit()
         db.close()
     return redirect_back(request, "/")
@@ -367,7 +377,8 @@ def like(request: Request, post_id: int, user: str = Cookie(default=None)):
 def unlike(request: Request, post_id: int, user: str = Cookie(default=None)):
     if user:
         db = get_db()
-        db.execute("DELETE FROM likes WHERE username=? AND post_id=?", (unquote(user), post_id))
+        db.execute("DELETE FROM likes WHERE username=? AND post_id=?",
+                   (unquote(user), post_id))
         db.commit()
         db.close()
     return redirect_back(request, "/")
@@ -455,7 +466,9 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
         "follow_count": follow_count,
         "follower_count": follower_count,
         "liked_posts": liked_posts,
-        "mode": "profile"
+        "mode": "profile",
+        # ✅ _nav.html が user を参照するなら揃える
+        "user": me
     })
 
 
@@ -552,8 +565,17 @@ def register(username: str = Form(...), password: str = Form(...)):
     return res
 
 
+# ✅ 旧POSTログアウト（残してOK）
 @app.post("/logout")
-def logout():
+def logout_post():
+    res = RedirectResponse("/", status_code=303)
+    res.delete_cookie("user")
+    return res
+
+
+# ✅ 新GETログアウト（共通ナビ用の安全策）
+@app.get("/logout")
+def logout_get():
     res = RedirectResponse("/", status_code=303)
     res.delete_cookie("user")
     return res
