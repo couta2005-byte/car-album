@@ -26,7 +26,21 @@
 {% for post in posts %}
   <article class="post-card ranking-card rank-{{ loop.index }}">
     <div class="rank-badge">{{ loop.index }}</div>
+
+    <div class="post-top">
+      <a class="post-user" href="/user/{{ post.username }}">{{ post.username }}</a>
+      <span class="post-date">{{ post.created_at }}</span>
+    </div>
+
     <div class="post-car">{{ post.car }}</div>
+
+    {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+    {% endif %}
+
+    <div class="post-actions">
+      ❤️ {{ post.likes }}
+    </div>
   </article>
 {% endfor %}
 </div>
