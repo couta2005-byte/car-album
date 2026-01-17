@@ -6,9 +6,9 @@
       <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
 
       {% if user %}
-        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">
-          フォロー中
-        </a>
+      <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">
+        フォロー中
+      </a>
       {% endif %}
 
       <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">
@@ -16,18 +16,18 @@
       </a>
 
       <a href="/ranking?period=day"
-         class="nav-link {% if mode is defined and mode.startswith('ranking') %}active{% endif %}">
+         class="nav-link {% if mode and mode.startswith('ranking') %}active{% endif %}">
         ランキング
       </a>
 
       {% if user %}
-        <a href="/user/{{ user }}" class="nav-link {% if mode=='profile' %}active{% endif %}">
-          プロフィール
-        </a>
+      <a href="/user/{{ user }}"
+         class="nav-link {% if mode=='profile' %}active{% endif %}">
+        プロフィール
+      </a>
 
-        <form action="/logout" method="post" class="inline-form">
-          <button class="logout-btn" type="submit">ログアウト</button>
-        </form>
+      <!-- ★ ログアウトは GET にする -->
+      <a href="/logout" class="logout-btn">ログアウト</a>
       {% endif %}
     </nav>
   </div>
