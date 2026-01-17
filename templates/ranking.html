@@ -12,35 +12,27 @@
 
 <main class="container">
 
-<div class="ranking-tabs">
-  <a href="/ranking?period=day" class="{% if period=='day' %}active{% endif %}">日</a>
-  <a href="/ranking?period=week" class="{% if period=='week' %}active{% endif %}">週</a>
-  <a href="/ranking?period=month" class="{% if period=='month' %}active{% endif %}">月</a>
+<div class="ranking-tabs-wrap">
+  <div class="ranking-tabs">
+    <a href="/ranking?period=day" class="rank-tab {% if period=='day' %}active{% endif %}">日</a>
+    <a href="/ranking?period=week" class="rank-tab {% if period=='week' %}active{% endif %}">週</a>
+    <a href="/ranking?period=month" class="rank-tab {% if period=='month' %}active{% endif %}">月</a>
+  </div>
 </div>
 
 <h2 class="ranking-title">{{ ranking_title }}</h2>
 
 <div class="posts">
-  {% for post in posts %}
-  <article class="post-card ranking-card">
-
+{% for post in posts %}
+  <article class="post-card ranking-card rank-{{ loop.index }}">
     <div class="rank-badge">{{ loop.index }}</div>
-
-    <div class="post-top">
-      <a href="/user/{{ post.username }}" class="post-user">{{ post.username }}</a>
-      <span class="post-date">{{ post.created_at }}</span>
-    </div>
-
     <div class="post-car">{{ post.car }}</div>
 
     {% if post.image %}
-    <img src="{{ post.image }}" class="post-image">
+      <img src="{{ post.image }}" class="post-image">
     {% endif %}
-
-    <div class="post-likes">❤️ {{ post.likes }}</div>
-
   </article>
-  {% endfor %}
+{% endfor %}
 </div>
 
 </main>

@@ -2,37 +2,21 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>新規登録 | Car Album</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <title>ユーザー登録</title>
 </head>
 <body>
 
-{% include "_nav.html" %}
+<h1>ユーザー登録</h1>
 
-<main class="container">
-  <h1 class="auth-title">ユーザー登録</h1>
-
-  <form method="post" action="/register" class="auth-card">
-    <input
-      type="text"
-      name="username"
-      placeholder="ユーザー名"
-      required
-    >
-    <input
-      type="password"
-      name="password"
-      placeholder="パスワード"
-      required
-    >
-    <button type="submit" class="primary-btn">登録</button>
-  </form>
-
-  <p>
-    <a href="/login">ログインはこちら</a>
-  </p>
-</main>
+<form method="post" action="/register">
+  <div>
+    <input name="username" placeholder="ユーザー名" required>
+  </div>
+  <div>
+    <input type="password" name="password" placeholder="パスワード" required>
+  </div>
+  <button type="submit">登録</button>
+</form>
 
 </body>
 </html>

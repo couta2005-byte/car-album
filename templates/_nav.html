@@ -1,26 +1,34 @@
-<nav class="nav">
-  <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Car Album</a>
 
-  {% if user %}
-    <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
-  {% endif %}
+    <nav class="nav">
+      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
 
-  <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">検索</a>
+      {% if user %}
+        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">
+          フォロー中
+        </a>
+      {% endif %}
 
-  <a href="/ranking?period=day"
-     class="nav-link {% if mode and mode.startswith('ranking') %}active{% endif %}">
-     ランキング
-  </a>
+      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">
+        検索
+      </a>
 
-  {% if user %}
-    <a href="/user/{{ user }}" class="nav-link {% if mode=='profile' %}active{% endif %}">
-      プロフィール
-    </a>
-    <form action="/logout" method="post" class="inline-form">
-      <button class="logout-btn">ログアウト</button>
-    </form>
-  {% else %}
-    <a href="/login" class="nav-link {% if mode=='login' %}active{% endif %}">ログイン</a>
-    <a href="/register" class="nav-link {% if mode=='register' %}active{% endif %}">新規登録</a>
-  {% endif %}
-</nav>
+      <a href="/ranking?period=day"
+         class="nav-link {% if mode is defined and mode.startswith('ranking') %}active{% endif %}">
+        ランキング
+      </a>
+
+      {% if user %}
+        <a href="/user/{{ user }}" class="nav-link {% if mode=='profile' %}active{% endif %}">
+          プロフィール
+        </a>
+
+        <form action="/logout" method="post" class="inline-form">
+          <button class="logout-btn" type="submit">ログアウト</button>
+        </form>
+      {% endif %}
+    </nav>
+  </div>
+</header>
