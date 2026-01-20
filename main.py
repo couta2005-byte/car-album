@@ -10,16 +10,18 @@ from urllib.parse import quote, unquote
 
 app = FastAPI()
 
+# ===== static / uploads =====
+os.makedirs("uploads", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
 templates = Jinja2Templates(directory="templates")
 
 DB = "app.db"
 
 
 def get_db():
-    conn = sqlite3.connect(DB)
-    return conn
+    return sqlite3.connect(DB)
 
 
 # ======================
@@ -80,17 +82,19 @@ init_db()
 
 
 # ======================
-# 共通：リダイレクト（元のページへ）
+# 共通
 # ======================
 def redirect_back(request: Request, fallback: str = "/"):
     referer = request.headers.get("referer")
     return RedirectResponse(referer or fallback, status_code=303)
 
 
-# ======================
-# 共通：いいね済み投稿セット
-# ======================
-def get_liked_posts(db, me: str | None):
+def is_https_request(request: Request) -> bool:
+    # ローカル(http) / 本番(https) を自動判定
+    return request.url.scheme == "https"
+
+
+def get_liked_posts(db, me):
     if not me:
         return set()
     return {r[0] for r in db.execute(
@@ -99,9 +103,6 @@ def get_liked_posts(db, me: str | None):
     ).fetchall()}
 
 
-# ======================
-# 共通：コメント辞書 {post_id: [rows]}
-# ======================
 def get_comments_map(db):
     comments = {}
     for c in db.execute("""
@@ -113,10 +114,7 @@ def get_comments_map(db):
     return comments
 
 
-# ======================
-# 共通：投稿一覧取得（検索/ランキング/フォローTL/プロフィールで使う）
-# ======================
-def fetch_posts(db, where_sql: str = "", params=(), order_sql: str = "ORDER BY p.id DESC", limit_sql: str = ""):
+def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
     rows = db.execute(f"""
         SELECT
             p.id, p.username, p.maker, p.region, p.car,
@@ -132,7 +130,7 @@ def fetch_posts(db, where_sql: str = "", params=(), order_sql: str = "ORDER BY p
 
     comments_map = get_comments_map(db)
 
-    posts = [{
+    return [{
         "id": r[0],
         "username": r[1],
         "maker": r[2],
@@ -145,11 +143,9 @@ def fetch_posts(db, where_sql: str = "", params=(), order_sql: str = "ORDER BY p
         "comments": comments_map.get(r[0], [])
     } for r in rows]
 
-    return posts
-
 
 # ======================
-# トップ（おすすめ＝投稿 + TL）
+# トップ
 # ======================
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, user: str = Cookie(default=None)):
@@ -173,7 +169,20 @@ def index(request: Request, user: str = Cookie(default=None)):
 
 
 # ======================
-# 🔍 検索専用ページ（分離）
+# ログイン / 登録 画面
+# ======================
+@app.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
+# ======================
+# 検索
 # ======================
 @app.get("/search", response_class=HTMLResponse)
 def search(
@@ -213,7 +222,7 @@ def search(
 @app.get("/following", response_class=HTMLResponse)
 def following(request: Request, user: str = Cookie(default=None)):
     if not user:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/login", status_code=303)
 
     me = unquote(user)
     db = get_db()
@@ -239,7 +248,7 @@ def following(request: Request, user: str = Cookie(default=None)):
 
 
 # ======================
-# ランキング（日/週/月 TOP10）
+# ランキング
 # ======================
 @app.get("/ranking", response_class=HTMLResponse)
 def ranking(
@@ -260,15 +269,11 @@ def ranking(
         since = now.replace(hour=0, minute=0, second=0, microsecond=0)
         title = "日間ランキング TOP10"
 
-    since_str = since.strftime("%Y-%m-%d %H:%M")
-
     db = get_db()
-
-    # 期間内のいいね多い順
     posts = fetch_posts(
         db,
-        where_sql="WHERE p.created_at >= ?",
-        params=(since_str,),
+        "WHERE p.created_at >= ?",
+        (since.strftime("%Y-%m-%d %H:%M"),),
         order_sql="ORDER BY like_count DESC, p.id DESC",
         limit_sql="LIMIT 10"
     )
@@ -288,133 +293,12 @@ def ranking(
 
 
 # ======================
-# 投稿
-# ======================
-@app.post("/post")
-def post(
-    request: Request,
-    maker: str = Form(""),
-    region: str = Form(""),
-    car: str = Form(""),
-    comment: str = Form(""),
-    image: UploadFile = File(None),
-    user: str = Cookie(default=None)
-):
-    if not user:
-        return RedirectResponse("/", status_code=303)
-
-    username = unquote(user)
-    image_path = None
-
-    if image and image.filename:
-        os.makedirs("uploads", exist_ok=True)
-        ext = image.filename.split(".")[-1] if "." in image.filename else "jpg"
-        filename = f"{uuid.uuid4()}.{ext}"
-        with open(f"uploads/{filename}", "wb") as f:
-            f.write(image.file.read())
-        image_path = f"/uploads/{filename}"
-
-    db = get_db()
-    db.execute("""
-        INSERT INTO posts (username, maker, region, car, comment, image, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    """, (
-        username, maker, region, car, comment,
-        image_path, datetime.now().strftime("%Y-%m-%d %H:%M")
-    ))
-    db.commit()
-    db.close()
-
-    return redirect_back(request, "/")
-
-
-# ======================
-# コメント
-# ======================
-@app.post("/comment/{post_id}")
-def add_comment(request: Request, post_id: int, comment: str = Form(...), user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/", status_code=303)
-
-    db = get_db()
-    db.execute("""
-        INSERT INTO comments (post_id, username, comment, created_at)
-        VALUES (?, ?, ?, ?)
-    """, (
-        post_id, unquote(user), comment,
-        datetime.now().strftime("%Y-%m-%d %H:%M")
-    ))
-    db.commit()
-    db.close()
-
-    return redirect_back(request, "/")
-
-
-# ======================
-# いいね
-# ======================
-@app.post("/like/{post_id}")
-def like(request: Request, post_id: int, user: str = Cookie(default=None)):
-    if user:
-        db = get_db()
-        db.execute("INSERT OR IGNORE INTO likes VALUES (?, ?)", (unquote(user), post_id))
-        db.commit()
-        db.close()
-    return redirect_back(request, "/")
-
-
-@app.post("/unlike/{post_id}")
-def unlike(request: Request, post_id: int, user: str = Cookie(default=None)):
-    if user:
-        db = get_db()
-        db.execute("DELETE FROM likes WHERE username=? AND post_id=?", (unquote(user), post_id))
-        db.commit()
-        db.close()
-    return redirect_back(request, "/")
-
-
-# ======================
-# 投稿削除（自分の投稿のみ）
-# ======================
-@app.post("/delete/{post_id}")
-def delete_post(post_id: int, request: Request, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/", status_code=303)
-
-    me = unquote(user)
-    db = get_db()
-
-    row = db.execute(
-        "SELECT image FROM posts WHERE id=? AND username=?",
-        (post_id, me)
-    ).fetchone()
-
-    if not row:
-        db.close()
-        return redirect_back(request, "/")
-
-    image_path = row[0]
-
-    db.execute("DELETE FROM posts WHERE id=? AND username=?", (post_id, me))
-    db.execute("DELETE FROM likes WHERE post_id=?", (post_id,))
-    db.execute("DELETE FROM comments WHERE post_id=?", (post_id,))
-    db.commit()
-    db.close()
-
-    if image_path:
-        try:
-            os.remove(image_path.lstrip("/"))
-        except:
-            pass
-
-    return redirect_back(request, "/")
-
-
-# ======================
-# プロフィール
+# プロフィール（日本語対応 + nav表示修正）
 # ======================
 @app.get("/user/{username}", response_class=HTMLResponse)
 def profile(request: Request, username: str, user: str = Cookie(default=None)):
+    username = unquote(username)
+
     me = unquote(user) if user else None
     db = get_db()
 
@@ -451,6 +335,10 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
         "profile": prof,
         "posts": posts,
         "me": me,
+
+        # ★これが重要：_nav.html は user で判定する
+        "user": me,
+
         "is_following": is_following,
         "follow_count": follow_count,
         "follower_count": follower_count,
@@ -460,7 +348,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
 
 
 # ======================
-# プロフィール編集
+# プロフィール編集（★追加：編集できない問題を解決）
 # ======================
 @app.post("/profile/edit")
 def profile_edit(
@@ -471,7 +359,7 @@ def profile_edit(
     user: str = Cookie(default=None)
 ):
     if not user:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/login", status_code=303)
 
     me = unquote(user)
 
@@ -488,67 +376,128 @@ def profile_edit(
     db.commit()
     db.close()
 
-    return RedirectResponse(f"/user/{quote(me)}".replace("%", "%25"), status_code=303)
+    return RedirectResponse(f"/user/{quote(me)}", status_code=303)
 
 
 # ======================
-# フォロー / 解除
+# フォロー / 解除（★追加：DBあるのにルート無かったので追加）
 # ======================
 @app.post("/follow/{username}")
 def follow(username: str, user: str = Cookie(default=None)):
     if not user:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/login", status_code=303)
 
     me = unquote(user)
+    target = unquote(username)
+
+    if me == target:
+        return RedirectResponse(f"/user/{quote(target)}", status_code=303)
+
     db = get_db()
-    db.execute("INSERT OR IGNORE INTO follows VALUES (?, ?)", (me, username))
+    db.execute("INSERT OR IGNORE INTO follows VALUES (?, ?)", (me, target))
     db.commit()
     db.close()
-    return RedirectResponse(f"/user/{quote(username)}".replace("%", "%25"), status_code=303)
+
+    return RedirectResponse(f"/user/{quote(target)}", status_code=303)
 
 
 @app.post("/unfollow/{username}")
 def unfollow(username: str, user: str = Cookie(default=None)):
     if not user:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse("/login", status_code=303)
 
     me = unquote(user)
+    target = unquote(username)
+
     db = get_db()
-    db.execute("DELETE FROM follows WHERE follower=? AND followee=?", (me, username))
+    db.execute("DELETE FROM follows WHERE follower=? AND followee=?", (me, target))
     db.commit()
     db.close()
-    return RedirectResponse(f"/user/{quote(username)}".replace("%", "%25"), status_code=303)
+
+    return RedirectResponse(f"/user/{quote(target)}", status_code=303)
+
+
+# ======================
+# 投稿
+# ======================
+@app.post("/post")
+def post(
+    request: Request,
+    maker: str = Form(""),
+    region: str = Form(""),
+    car: str = Form(""),
+    comment: str = Form(""),
+    image: UploadFile = File(None),
+    user: str = Cookie(default=None)
+):
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    me = unquote(user)
+    image_path = None
+
+    if image and image.filename:
+        ext = image.filename.split(".")[-1]
+        filename = f"{uuid.uuid4()}.{ext}"
+        with open(f"uploads/{filename}", "wb") as f:
+            f.write(image.file.read())
+        image_path = f"/uploads/{filename}"
+
+    db = get_db()
+    db.execute("""
+        INSERT INTO posts (username, maker, region, car, comment, image, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (
+        me, maker, region, car, comment,
+        image_path, datetime.now().strftime("%Y-%m-%d %H:%M")
+    ))
+    db.commit()
+    db.close()
+
+    return redirect_back(request, "/")
 
 
 # ======================
 # 認証
 # ======================
 @app.post("/login")
-def login(username: str = Form(...), password: str = Form(...)):
+def login(request: Request, username: str = Form(...), password: str = Form(...)):
     db = get_db()
-    row = db.execute(
+    ok = db.execute(
         "SELECT 1 FROM users WHERE username=? AND password=?",
         (username, password)
     ).fetchone()
     db.close()
 
-    if not row:
-        return RedirectResponse("/", status_code=303)
+    if not ok:
+        return RedirectResponse("/login", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
-    res.set_cookie("user", quote(username))
+    res.set_cookie(
+        key="user",
+        value=quote(username),
+        httponly=True,
+        secure=is_https_request(request),
+        samesite="lax"
+    )
     return res
 
 
 @app.post("/register")
-def register(username: str = Form(...), password: str = Form(...)):
+def register(request: Request, username: str = Form(...), password: str = Form(...)):
     db = get_db()
     db.execute("INSERT OR IGNORE INTO users VALUES (?, ?)", (username, password))
     db.commit()
     db.close()
 
     res = RedirectResponse("/", status_code=303)
-    res.set_cookie("user", quote(username))
+    res.set_cookie(
+        key="user",
+        value=quote(username),
+        httponly=True,
+        secure=is_https_request(request),
+        samesite="lax"
+    )
     return res
 
 

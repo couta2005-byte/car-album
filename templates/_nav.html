@@ -3,31 +3,43 @@
     <a href="/" class="logo">Car Album</a>
 
     <nav class="nav">
-      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
+      <!-- 共通 -->
+      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">
+        おすすめ
+      </a>
 
       {% if user %}
-        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">
+        <!-- ===== ログイン中 ===== -->
+        <a href="/following"
+           class="nav-link {% if mode=='following' %}active{% endif %}">
           フォロー中
         </a>
-      {% endif %}
 
-      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">
-        検索
-      </a>
+        <a href="/ranking?period=day"
+           class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
+          ランキング
+        </a>
 
-      <a href="/ranking?period=day"
-         class="nav-link {% if mode is defined and mode.startswith('ranking') %}active{% endif %}">
-        ランキング
-      </a>
-
-      {% if user %}
-        <a href="/user/{{ user }}" class="nav-link {% if mode=='profile' %}active{% endif %}">
+        <a href="/user/{{ user | urlencode }}"
+           class="nav-link {% if mode=='profile' %}active{% endif %}">
           プロフィール
         </a>
 
-        <form action="/logout" method="post" class="inline-form">
-          <button class="logout-btn" type="submit">ログアウト</button>
+        <form action="/logout" method="post" style="display:inline;">
+          <button type="submit" class="nav-link logout-btn">
+            ログアウト
+          </button>
         </form>
+
+      {% else %}
+        <!-- ===== 未ログイン ===== -->
+        <a href="/login" class="nav-link">
+          ログイン
+        </a>
+
+        <a href="/register" class="nav-link">
+          新規登録
+        </a>
       {% endif %}
     </nav>
   </div>

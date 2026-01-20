@@ -13,6 +13,50 @@
 <main class="container">
   <h2 class="profile-name">{{ username }}</h2>
 
+  <!-- プロフィール情報 -->
+  <div class="profile-box" style="margin: 12px 0;">
+    <div style="display:flex; gap:16px; flex-wrap:wrap;">
+      <div><strong>メーカー：</strong>{{ profile[0] if profile else "" }}</div>
+      <div><strong>車名：</strong>{{ profile[1] if profile else "" }}</div>
+      <div><strong>地域：</strong>{{ profile[2] if profile else "" }}</div>
+      <div><strong>フォロー：</strong>{{ follow_count }}</div>
+      <div><strong>フォロワー：</strong>{{ follower_count }}</div>
+    </div>
+    <div style="margin-top:8px;">
+      <strong>自己紹介：</strong>
+      <div style="white-space:pre-wrap;">{{ profile[3] if profile else "" }}</div>
+    </div>
+  </div>
+
+  <!-- 自分のプロフィールなら編集フォーム -->
+  {% if me == username %}
+  <form action="/profile/edit" method="post" class="profile-edit" style="margin:16px 0;">
+    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+      <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
+      <input name="car" placeholder="車名" value="{{ profile[1] if profile else '' }}">
+      <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
+    </div>
+    <div style="margin-top:10px;">
+      <textarea name="bio" placeholder="自己紹介" rows="3" style="width:100%;">{{ profile[3] if profile else '' }}</textarea>
+    </div>
+    <button type="submit" style="margin-top:10px;">プロフィール更新</button>
+  </form>
+  {% endif %}
+
+  <!-- 他人のプロフィールならフォロー/解除 -->
+  {% if me and me != username %}
+    {% if is_following %}
+      <form action="/unfollow/{{ username | urlencode }}" method="post" style="margin: 12px 0;">
+        <button type="submit">フォロー解除</button>
+      </form>
+    {% else %}
+      <form action="/follow/{{ username | urlencode }}" method="post" style="margin: 12px 0;">
+        <button type="submit">フォローする</button>
+      </form>
+    {% endif %}
+  {% endif %}
+
+  <!-- 投稿一覧 -->
   <div class="posts">
   {% for post in posts %}
     <article class="post-card">
