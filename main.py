@@ -506,3 +506,73 @@ def logout():
     res = RedirectResponse("/", status_code=303)
     res.delete_cookie("user")
     return res
+# ======================
+# いいね
+# ======================
+@app.post("/like/{post_id}")
+def like_post(post_id: int, user: str = Cookie(default=None)):
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    db = get_db()
+    db.execute(
+        "INSERT OR IGNORE INTO likes (username, post_id) VALUES (?, ?)",
+        (unquote(user), post_id)
+    )
+    db.commit()
+    db.close()
+
+    return RedirectResponse("/", status_code=303)
+
+
+@app.post("/unlike/{post_id}")
+def unlike_post(post_id: int, user: str = Cookie(default=None)):
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    db = get_db()
+    db.execute(
+        "DELETE FROM likes WHERE username=? AND post_id=?",
+        (unquote(user), post_id)
+    )
+    db.commit()
+    db.close()
+
+    return RedirectResponse("/", status_code=303)
+
+
+# ======================
+# 投稿削除（本人のみ）
+# ======================
+@app.post("/delete/{post_id}")
+def delete_post(post_id: int, user: str = Cookie(default=None)):
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    me = unquote(user)
+    db = get_db()
+
+    row = db.execute(
+        "SELECT image FROM posts WHERE id=? AND username=?",
+        (post_id, me)
+    ).fetchone()
+
+    if not row:
+        db.close()
+        return RedirectResponse("/", status_code=303)
+
+    image_path = row[0]
+
+    db.execute("DELETE FROM posts WHERE id=?", (post_id,))
+    db.execute("DELETE FROM likes WHERE post_id=?", (post_id,))
+    db.execute("DELETE FROM comments WHERE post_id=?", (post_id,))
+    db.commit()
+    db.close()
+
+    if image_path:
+        try:
+            os.remove(image_path.lstrip("/"))
+        except:
+            pass
+
+    return RedirectResponse("/", status_code=303)

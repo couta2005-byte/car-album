@@ -28,7 +28,7 @@
     </div>
   </div>
 
-  <!-- 自分のプロフィールなら編集フォーム -->
+  <!-- 自分のプロフィールなら編集 -->
   {% if me == username %}
   <form action="/profile/edit" method="post" class="profile-edit" style="margin:16px 0;">
     <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -36,21 +36,19 @@
       <input name="car" placeholder="車名" value="{{ profile[1] if profile else '' }}">
       <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
     </div>
-    <div style="margin-top:10px;">
-      <textarea name="bio" placeholder="自己紹介" rows="3" style="width:100%;">{{ profile[3] if profile else '' }}</textarea>
-    </div>
+    <textarea name="bio" rows="3" style="width:100%; margin-top:10px;">{{ profile[3] if profile else '' }}</textarea>
     <button type="submit" style="margin-top:10px;">プロフィール更新</button>
   </form>
   {% endif %}
 
-  <!-- 他人のプロフィールならフォロー/解除 -->
+  <!-- フォロー操作 -->
   {% if me and me != username %}
     {% if is_following %}
-      <form action="/unfollow/{{ username | urlencode }}" method="post" style="margin: 12px 0;">
+      <form action="/unfollow/{{ username | urlencode }}" method="post">
         <button type="submit">フォロー解除</button>
       </form>
     {% else %}
-      <form action="/follow/{{ username | urlencode }}" method="post" style="margin: 12px 0;">
+      <form action="/follow/{{ username | urlencode }}" method="post">
         <button type="submit">フォローする</button>
       </form>
     {% endif %}
@@ -65,6 +63,31 @@
       {% if post.image %}
         <img src="{{ post.image }}" class="post-image">
       {% endif %}
+
+      <div class="post-actions" style="margin-top:8px; display:flex; gap:10px; align-items:center;">
+
+        {% if me %}
+          {% if post.id in liked_posts %}
+            <form action="/unlike/{{ post.id }}" method="post">
+              <button type="submit">❤️ {{ post.likes }}</button>
+            </form>
+          {% else %}
+            <form action="/like/{{ post.id }}" method="post">
+              <button type="submit">🤍 {{ post.likes }}</button>
+            </form>
+          {% endif %}
+        {% else %}
+          <span>🤍 {{ post.likes }}</span>
+        {% endif %}
+
+        {% if me == post.username %}
+          <form action="/delete/{{ post.id }}" method="post"
+                onsubmit="return confirm('この投稿を削除しますか？');">
+            <button type="submit">🗑 削除</button>
+          </form>
+        {% endif %}
+
+      </div>
     </article>
   {% endfor %}
   </div>

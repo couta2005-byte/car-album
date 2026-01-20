@@ -31,7 +31,9 @@
 {% for post in posts %}
   <article class="post-card">
     <div class="post-top">
-      <a href="/user/{{ post.username }}" class="post-user">{{ post.username }}</a>
+      <a href="/user/{{ post.username | urlencode }}" class="post-user">
+        {{ post.username }}
+      </a>
       <span class="post-date">{{ post.created_at }}</span>
     </div>
 
@@ -40,6 +42,32 @@
     {% if post.image %}
       <img src="{{ post.image }}" class="post-image">
     {% endif %}
+
+    <!-- 操作エリア -->
+    <div class="post-actions" style="margin-top:8px; display:flex; gap:10px; align-items:center;">
+
+      {% if user %}
+        {% if post.id in liked_posts %}
+          <form action="/unlike/{{ post.id }}" method="post">
+            <button type="submit">❤️ {{ post.likes }}</button>
+          </form>
+        {% else %}
+          <form action="/like/{{ post.id }}" method="post">
+            <button type="submit">🤍 {{ post.likes }}</button>
+          </form>
+        {% endif %}
+      {% else %}
+        <span>🤍 {{ post.likes }}</span>
+      {% endif %}
+
+      {% if user == post.username %}
+        <form action="/delete/{{ post.id }}" method="post"
+              onsubmit="return confirm('この投稿を削除しますか？');">
+          <button type="submit">🗑 削除</button>
+        </form>
+      {% endif %}
+
+    </div>
   </article>
 {% endfor %}
 </div>
