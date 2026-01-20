@@ -2,11 +2,15 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ログイン</title>
-  <link rel="stylesheet" href="/static/css/style.css">
+  <title>ログイン | Car Album</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<div class="container">
+
+{% include "_nav.html" %}
+
+<main class="container auth-container">
   <h1>ログイン</h1>
 
   <form method="post" action="/login">
@@ -15,7 +19,8 @@
     <button type="submit">ログイン</button>
   </form>
 
-  <p><a href="/register">新規登録</a></p>
-</div>
+  <p><a href="/register">新規登録はこちら</a></p>
+</main>
+
 </body>
 </html>
