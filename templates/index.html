@@ -19,7 +19,7 @@
     <input name="car" placeholder="車名">
     <input name="region" placeholder="地域">
   </div>
-  <textarea name="comment" placeholder="コメント"></textarea>
+  <textarea name="comment" placeholder="コメント（ひとこと）"></textarea>
   <div class="form-row bottom">
     <input type="file" name="image">
     <button class="primary-btn">投稿</button>
@@ -30,6 +30,7 @@
 <div class="posts">
 {% for post in posts %}
   <article class="post-card">
+
     <div class="post-top">
       <a href="/user/{{ post.username | urlencode }}" class="post-user">
         {{ post.username }}
@@ -39,21 +40,24 @@
 
     <div class="post-car">{{ post.car }}</div>
 
+    {% if post.comment %}
+      <div class="post-text">{{ post.comment }}</div>
+    {% endif %}
+
     {% if post.image %}
       <img src="{{ post.image }}" class="post-image">
     {% endif %}
 
-    <!-- 操作エリア -->
-    <div class="post-actions" style="margin-top:8px; display:flex; gap:10px; align-items:center;">
+    <div class="post-actions">
 
       {% if user %}
         {% if post.id in liked_posts %}
           <form action="/unlike/{{ post.id }}" method="post">
-            <button type="submit">❤️ {{ post.likes }}</button>
+            <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
           </form>
         {% else %}
           <form action="/like/{{ post.id }}" method="post">
-            <button type="submit">🤍 {{ post.likes }}</button>
+            <button type="submit" class="like-btn">🤍 {{ post.likes }}</button>
           </form>
         {% endif %}
       {% else %}
@@ -63,7 +67,7 @@
       {% if user == post.username %}
         <form action="/delete/{{ post.id }}" method="post"
               onsubmit="return confirm('この投稿を削除しますか？');">
-          <button type="submit">🗑 削除</button>
+          <button type="submit" class="delete-btn">🗑 削除</button>
         </form>
       {% endif %}
 
