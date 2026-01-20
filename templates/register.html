@@ -11,15 +11,18 @@
 {% include "_nav.html" %}
 
 <main class="container auth-container">
-  <h1>新規登録</h1>
+  <h2 class="auth-title">新規登録</h2>
 
-  <form method="post" action="/register">
-    <input name="username" placeholder="ユーザー名" required>
+  <form method="post" action="/register" class="auth-form">
+    <input type="text" name="username" placeholder="ユーザー名" required>
     <input type="password" name="password" placeholder="パスワード" required>
-    <button type="submit">登録</button>
+
+    <button type="submit" class="auth-btn">登録</button>
   </form>
 
-  <p><a href="/login">ログインに戻る</a></p>
+  <p class="auth-link">
+    <a href="/login">ログインはこちら</a>
+  </p>
 </main>
 
 </body>

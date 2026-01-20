@@ -439,3 +439,54 @@ textarea {
     font-size: 14px;
   }
 }
+/* ===== Auth (Login / Register) ===== */
+.auth-container {
+  max-width: 420px;
+  margin: 40px auto;
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 22px;
+  margin-bottom: 24px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-form input {
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.auth-btn {
+  padding: 14px;
+  font-size: 16px;
+  border-radius: 999px;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: bold;
+}
+
+.auth-btn:hover {
+  opacity: 0.9;
+}
+
+.auth-link {
+  margin-top: 16px;
+  text-align: center;
+}
+
+.auth-link a {
+  color: #1d9bf0;
+  text-decoration: none;
+  font-weight: 500;
+}
+
