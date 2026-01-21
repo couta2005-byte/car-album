@@ -24,6 +24,9 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 
 
 def get_db():
+    if not DATABASE_URL:
+        # ここで止めないと「別DB/空DB」に繋がって消えたように見える
+        raise RuntimeError("DATABASE_URL is not set. Set it in Render Web Service Environment Variables.")
     return psycopg2.connect(DATABASE_URL)
 
 
@@ -85,7 +88,11 @@ def init_db():
     db.close()
 
 
-init_db()
+# ✅ 重要：起動時に毎回init_db()を回さない（これが「消えた」原因の温床）
+# 必要なときだけ、RenderのEnvironmentで INIT_DB=1 を一瞬だけ入れて起動する
+if os.environ.get("INIT_DB") == "1":
+    init_db()
+
 
 # ======================
 # 共通
