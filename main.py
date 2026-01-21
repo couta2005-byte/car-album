@@ -20,11 +20,9 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 templates = Jinja2Templates(directory="templates")
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
-DEBUG_DB = os.environ.get("DEBUG_DB") == "1"
-
 
 # ======================
-# DB 接続
+# DB
 # ======================
 def get_db():
     if not DATABASE_URL:
@@ -117,14 +115,10 @@ def init_db():
     run_db(_do)
 
 
-# Render 起動時：テーブル存在保証（削除は一切しない）
 @app.on_event("startup")
 def startup():
-    try:
-        init_db()
-        print("✅ PostgreSQL tables ensured")
-    except Exception as e:
-        print("❌ DB init failed:", e)
+    # テーブル存在保証（IF NOT EXISTS。削除はしない）
+    init_db()
 
 
 # ======================
@@ -144,7 +138,8 @@ def get_liked_posts(db, me):
     cur = db.cursor()
     try:
         cur.execute("SELECT post_id FROM likes WHERE username=%s", (me,))
-        return {r[0] for r in cur.fetchall()}
+        rows = cur.fetchall()
+        return {r[0] for r in rows}
     finally:
         cur.close()
 
@@ -167,18 +162,35 @@ def get_comments_map(db):
     return comments
 
 
+# ======================
+# 投稿取得（PostgreSQL対応：GROUP BY完全指定）
+# ======================
 def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
     cur = db.cursor()
     try:
         cur.execute(f"""
             SELECT
-                p.id, p.username, p.maker, p.region, p.car,
-                p.comment, p.image, p.created_at,
+                p.id,
+                p.username,
+                p.maker,
+                p.region,
+                p.car,
+                p.comment,
+                p.image,
+                p.created_at,
                 COUNT(l.post_id) AS like_count
             FROM posts p
             LEFT JOIN likes l ON p.id = l.post_id
             {where_sql}
-            GROUP BY p.id
+            GROUP BY
+                p.id,
+                p.username,
+                p.maker,
+                p.region,
+                p.car,
+                p.comment,
+                p.image,
+                p.created_at
             {order_sql}
             {limit_sql}
         """, params)
@@ -262,11 +274,85 @@ def search(
 
 
 # ======================
-# 以下：プロフィール / 投稿 / いいね / 認証
-# ※ ここも一切削減していない
+# フォロー中
 # ======================
+@app.get("/following", response_class=HTMLResponse)
+def following(request: Request, user: str = Cookie(default=None)):
+    if not user:
+        return RedirectResponse("/login", status_code=303)
 
+    me = unquote(user)
+    db = get_db()
+    try:
+        posts = fetch_posts(
+            db,
+            "JOIN follows f ON p.username = f.followee WHERE f.follower=%s",
+            (me,)
+        )
+        liked_posts = get_liked_posts(db, me)
+    finally:
+        db.close()
+
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "posts": posts,
+        "user": me,
+        "liked_posts": liked_posts,
+        "mode": "following",
+        "ranking_title": "",
+        "period": ""
+    })
+
+
+# ======================
+# ランキング
+# ======================
+@app.get("/ranking", response_class=HTMLResponse)
+def ranking(
+    request: Request,
+    period: str = Query("day"),
+    user: str = Cookie(default=None)
+):
+    me = unquote(user) if user else None
+    now = datetime.now()
+
+    if period == "week":
+        since = now - timedelta(days=7)
+        title = "週間ランキング TOP10"
+    elif period == "month":
+        since = now - timedelta(days=30)
+        title = "月間ランキング TOP10"
+    else:
+        since = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        title = "日間ランキング TOP10"
+
+    db = get_db()
+    try:
+        posts = fetch_posts(
+            db,
+            "WHERE p.created_at >= %s",
+            (since,),
+            order_sql="ORDER BY like_count DESC, p.id DESC",
+            limit_sql="LIMIT 10"
+        )
+        liked_posts = get_liked_posts(db, me)
+    finally:
+        db.close()
+
+    return templates.TemplateResponse("ranking.html", {
+        "request": request,
+        "posts": posts,
+        "user": me,
+        "liked_posts": liked_posts,
+        "mode": f"ranking_{period}",
+        "ranking_title": title,
+        "period": period
+    })
+
+
+# ======================
 # プロフィール
+# ======================
 @app.get("/user/{username}", response_class=HTMLResponse)
 def profile(request: Request, username: str, user: str = Cookie(default=None)):
     username = unquote(username)
@@ -276,7 +362,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     cur = db.cursor()
     try:
         cur.execute("SELECT maker, car, region, bio FROM profiles WHERE username=%s", (username,))
-        profile = cur.fetchone()
+        profile_row = cur.fetchone()
 
         posts = fetch_posts(db, "WHERE p.username=%s", (username,))
 
@@ -302,7 +388,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "profile": profile,
+        "profile": profile_row,
         "posts": posts,
         "me": me,
         "user": me,
@@ -314,7 +400,9 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     })
 
 
+# ======================
 # プロフィール編集
+# ======================
 @app.post("/profile/edit")
 def profile_edit(
     maker: str = Form(""),
@@ -344,7 +432,9 @@ def profile_edit(
     return RedirectResponse(f"/user/{quote(me)}", status_code=303)
 
 
+# ======================
 # フォロー
+# ======================
 @app.post("/follow/{username}")
 def follow(username: str, user: str = Cookie(default=None)):
     if not user:
@@ -381,7 +471,9 @@ def unfollow(username: str, user: str = Cookie(default=None)):
     return RedirectResponse(f"/user/{quote(target)}", status_code=303)
 
 
+# ======================
 # 投稿
+# ======================
 @app.post("/post")
 def post(
     request: Request,
@@ -415,7 +507,9 @@ def post(
     return redirect_back(request, "/")
 
 
+# ======================
 # いいね
+# ======================
 @app.post("/like/{post_id}")
 def like_post(request: Request, post_id: int, user: str = Cookie(default=None)):
     if not user:
@@ -450,31 +544,36 @@ def unlike_post(request: Request, post_id: int, user: str = Cookie(default=None)
     return redirect_back(request, "/")
 
 
-# 削除
+# ======================
+# 投稿削除
+# ======================
 @app.post("/delete/{post_id}")
 def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)):
     if not user:
         return RedirectResponse("/login", status_code=303)
 
     me = unquote(user)
-    image_path = None
+    image_path_holder = {"path": None}
 
     def _do(db, cur):
-        nonlocal image_path
-        cur.execute("SELECT image FROM posts WHERE id=%s AND username=%s", (post_id, me))
+        cur.execute(
+            "SELECT image FROM posts WHERE id=%s AND username=%s",
+            (post_id, me)
+        )
         row = cur.fetchone()
         if not row:
             return
-        image_path = row[0]
+        image_path_holder["path"] = row[0]
+
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
 
     run_db(_do)
 
-    if image_path:
+    if image_path_holder["path"]:
         try:
-            os.remove(image_path.lstrip("/"))
+            os.remove(image_path_holder["path"].lstrip("/"))
         except:
             pass
 
