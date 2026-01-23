@@ -7,17 +7,20 @@ import psycopg2, os, uuid
 from datetime import datetime, timedelta
 from urllib.parse import quote, unquote
 
-# ★ bcrypt
+# ★ password hash（bcrypt不調対策込み）
 from passlib.context import CryptContext
 
-# ★ Cloudinary　　　これを元に改良してフルで返して　勝手にカットするなよ
+# ★ Cloudinary
 import cloudinary
 import cloudinary.uploader
 
 app = FastAPI()
 
-# ===== bcrypt 設定 =====
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# ===== password hash 設定 =====
+pwd_context = CryptContext(
+    schemes=["bcrypt", "pbkdf2_sha256"],
+    deprecated="auto"
+)
 
 # ===== static / uploads =====
 os.makedirs("uploads", exist_ok=True)
@@ -64,7 +67,7 @@ def run_db(fn):
         except:
             pass
 
-# ★ Cloudinary 設定（環境変数）
+# ===== Cloudinary 設定 =====
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
@@ -73,7 +76,7 @@ cloudinary.config(
 )
 
 # ======================
-# DB初期化（削除なし・IF NOT EXISTS）
+# DB初期化（削除なし）
 # ======================
 def init_db():
     def _do(db, cur):
@@ -132,8 +135,7 @@ def startup():
 # 共通
 # ======================
 def redirect_back(request: Request, fallback: str = "/"):
-    referer = request.headers.get("referer")
-    return RedirectResponse(referer or fallback, status_code=303)
+    return RedirectResponse(request.headers.get("referer") or fallback, status_code=303)
 
 def is_https_request(request: Request) -> bool:
     return request.url.scheme == "https"
@@ -507,12 +509,41 @@ def post(
 # ======================
 # 認証
 # ======================
+@app.post("/register")
+def register(request: Request, username: str = Form(...), password: str = Form(...)):
+    if len(password) < 4 or len(password.encode("utf-8")) > 72:
+        return RedirectResponse("/register", status_code=303)
+
+    try:
+        hashed = pwd_context.hash(password)
+    except Exception:
+        return RedirectResponse("/register", status_code=303)
+
+    def _do(db, cur):
+        cur.execute(
+            "INSERT INTO users (username, password) VALUES (%s, %s)",
+            (username, hashed)
+        )
+
+    try:
+        run_db(_do)
+    except psycopg2.errors.UniqueViolation:
+        return RedirectResponse("/register", status_code=303)
+    except Exception:
+        return RedirectResponse("/register", status_code=303)
+
+    res = RedirectResponse("/", status_code=303)
+    res.set_cookie(
+        key="user",
+        value=quote(username),
+        httponly=True,
+        secure=is_https_request(request),
+        samesite="lax"
+    )
+    return res
+
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    # ★ 改良：bcrypt 72byte制限（例外防止）
-    if len(password.encode("utf-8")) > 72:
-        return RedirectResponse("/login", status_code=303)
-
     db = get_db()
     cur = db.cursor()
     try:
@@ -525,53 +556,11 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     if not row:
         return RedirectResponse("/login", status_code=303)
 
-    stored = row[0]
-
-    # ★ 改良：bcrypt形式でないものは弾く（落とさない）
-    if not stored or not stored.startswith("$2"):
-        return RedirectResponse("/login", status_code=303)
-
     try:
-        ok = pwd_context.verify(password, stored)
+        if not pwd_context.verify(password, row[0]):
+            return RedirectResponse("/login", status_code=303)
     except Exception:
         return RedirectResponse("/login", status_code=303)
-
-    if not ok:
-        return RedirectResponse("/login", status_code=303)
-
-    res = RedirectResponse("/", status_code=303)
-    res.set_cookie(
-        key="user",
-        value=quote(username),
-        httponly=True,
-        secure=is_https_request(request),
-        samesite="lax"
-    )
-    return res
-
-@app.post("/register")
-def register(request: Request, username: str = Form(...), password: str = Form(...)):
-    # ★ 改良：bcrypt 72byte制限（例外防止） + 最低文字数
-    if len(password) < 4 or len(password.encode("utf-8")) > 72:
-        return RedirectResponse("/register", status_code=303)
-
-    try:
-        hashed = pwd_context.hash(password)
-    except Exception:
-        return RedirectResponse("/register", status_code=303)
-
-    def _do(db, cur):
-        # 既存ユーザーを DO NOTHING で握りつぶさない
-        cur.execute(
-            "INSERT INTO users (username, password) VALUES (%s, %s)",
-            (username, hashed)
-        )
-
-    try:
-        run_db(_do)
-    except Exception:
-        # UniqueViolation含め、登録失敗はregisterへ戻す（環境差で落とさない）
-        return RedirectResponse("/register", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
     res.set_cookie(
@@ -629,19 +618,12 @@ def delete_post(post_id: int, user: str = Cookie(default=None)):
         return RedirectResponse("/login", status_code=303)
 
     me = unquote(user)
-    image_path_holder = {"path": None}
 
     def _do(db, cur):
         cur.execute(
-            "SELECT image FROM posts WHERE id=%s AND username=%s",
+            "DELETE FROM posts WHERE id=%s AND username=%s",
             (post_id, me)
         )
-        row = cur.fetchone()
-        if not row:
-            return
-        image_path_holder["path"] = row[0]
-
-        cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
 
