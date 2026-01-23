@@ -540,12 +540,17 @@ def register(request: Request, username: str = Form(...), password: str = Form(.
     hashed = pwd_context.hash(password)
 
     def _do(db, cur):
+        # ★ ここだけ修正：既存ユーザーを DO NOTHING で握りつぶさない
         cur.execute(
-            "INSERT INTO users (username, password) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+            "INSERT INTO users (username, password) VALUES (%s, %s)",
             (username, hashed)
         )
 
-    run_db(_do)
+    try:
+        run_db(_do)
+    except psycopg2.errors.UniqueViolation:
+        # 既存username → 登録失敗（cookieを出さない）
+        return RedirectResponse("/register", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
     res.set_cookie(
