@@ -7,11 +7,17 @@ import psycopg2, os, uuid
 from datetime import datetime, timedelta
 from urllib.parse import quote, unquote
 
+# ★ bcrypt
+from passlib.context import CryptContext
+
 # ★ Cloudinary
 import cloudinary
 import cloudinary.uploader
 
 app = FastAPI()
+
+# ===== bcrypt 設定 =====
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # ===== static / uploads =====
 os.makedirs("uploads", exist_ok=True)
@@ -506,14 +512,15 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     db = get_db()
     cur = db.cursor()
     try:
-        cur.execute(
-            "SELECT 1 FROM users WHERE username=%s AND password=%s",
-            (username, password)
-        )
-        ok = cur.fetchone() is not None
+        cur.execute("SELECT password FROM users WHERE username=%s", (username,))
+        row = cur.fetchone()
     finally:
         cur.close()
         db.close()
+
+    ok = False
+    if row:
+        ok = pwd_context.verify(password, row[0])
 
     if not ok:
         return RedirectResponse("/login", status_code=303)
@@ -530,10 +537,12 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
 
 @app.post("/register")
 def register(request: Request, username: str = Form(...), password: str = Form(...)):
+    hashed = pwd_context.hash(password)
+
     def _do(db, cur):
         cur.execute(
             "INSERT INTO users (username, password) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-            (username, password)
+            (username, hashed)
         )
 
     run_db(_do)
@@ -611,5 +620,4 @@ def delete_post(post_id: int, user: str = Cookie(default=None)):
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
 
     run_db(_do)
-    # Cloudinary URLは削除しない（安全）
     return RedirectResponse("/", status_code=303)
