@@ -26,11 +26,30 @@
 {% for post in posts %}
   <article class="post-card ranking-card rank-{{ loop.index }}">
     <div class="rank-badge">{{ loop.index }}</div>
+
+    <!-- 車名 -->
     <div class="post-car">{{ post.car }}</div>
 
+    <!-- 投稿者 -->
+    <div class="post-user">
+      <a href="/user/{{ post.username | urlencode }}">@{{ post.username }}</a>
+    </div>
+
+    <!-- 画像 -->
     {% if post.image %}
       <img src="{{ post.image }}" class="post-image">
     {% endif %}
+
+    <!-- ★ ひとこと（追加） -->
+    {% if post.comment %}
+      <p class="post-comment">{{ post.comment }}</p>
+    {% endif %}
+
+    <!-- いいね数 -->
+    <div class="post-meta">
+      ❤️ {{ post.likes }}
+    </div>
+
   </article>
 {% endfor %}
 </div>
