@@ -30,7 +30,10 @@
     <!-- 車名 -->
     <div class="post-car">{{ post.car }}</div>
 
-    <!-- ★ ひとこと（おすすめと同じ位置） -->
+    <!-- ★ 投稿時間（JST・main.pyで補正済み） -->
+    <div class="post-time">{{ post.created_at }}</div>
+
+    <!-- ひとこと -->
     {% if post.comment %}
       <div class="post-comment">{{ post.comment }}</div>
     {% endif %}
