@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 import psycopg2, os, uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
 
 # ★ password hash（bcrypt不具合回避：pbkdf2_sha256のみ使用）
@@ -15,6 +15,9 @@ import cloudinary
 import cloudinary.uploader
 
 app = FastAPI()
+
+# ===== 日本時間（JST）=====
+JST = timezone(timedelta(hours=9))
 
 # ===== password hash 設定（pbkdf2のみ）=====
 pwd_context = CryptContext(
@@ -67,7 +70,7 @@ def run_db(fn):
         except:
             pass
 
-# ★ Cloudinary 設定（環境変数）
+# ===== Cloudinary 設定 =====
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
@@ -76,7 +79,7 @@ cloudinary.config(
 )
 
 # ======================
-# DB初期化（削除なし・IF NOT EXISTS）
+# DB初期化（削除なし）
 # ======================
 def init_db():
     def _do(db, cur):
@@ -147,8 +150,7 @@ def get_liked_posts(db, me):
     cur = db.cursor()
     try:
         cur.execute("SELECT post_id FROM likes WHERE username=%s", (me,))
-        rows = cur.fetchall()
-        return {r[0] for r in rows}
+        return {r[0] for r in cur.fetchall()}
     finally:
         cur.close()
 
@@ -311,7 +313,7 @@ def ranking(
     user: str = Cookie(default=None)
 ):
     me = unquote(user) if user else None
-    now = datetime.now()
+    now = datetime.now(JST)
 
     if period == "week":
         since = now - timedelta(days=7)
@@ -430,46 +432,6 @@ def profile_edit(
     return RedirectResponse(f"/user/{quote(me)}", status_code=303)
 
 # ======================
-# フォロー / 解除
-# ======================
-@app.post("/follow/{username}")
-def follow(username: str, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
-    target = unquote(username)
-
-    if me == target:
-        return RedirectResponse(f"/user/{quote(target)}", status_code=303)
-
-    def _do(db, cur):
-        cur.execute(
-            "INSERT INTO follows (follower, followee) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-            (me, target)
-        )
-
-    run_db(_do)
-    return RedirectResponse(f"/user/{quote(target)}", status_code=303)
-
-@app.post("/unfollow/{username}")
-def unfollow(username: str, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
-    target = unquote(username)
-
-    def _do(db, cur):
-        cur.execute(
-            "DELETE FROM follows WHERE follower=%s AND followee=%s",
-            (me, target)
-        )
-
-    run_db(_do)
-    return RedirectResponse(f"/user/{quote(target)}", status_code=303)
-
-# ======================
 # 投稿（Cloudinary）
 # ======================
 @app.post("/post")
@@ -501,14 +463,14 @@ def post(
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (
             me, maker, region, car, comment,
-            image_path, datetime.now()
+            image_path, datetime.now(JST)
         ))
 
     run_db(_do)
     return redirect_back(request, "/")
 
 # ======================
-# 認証（pbkdf2版）
+# 認証
 # ======================
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
@@ -524,12 +486,7 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     if not row:
         return RedirectResponse("/login", status_code=303)
 
-    try:
-        ok = pwd_context.verify(password, row[0])
-    except Exception:
-        return RedirectResponse("/login", status_code=303)
-
-    if not ok:
+    if not pwd_context.verify(password, row[0]):
         return RedirectResponse("/login", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
@@ -544,14 +501,10 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
 
 @app.post("/register")
 def register(request: Request, username: str = Form(...), password: str = Form(...)):
-    # 文字数制限（pbkdf2は72制限は無いが、異常値対策）
     if len(password) < 4 or len(password) > 256:
         return RedirectResponse("/register", status_code=303)
 
-    try:
-        hashed = pwd_context.hash(password)
-    except Exception:
-        return RedirectResponse("/register", status_code=303)
+    hashed = pwd_context.hash(password)
 
     def _do(db, cur):
         cur.execute(
@@ -562,7 +515,6 @@ def register(request: Request, username: str = Form(...), password: str = Form(.
     try:
         run_db(_do)
     except Exception:
-        # 重複やその他失敗もまとめて登録画面へ（落とさない）
         return RedirectResponse("/register", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
@@ -636,5 +588,4 @@ def delete_post(post_id: int, user: str = Cookie(default=None)):
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
 
     run_db(_do)
-    # Cloudinary URLは削除しない（安全）
     return RedirectResponse("/", status_code=303)
