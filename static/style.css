@@ -6,22 +6,21 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
-  background: #ffffff;
+  background: #fff;
   color: #0f1419;
 }
 
-/* =====================
-   Header
-===================== */
+/* ===== Header ===== */
 .header {
   background: #000;
 }
 
 .header-inner {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   padding: 14px 16px;
+  gap: 12px;
 }
 
 .logo {
@@ -29,155 +28,48 @@ body {
   font-size: 26px;
   font-weight: 900;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
   gap: 16px;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .nav-link {
   color: #ccc;
+  font-size: 15px;
   text-decoration: none;
-  font-size: 14px;
+  white-space: nowrap;
 }
 
 .nav-link.active {
   color: #1d9bf0;
 }
 
+.inline-form {
+  display: inline;
+  margin: 0;
+}
+
 .logout-btn {
   border: none;
   background: #fff;
-  color: #000;
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* =====================
-   Layout
-===================== */
-.container {
-  padding: 16px;
-}
-
-/* =====================
-   Auth（ログイン・登録）
-===================== */
-.auth-container {
-  max-width: 420px;
-  margin: 60px auto;
-  padding: 28px;
-  background: #f7f9fa;
-  border-radius: 20px;
-}
-
-.auth-title {
-  font-size: 24px;
-  font-weight: 900;
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.auth-form input {
-  width: 100%;
-  padding: 16px;
-  border-radius: 14px;
-  border: 2px solid #cfd9de;
-  font-size: 16px;
-}
-
-.auth-btn {
-  padding: 14px;
-  border-radius: 999px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: 900;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.auth-btn:hover {
-  opacity: 0.9;
-}
-
-.auth-link {
-  margin-top: 18px;
-  text-align: center;
-}
-
-.auth-link a {
-  color: #1d9bf0;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-/* =====================
-   Posts（共通）
-===================== */
-.posts {
-  margin-top: 12px;
-}
-
-.post-card {
-  padding: 14px 0;
-  border-bottom: 1px solid #eee;
-}
-
-.post-car {
-  font-size: 18px;
-  font-weight: 900;
-  margin-bottom: 2px;
-}
-
-.post-comment {
-  font-size: 15px;
-  margin-bottom: 6px;
-}
-
-.post-date {
-  font-size: 13px;
-  color: #536471;
-  margin-bottom: 6px;
-}
-
-.post-image {
-  width: 100%;
-  border-radius: 16px;
-  margin-top: 6px;
-}
-
-/* =====================
-   Actions
-===================== */
-.post-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.post-actions button {
-  border: 1px solid #cfd9de;
-  background: #fff;
   border-radius: 999px;
   padding: 6px 12px;
-  font-weight: 700;
+  font-size: 13px;
   cursor: pointer;
 }
 
-/* =====================
-   Ranking
-===================== */
+/* ===== Layout ===== */
+.container {
+  padding: 12px;
+}
+
+/* ===== Ranking Tabs ===== */
 .ranking-tabs-wrap {
   display: flex;
   justify-content: center;
@@ -194,7 +86,7 @@ body {
   border-radius: 999px;
   background: #eef3f4;
   color: #536471;
-  font-weight: 900;
+  font-weight: 700;
   text-decoration: none;
 }
 
@@ -203,21 +95,211 @@ body {
   color: #fff;
 }
 
+/* ===== Titles ===== */
 .ranking-title {
   font-size: 22px;
   font-weight: 900;
   margin: 16px 0;
 }
 
+/* ===== Forms ===== */
+.search-form,
+.post-form,
+.auth-card {
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.form-row.bottom {
+  align-items: center;
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  border: 2px solid #cfd9de;
+  font-size: 15px;
+}
+
+textarea {
+  min-height: 100px;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 999px;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* ===== Auth ===== */
+.auth-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.auth-title {
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+/* ===== Posts ===== */
+.posts {
+  margin-top: 12px;
+}
+
+.post-card {
+  border-bottom: 1px solid #eee;
+  padding: 14px 0;
+}
+
+.post-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  gap: 10px;
+}
+
+.post-user {
+  font-weight: 700;
+  text-decoration: none;
+  color: #0f1419;
+}
+
+.post-date {
+  color: #536471;
+  white-space: nowrap;
+}
+
+.post-meta {
+  margin-top: 6px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  background: #eef3f4;
+  color: #536471;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.post-car {
+  font-size: 18px;
+  font-weight: 900;
+  margin: 6px 0;
+}
+
+.post-text {
+  font-size: 15px;
+}
+
+.post-image {
+  width: 100%;
+  border-radius: 16px;
+  margin: 8px 0;
+}
+
+/* ===== Actions ===== */
+.post-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.like-btn,
+.delete-btn,
+.comment-btn,
+.follow-btn {
+  border: 1px solid #cfd9de;
+  background: #fff;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.like-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.delete-btn {
+  border-color: #ffd1d1;
+}
+
+/* ===== Comments ===== */
+.comments {
+  margin-top: 10px;
+  padding: 10px;
+  background: #f7f9fa;
+  border-radius: 14px;
+}
+
+.comment-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed #e6ecf0;
+}
+.comment-row:last-child {
+  border-bottom: none;
+}
+
+.comment-user {
+  font-weight: 900;
+}
+.comment-text {
+  color: #0f1419;
+}
+.comment-date {
+  color: #536471;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.comment-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.comment-form input {
+  margin-bottom: 0;
+}
+.comment-btn {
+  width: auto;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+}
+
+/* ===== Ranking ===== */
 .ranking-card {
   position: relative;
-  padding-left: 44px;
+  padding-left: 42px;
 }
 
 .rank-badge {
   position: absolute;
   left: 0;
-  top: 12px;
+  top: 16px;
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -228,55 +310,59 @@ body {
   font-weight: 900;
 }
 
-.rank-1 .rank-badge { background: gold; }
-.rank-2 .rank-badge { background: silver; }
-.rank-3 .rank-badge { background: #cd7f32; color: #fff; }
-
-/* =====================
-   Profile
-===================== */
-.profile-name {
-  font-size: 22px;
-  font-weight: 900;
-  margin-bottom: 12px;
+.rank-1 .rank-badge {
+  background: gold;
+}
+.rank-2 .rank-badge {
+  background: silver;
+}
+.rank-3 .rank-badge {
+  background: #cd7f32;
+  color: #fff;
 }
 
-.profile-box {
+/* ===== Profile ===== */
+.profile-card {
   background: #f7f9fa;
   border-radius: 20px;
   padding: 16px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
-.profile-edit input,
-.profile-edit textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid #cfd9de;
-  margin-top: 8px;
+.profile-name {
+  font-size: 22px;
+  font-weight: 900;
 }
 
-.profile-edit button {
-  margin-top: 10px;
-  padding: 10px 16px;
+/* ===== Auth (Login / Register) ===== */
+.auth-container {
+  max-width: 420px;
+  margin: 40px auto;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-btn {
+  padding: 14px;
+  font-size: 16px;
   border-radius: 999px;
   border: none;
   background: #1d9bf0;
   color: #fff;
-  font-weight: 900;
-  cursor: pointer;
+  font-weight: bold;
 }
 
-/* =====================
-   Mobile
-===================== */
-@media (max-width: 600px) {
-  .logo {
-    font-size: 22px;
-  }
-
-  .auth-container {
-    margin: 40px 12px;
-  }
+/* =================================================
+   ★ 追記：投稿時間の表示を全ページで統一（安全）
+================================================= */
+.post-date,
+.post-time {
+  display: block;
+  font-size: 13px;
+  color: #536471;
+  margin-top: 2px;
 }
