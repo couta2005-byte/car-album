@@ -589,3 +589,18 @@ def delete_post(post_id: int, user: str = Cookie(default=None)):
 
     run_db(_do)
     return RedirectResponse("/", status_code=303)
+
+# ======================
+# 一時：JST補正（1回だけ実行用）
+# ======================
+@app.get("/__fix_jst")
+def fix_jst():
+    def _do(db, cur):
+        cur.execute("""
+            UPDATE posts
+            SET created_at = created_at + INTERVAL '9 hours'
+            WHERE created_at < NOW() - INTERVAL '8 hours'
+        """)
+    run_db(_do)
+    return {"status": "ok", "message": "JST fixed"}
+
