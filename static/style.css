@@ -103,21 +103,6 @@ body {
 }
 
 /* ===== Forms ===== */
-.search-form,
-.post-form,
-.auth-card {
-  margin-bottom: 20px;
-}
-
-.form-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.form-row.bottom {
-  align-items: center;
-}
-
 input,
 textarea {
   width: 100%;
@@ -132,29 +117,6 @@ textarea {
   min-height: 100px;
 }
 
-.primary-btn {
-  width: 100%;
-  padding: 14px;
-  border-radius: 999px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-/* ===== Auth ===== */
-.auth-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-.auth-title {
-  font-weight: 900;
-  margin-bottom: 8px;
-}
-
 /* ===== Posts ===== */
 .posts {
   margin-top: 12px;
@@ -162,14 +124,16 @@ textarea {
 
 .post-card {
   border-bottom: 1px solid #eee;
-  padding: 14px 0;
+  padding: 16px 0;
 }
 
+/* 投稿上部（ユーザー＋時間） */
 .post-top {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
   gap: 10px;
+  font-size: 13px;
+  margin-bottom: 4px;
 }
 
 .post-user {
@@ -179,36 +143,26 @@ textarea {
 }
 
 .post-date {
+  font-size: 12px;
   color: #536471;
   white-space: nowrap;
 }
 
-.post-meta {
-  margin-top: 6px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.chip {
-  background: #eef3f4;
-  color: #536471;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
+/* 車名 */
 .post-car {
   font-size: 18px;
   font-weight: 900;
-  margin: 6px 0;
+  margin: 4px 0;
 }
 
-.post-text {
+/* ひとこと */
+.post-comment {
   font-size: 15px;
+  line-height: 1.4;
+  margin-bottom: 6px;
 }
 
+/* 画像 */
 .post-image {
   width: 100%;
   border-radius: 16px;
@@ -223,83 +177,25 @@ textarea {
   margin-top: 8px;
 }
 
-.like-btn,
-.delete-btn,
-.comment-btn,
-.follow-btn {
+.post-actions button {
   border: 1px solid #cfd9de;
   background: #fff;
   border-radius: 999px;
-  padding: 8px 12px;
-  font-weight: 800;
+  padding: 6px 12px;
+  font-weight: 700;
   cursor: pointer;
-}
-
-.like-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.delete-btn {
-  border-color: #ffd1d1;
-}
-
-/* ===== Comments ===== */
-.comments {
-  margin-top: 10px;
-  padding: 10px;
-  background: #f7f9fa;
-  border-radius: 14px;
-}
-
-.comment-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px dashed #e6ecf0;
-}
-.comment-row:last-child {
-  border-bottom: none;
-}
-
-.comment-user {
-  font-weight: 900;
-}
-.comment-text {
-  color: #0f1419;
-}
-.comment-date {
-  color: #536471;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.comment-form {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-.comment-form input {
-  margin-bottom: 0;
-}
-.comment-btn {
-  width: auto;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
 }
 
 /* ===== Ranking ===== */
 .ranking-card {
   position: relative;
-  padding-left: 42px;
+  padding-left: 46px;
 }
 
 .rank-badge {
   position: absolute;
   left: 0;
-  top: 16px;
+  top: 18px;
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -313,124 +209,52 @@ textarea {
 .rank-1 .rank-badge {
   background: gold;
 }
+
 .rank-2 .rank-badge {
   background: silver;
 }
+
 .rank-3 .rank-badge {
   background: #cd7f32;
   color: #fff;
 }
 
-/* =========================
-   検索エリア（分離・固定感）
-========================= */
-.search-section {
-  padding: 20px 16px;
-  border-bottom: 1px solid #eff3f4;
-  background: #fff;
-}
-
-.search-card {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 20px;
-  border-radius: 20px;
-  background: #f7f9fa;
-}
-
-.search-title {
-  font-size: 22px;
-  font-weight: 900;
-  margin-bottom: 16px;
-}
-
-.search-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.search-form input {
-  padding: 18px;
-  font-size: 18px;
-  border-radius: 14px;
-  border: 1px solid #cfd9de;
-}
-
-.search-form .primary-btn {
-  font-size: 18px;
-  padding: 18px;
+/* ランキング内の投稿時間 */
+.ranking-card .post-date {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6b7280;
 }
 
 /* ===== Profile ===== */
-.profile-card {
+.profile-name {
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.profile-box {
   background: #f7f9fa;
   border-radius: 20px;
   padding: 16px;
   margin-bottom: 14px;
 }
-.profile-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-.profile-name {
-  font-size: 22px;
+
+.profile-box strong {
   font-weight: 900;
-}
-.profile-stats {
-  display: flex;
-  gap: 16px;
-  margin-top: 10px;
-}
-.stat-num {
-  font-weight: 900;
-  margin-right: 6px;
-}
-.stat-label {
-  color: #536471;
-}
-.profile-meta {
-  margin-top: 12px;
-  display: grid;
-  gap: 6px;
-}
-.label {
-  font-weight: 900;
-}
-.profile-edit summary {
-  cursor: pointer;
-  font-weight: 900;
-  margin-top: 12px;
-}
-.profile-form textarea {
-  min-height: 80px;
-}
-.follow-btn {
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-}
-.follow-btn.is-following {
-  background: #536471;
-}
-.section-title {
-  font-size: 18px;
-  font-weight: 900;
-  margin: 8px 0;
 }
 
-/* スマホ最適化 */
+/* プロフィール投稿の時間 */
+.profile-box + .posts .post-date {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+/* ===== Mobile ===== */
 @media (max-width: 600px) {
-  .search-title {
-    font-size: 20px;
-  }
-
-  .search-form input {
-    font-size: 18px;
-  }
-
   .logo {
     font-size: 22px;
   }
@@ -438,55 +262,8 @@ textarea {
   .nav-link {
     font-size: 14px;
   }
-}
-/* ===== Auth (Login / Register) ===== */
-.auth-container {
-  max-width: 420px;
-  margin: 40px auto;
-}
 
-.auth-title {
-  text-align: center;
-  font-size: 22px;
-  margin-bottom: 24px;
+  .ranking-title {
+    font-size: 20px;
+  }
 }
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.auth-form input {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
-}
-
-.auth-btn {
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 999px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: bold;
-}
-
-.auth-btn:hover {
-  opacity: 0.9;
-}
-
-.auth-link {
-  margin-top: 16px;
-  text-align: center;
-}
-
-.auth-link a {
-  color: #1d9bf0;
-  text-decoration: none;
-  font-weight: 500;
-}
-
