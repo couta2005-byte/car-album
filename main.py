@@ -16,23 +16,31 @@ import cloudinary.uploader
 
 app = FastAPI()
 
-# ===== 日本時間（JST）=====
+# ======================
+# 日本時間（JST）
+# ======================
 JST = timezone(timedelta(hours=9))
 
-# ===== password hash 設定（pbkdf2のみ）=====
+# ======================
+# password hash 設定
+# ======================
 pwd_context = CryptContext(
     schemes=["pbkdf2_sha256"],
     deprecated="auto"
 )
 
-# ===== static / uploads =====
+# ======================
+# static / uploads
+# ======================
 os.makedirs("uploads", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 templates = Jinja2Templates(directory="templates")
 
-# ===== PostgreSQL =====
+# ======================
+# PostgreSQL
+# ======================
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set")
@@ -70,7 +78,9 @@ def run_db(fn):
         except:
             pass
 
-# ===== Cloudinary 設定 =====
+# ======================
+# Cloudinary 設定
+# ======================
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
@@ -169,6 +179,9 @@ def get_comments_map(db):
         cur.close()
     return comments
 
+# ======================
+# 投稿取得（表示時にJST補正）
+# ======================
 def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
     cur = db.cursor()
     try:
@@ -200,7 +213,11 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", lim
         "car": r[4],
         "comment": r[5],
         "image": r[6],
-        "created_at": r[7].strftime("%Y-%m-%d %H:%M") if r[7] else "",
+        # ★ 表示時のみ +9h（JST）
+        "created_at": (
+            (r[7] + timedelta(hours=9)).strftime("%Y-%m-%d %H:%M")
+            if r[7] else ""
+        ),
         "likes": r[8],
         "comments": comments_map.get(r[0], [])
     } for r in rows]
@@ -229,7 +246,7 @@ def index(request: Request, user: str = Cookie(default=None)):
     })
 
 # ======================
-# ログイン / 登録 画面
+# ログイン / 登録
 # ======================
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
@@ -239,239 +256,6 @@ def login_page(request: Request):
 def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
-# ======================
-# 検索
-# ======================
-@app.get("/search", response_class=HTMLResponse)
-def search(
-    request: Request,
-    maker: str = Query(default=""),
-    car: str = Query(default=""),
-    region: str = Query(default=""),
-    user: str = Cookie(default=None)
-):
-    me = unquote(user) if user else None
-    db = get_db()
-    try:
-        posts = fetch_posts(
-            db,
-            "WHERE p.maker ILIKE %s AND p.car ILIKE %s AND p.region ILIKE %s",
-            (f"%{maker}%", f"%{car}%", f"%{region}%")
-        )
-        liked_posts = get_liked_posts(db, me)
-    finally:
-        db.close()
-
-    return templates.TemplateResponse("search.html", {
-        "request": request,
-        "posts": posts,
-        "user": me,
-        "maker": maker,
-        "car": car,
-        "region": region,
-        "liked_posts": liked_posts,
-        "mode": "search"
-    })
-
-# ======================
-# フォロー中TL
-# ======================
-@app.get("/following", response_class=HTMLResponse)
-def following(request: Request, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
-    db = get_db()
-    try:
-        posts = fetch_posts(
-            db,
-            "JOIN follows f ON p.username = f.followee WHERE f.follower=%s",
-            (me,)
-        )
-        liked_posts = get_liked_posts(db, me)
-    finally:
-        db.close()
-
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "posts": posts,
-        "user": me,
-        "liked_posts": liked_posts,
-        "mode": "following",
-        "ranking_title": "",
-        "period": ""
-    })
-
-# ======================
-# ランキング
-# ======================
-@app.get("/ranking", response_class=HTMLResponse)
-def ranking(
-    request: Request,
-    period: str = Query(default="day"),
-    user: str = Cookie(default=None)
-):
-    me = unquote(user) if user else None
-    now = datetime.now(JST)
-
-    if period == "week":
-        since = now - timedelta(days=7)
-        title = "週間ランキング TOP10"
-    elif period == "month":
-        since = now - timedelta(days=30)
-        title = "月間ランキング TOP10"
-    else:
-        since = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        title = "日間ランキング TOP10"
-
-    db = get_db()
-    try:
-        posts = fetch_posts(
-            db,
-            "WHERE p.created_at >= %s",
-            (since,),
-            order_sql="ORDER BY like_count DESC, p.id DESC",
-            limit_sql="LIMIT 10"
-        )
-        liked_posts = get_liked_posts(db, me)
-    finally:
-        db.close()
-
-    return templates.TemplateResponse("ranking.html", {
-        "request": request,
-        "posts": posts,
-        "user": me,
-        "liked_posts": liked_posts,
-        "mode": f"ranking_{period}",
-        "ranking_title": title,
-        "period": period
-    })
-
-# ======================
-# プロフィール
-# ======================
-@app.get("/user/{username}", response_class=HTMLResponse)
-def profile(request: Request, username: str, user: str = Cookie(default=None)):
-    username = unquote(username)
-    me = unquote(user) if user else None
-
-    db = get_db()
-    cur = db.cursor()
-    try:
-        cur.execute(
-            "SELECT maker, car, region, bio FROM profiles WHERE username=%s",
-            (username,)
-        )
-        prof = cur.fetchone()
-
-        posts = fetch_posts(db, "WHERE p.username=%s", (username,))
-
-        cur.execute("SELECT COUNT(*) FROM follows WHERE follower=%s", (username,))
-        follow_count = cur.fetchone()[0]
-
-        cur.execute("SELECT COUNT(*) FROM follows WHERE followee=%s", (username,))
-        follower_count = cur.fetchone()[0]
-
-        is_following = False
-        if me and me != username:
-            cur.execute(
-                "SELECT 1 FROM follows WHERE follower=%s AND followee=%s",
-                (me, username)
-            )
-            is_following = cur.fetchone() is not None
-
-        liked_posts = get_liked_posts(db, me)
-    finally:
-        cur.close()
-        db.close()
-
-    return templates.TemplateResponse("profile.html", {
-        "request": request,
-        "username": username,
-        "profile": prof,
-        "posts": posts,
-        "me": me,
-        "user": me,
-        "is_following": is_following,
-        "follow_count": follow_count,
-        "follower_count": follower_count,
-        "liked_posts": liked_posts,
-        "mode": "profile"
-    })
-
-# ======================
-# プロフィール編集
-# ======================
-@app.post("/profile/edit")
-def profile_edit(
-    maker: str = Form(""),
-    car: str = Form(""),
-    region: str = Form(""),
-    bio: str = Form(""),
-    user: str = Cookie(default=None)
-):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
-
-    def _do(db, cur):
-        cur.execute("""
-            INSERT INTO profiles (username, maker, car, region, bio)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (username)
-            DO UPDATE SET
-                maker=EXCLUDED.maker,
-                car=EXCLUDED.car,
-                region=EXCLUDED.region,
-                bio=EXCLUDED.bio
-        """, (me, maker, car, region, bio))
-
-    run_db(_do)
-    return RedirectResponse(f"/user/{quote(me)}", status_code=303)
-
-# ======================
-# 投稿（Cloudinary）
-# ======================
-@app.post("/post")
-def post(
-    request: Request,
-    maker: str = Form(""),
-    region: str = Form(""),
-    car: str = Form(""),
-    comment: str = Form(""),
-    image: UploadFile = File(None),
-    user: str = Cookie(default=None)
-):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
-    image_path = None
-
-    if image and image.filename:
-        result = cloudinary.uploader.upload(
-            image.file,
-            folder="carbum/posts"
-        )
-        image_path = result["secure_url"]
-
-    def _do(db, cur):
-        cur.execute("""
-            INSERT INTO posts (username, maker, region, car, comment, image, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (
-            me, maker, region, car, comment,
-            image_path, datetime.now(JST)
-        ))
-
-    run_db(_do)
-    return redirect_back(request, "/")
-
-# ======================
-# 認証
-# ======================
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
     db = get_db()
@@ -483,10 +267,7 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         cur.close()
         db.close()
 
-    if not row:
-        return RedirectResponse("/login", status_code=303)
-
-    if not pwd_context.verify(password, row[0]):
+    if not row or not pwd_context.verify(password, row[0]):
         return RedirectResponse("/login", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
@@ -532,6 +313,45 @@ def logout():
     res = RedirectResponse("/", status_code=303)
     res.delete_cookie("user")
     return res
+
+# ======================
+# 投稿
+# ======================
+@app.post("/post")
+def post(
+    request: Request,
+    maker: str = Form(""),
+    region: str = Form(""),
+    car: str = Form(""),
+    comment: str = Form(""),
+    image: UploadFile = File(None),
+    user: str = Cookie(default=None)
+):
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    me = unquote(user)
+    image_path = None
+
+    if image and image.filename:
+        result = cloudinary.uploader.upload(
+            image.file,
+            folder="carbum/posts"
+        )
+        image_path = result["secure_url"]
+
+    def _do(db, cur):
+        cur.execute("""
+            INSERT INTO posts (username, maker, region, car, comment, image, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (
+            me, maker, region, car, comment,
+            image_path,
+            datetime.utcnow()  # ★ 保存はUTC
+        ))
+
+    run_db(_do)
+    return redirect_back(request, "/")
 
 # ======================
 # いいね
@@ -589,18 +409,3 @@ def delete_post(post_id: int, user: str = Cookie(default=None)):
 
     run_db(_do)
     return RedirectResponse("/", status_code=303)
-
-# ======================
-# 一時：JST補正（1回だけ実行用）
-# ======================
-@app.get("/__fix_jst")
-def fix_jst():
-    def _do(db, cur):
-        cur.execute("""
-            UPDATE posts
-            SET created_at = created_at + INTERVAL '9 hours'
-            WHERE created_at < NOW() - INTERVAL '8 hours'
-        """)
-    run_db(_do)
-    return {"status": "ok", "message": "JST fixed"}
-
