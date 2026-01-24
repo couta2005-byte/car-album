@@ -62,17 +62,17 @@
       <!-- 車名 -->
       <div class="post-car">{{ post.car }}</div>
 
+      <!-- ★ ひとこと（おすすめと完全同位置） -->
+      {% if post.comment %}
+        <div class="post-comment">{{ post.comment }}</div>
+      {% endif %}
+
       <!-- 画像 -->
       {% if post.image %}
         <img src="{{ post.image }}" class="post-image">
       {% endif %}
 
-      <!-- ★ ひとこと（追加） -->
-      {% if post.comment %}
-        <p class="post-comment">{{ post.comment }}</p>
-      {% endif %}
-
-      <!-- 操作系 -->
+      <!-- アクション -->
       <div class="post-actions" style="margin-top:8px; display:flex; gap:10px; align-items:center;">
 
         {% if me %}
