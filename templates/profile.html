@@ -59,13 +59,13 @@
   {% for post in posts %}
     <article class="post-card">
 
-      <!-- 車名 -->
-      <div class="post-car">{{ post.car }}</div>
+      <!-- ★ 車名 + 時間（おすすめと同じ） -->
+      <div class="post-top">
+        <div class="post-car">{{ post.car }}</div>
+        <div class="post-date">{{ post.created_at }}</div>
+      </div>
 
-      <!-- ★ 投稿時間（JST / main.pyで補正済み） -->
-      <div class="post-time">{{ post.created_at }}</div>
-
-      <!-- ひとこと（おすすめと完全同位置） -->
+      <!-- ひとこと -->
       {% if post.comment %}
         <div class="post-comment">{{ post.comment }}</div>
       {% endif %}
@@ -76,7 +76,7 @@
       {% endif %}
 
       <!-- アクション -->
-      <div class="post-actions" style="margin-top:8px; display:flex; gap:10px; align-items:center;">
+      <div class="post-actions">
 
         {% if me %}
           {% if post.id in liked_posts %}

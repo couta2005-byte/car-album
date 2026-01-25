@@ -27,11 +27,11 @@
   <article class="post-card ranking-card rank-{{ loop.index }}">
     <div class="rank-badge">{{ loop.index }}</div>
 
-    <!-- 車名 -->
-    <div class="post-car">{{ post.car }}</div>
-
-    <!-- ★ 投稿時間（JST・main.pyで補正済み） -->
-    <div class="post-time">{{ post.created_at }}</div>
+    <!-- ★ 車名 + 時間（おすすめと同じ構造） -->
+    <div class="post-top">
+      <div class="post-car">{{ post.car }}</div>
+      <div class="post-date">{{ post.created_at }}</div>
+    </div>
 
     <!-- ひとこと -->
     {% if post.comment %}
