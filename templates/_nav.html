@@ -8,6 +8,10 @@
         おすすめ
       </a>
 
+      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">
+        検索
+      </a>
+
       {% if user %}
         <!-- ===== ログイン中 ===== -->
         <a href="/following"

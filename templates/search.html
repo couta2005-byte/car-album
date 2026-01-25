@@ -1,38 +1,129 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>検索 | Car Album</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
 
 {% include "_nav.html" %}
 
-<section class="search-section">
-  <div class="search-card">
-    <h2 class="search-title">🔍 車両検索</h2>
-    <form method="get" class="search-form">
-      <input name="maker" placeholder="メーカー" value="{{ maker }}">
-      <input name="car" placeholder="車種" value="{{ car }}">
-      <input name="region" placeholder="地域" value="{{ region }}">
-      <button class="primary-btn">検索する</button>
-    </form>
-  </div>
-</section>
-
 <main class="container">
-  <div class="posts">
-  {% for post in posts %}
-    <article class="post-card">
-      <div class="post-car">{{ post.car }}</div>
-      {% if post.image %}
-        <img src="{{ post.image }}" class="post-image">
+  <h2 style="margin: 12px 0;">検索</h2>
+
+  <!-- 検索フォーム -->
+  <form action="/search" method="get"
+        style="display:flex; gap:10px; flex-wrap:wrap; margin: 10px 0 16px;">
+    <input
+      type="text"
+      name="q"
+      value="{{ q }}"
+      placeholder="メーカー / 車名 / 地域 / アカウント名"
+      style="flex:1; min-width:240px; padding:10px 12px;
+             border-radius:12px; border:1px solid rgba(255,255,255,0.15);"
+    />
+    <button type="submit" class="btn">検索</button>
+  </form>
+
+  {% if q %}
+    <!-- ユーザー候補 -->
+    <section style="margin: 10px 0 18px;">
+      <div style="font-weight:700; margin-bottom:8px;">アカウント</div>
+
+      {% if users and users|length > 0 %}
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          {% for u in users %}
+            <a href="/user/{{ u | urlencode }}"
+               class="chip"
+               style="text-decoration:none;">
+              @{{ u }}
+            </a>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="opacity:0.75;">該当アカウントなし</div>
       {% endif %}
-    </article>
-  {% endfor %}
-  </div>
+    </section>
+
+    <!-- 投稿結果 -->
+    <section>
+      <div style="font-weight:700; margin:8px 0;">
+        投稿（{{ posts|length }}件）
+      </div>
+
+      {% if posts and posts|length > 0 %}
+        <div class="post-list">
+          {% for p in posts %}
+            <article class="post">
+
+              <!-- 上段 -->
+              <div class="post-top"
+                   style="display:flex; justify-content:space-between;
+                          align-items:flex-start; gap:10px;">
+                <div>
+                  <div style="font-weight:800;">
+                    {{ p.car or "" }}
+                    {% if p.maker %}
+                      <span style="opacity:0.75; font-weight:600;">
+                        / {{ p.maker }}
+                      </span>
+                    {% endif %}
+                    {% if p.region %}
+                      <span style="opacity:0.75; font-weight:600;">
+                        / {{ p.region }}
+                      </span>
+                    {% endif %}
+                  </div>
+
+                  <div style="opacity:0.85; font-size:14px;">
+                    <a href="/user/{{ p.username | urlencode }}"
+                       style="text-decoration:none;">
+                      @{{ p.username }}
+                    </a>
+                    <span style="opacity:0.75;">・</span>
+                    <span style="opacity:0.75;">❤️ {{ p.likes }}</span>
+                  </div>
+                </div>
+
+                <div class="post-date" style="white-space:nowrap;">
+                  {{ p.created_at }}
+                </div>
+              </div>
+
+              <!-- コメント -->
+              {% if p.comment %}
+                <div style="margin-top:10px; line-height:1.55;">
+                  {{ p.comment }}
+                </div>
+              {% endif %}
+
+              <!-- 画像 -->
+              {% if p.image %}
+                <div style="margin-top:12px;">
+                  <img
+                    src="{{ p.image }}"
+                    alt="post image"
+                    style="max-width:100%; height:auto;
+                           border-radius:16px; display:block;"
+                  />
+                </div>
+              {% endif %}
+
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="opacity:0.75;">該当する投稿がありません</div>
+      {% endif %}
+    </section>
+
+  {% else %}
+    <div style="opacity:0.8;">
+      上の入力欄にキーワードを入れて検索してね。
+    </div>
+  {% endif %}
 </main>
 
 </body>

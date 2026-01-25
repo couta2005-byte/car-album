@@ -266,25 +266,72 @@ def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 # ======================
-# search
+# search（強化：q=1入力 OR検索 + 互換維持）
 # ======================
 @app.get("/search", response_class=HTMLResponse)
 def search(
     request: Request,
+    # 新仕様：1つの入力で4項目を横断検索
+    q: str = Query(default=""),
+    # 旧仕様（互換維持）：maker/car/region のAND検索も残す（既存機能カットしない）
     maker: str = Query(default=""),
     car: str = Query(default=""),
     region: str = Query(default=""),
     user: str = Cookie(default=None)
 ):
     me = unquote(user) if user else None
+    q = (q or "").strip()
+    maker = (maker or "").strip()
+    car = (car or "").strip()
+    region = (region or "").strip()
+
     db = get_db()
     try:
-        posts = fetch_posts(
-            db,
-            "WHERE p.maker ILIKE %s AND p.car ILIKE %s AND p.region ILIKE %s",
-            (f"%{maker}%", f"%{car}%", f"%{region}%")
-        )
         liked_posts = get_liked_posts(db, me)
+        users = []
+        posts = []
+
+        if q:
+            # 新仕様：OR検索（メーカー/車名/地域/アカウント名）
+            like = f"%{q}%"
+            posts = fetch_posts(
+                db,
+                """
+                WHERE
+                    p.maker ILIKE %s
+                    OR p.car ILIKE %s
+                    OR p.region ILIKE %s
+                    OR p.username ILIKE %s
+                """,
+                (like, like, like, like),
+                order_sql="ORDER BY p.id DESC"
+            )
+
+            # ユーザー候補（アカウント名）
+            cur = db.cursor()
+            try:
+                cur.execute("""
+                    SELECT username
+                    FROM users
+                    WHERE username ILIKE %s
+                    ORDER BY username
+                    LIMIT 20
+                """, (like,))
+                users = [r[0] for r in cur.fetchall()]
+            finally:
+                cur.close()
+
+        else:
+            # 旧仕様：AND検索（maker/car/region）
+            # 旧パラメータが全部空なら、検索ページは空表示（posts=[]）でOK
+            if maker or car or region:
+                posts = fetch_posts(
+                    db,
+                    "WHERE p.maker ILIKE %s AND p.car ILIKE %s AND p.region ILIKE %s",
+                    (f"%{maker}%", f"%{car}%", f"%{region}%"),
+                    order_sql="ORDER BY p.id DESC"
+                )
+
     finally:
         db.close()
 
@@ -292,10 +339,14 @@ def search(
         "request": request,
         "posts": posts,
         "user": me,
+        "liked_posts": liked_posts,
+        # 新仕様
+        "q": q,
+        "users": users,
+        # 旧仕様（互換維持）
         "maker": maker,
         "car": car,
         "region": region,
-        "liked_posts": liked_posts,
         "mode": "search"
     })
 
@@ -340,7 +391,6 @@ def ranking(
 ):
     me = unquote(user) if user else None
 
-    # JST 기준으로 since を作ってから UTC naive に変換してDB比較に使う
     now_jst = jst_now_aware()
 
     if period == "week":
@@ -350,7 +400,6 @@ def ranking(
         since_utc_naive = (now_jst - timedelta(days=30)).astimezone(timezone.utc).replace(tzinfo=None)
         title = "月間ランキング TOP10"
     else:
-        # 日間：JSTの0:00を境界にする
         since_utc_naive = jst_midnight_to_utc_naive(now_jst)
         title = "日間ランキング TOP10"
 
@@ -533,7 +582,7 @@ def post(
         """, (
             me, maker, region, car, comment,
             image_path,
-            utcnow_naive()   # ★ UTC naive 保存（比較で落ちない）
+            utcnow_naive()
         ))
 
     run_db(_do)
