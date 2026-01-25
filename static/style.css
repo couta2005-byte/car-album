@@ -150,6 +150,7 @@ textarea {
 }
 
 .post-card {
+  position: relative;              /* ★ 時間配置用 */
   border-bottom: 1px solid #eee;
   padding: 16px 0;
 }
@@ -158,6 +159,7 @@ textarea {
   font-weight: 700;
   text-decoration: none;
   color: #0f1419;
+  padding-right: 90px;             /* ★ 右上時間と被らない */
 }
 
 .post-car {
@@ -178,13 +180,15 @@ textarea {
   margin: 8px 0;
 }
 
-/* ★ 投稿時間（全ページ共通・主張しすぎない） */
+/* ★ 投稿時間：おすすめと同じ「右上固定」 */
 .post-date,
 .post-time {
-  display: block;
+  position: absolute;
+  top: 16px;
+  right: 0;
   font-size: 13px;
   color: #536471;
-  margin-bottom: 4px;
+  white-space: nowrap;
 }
 
 /* ===== Actions ===== */
@@ -244,7 +248,7 @@ textarea {
   color: #fff;
 }
 
-/* ★ ランキング用調整 */
+/* ★ ランキング用強調 */
 .ranking-card .post-car {
   font-size: 20px;
 }
