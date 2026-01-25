@@ -114,6 +114,7 @@ body {
   gap: 10px;
   flex-wrap: wrap;
 }
+
 .form-row.bottom {
   align-items: center;
 }
@@ -143,18 +144,6 @@ textarea {
   cursor: pointer;
 }
 
-/* ===== Auth ===== */
-.auth-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-.auth-title {
-  font-weight: 900;
-  margin-bottom: 8px;
-}
-
 /* ===== Posts ===== */
 .posts {
   margin-top: 12px;
@@ -162,14 +151,7 @@ textarea {
 
 .post-card {
   border-bottom: 1px solid #eee;
-  padding: 14px 0;
-}
-
-.post-top {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  gap: 10px;
+  padding: 16px 0;
 }
 
 .post-user {
@@ -178,41 +160,31 @@ textarea {
   color: #0f1419;
 }
 
-.post-date {
-  color: #536471;
-  white-space: nowrap;
-}
-
-.post-meta {
-  margin-top: 6px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.chip {
-  background: #eef3f4;
-  color: #536471;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .post-car {
   font-size: 18px;
   font-weight: 900;
   margin: 6px 0;
 }
 
-.post-text {
+.post-text,
+.post-comment {
   font-size: 15px;
+  margin-bottom: 6px;
 }
 
 .post-image {
   width: 100%;
   border-radius: 16px;
   margin: 8px 0;
+}
+
+/* ★ 投稿時間（全ページ共通・主張しすぎない） */
+.post-date,
+.post-time {
+  display: block;
+  font-size: 13px;
+  color: #536471;
+  margin-bottom: 4px;
 }
 
 /* ===== Actions ===== */
@@ -235,59 +207,8 @@ textarea {
   cursor: pointer;
 }
 
-.like-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .delete-btn {
   border-color: #ffd1d1;
-}
-
-/* ===== Comments ===== */
-.comments {
-  margin-top: 10px;
-  padding: 10px;
-  background: #f7f9fa;
-  border-radius: 14px;
-}
-
-.comment-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px dashed #e6ecf0;
-}
-.comment-row:last-child {
-  border-bottom: none;
-}
-
-.comment-user {
-  font-weight: 900;
-}
-.comment-text {
-  color: #0f1419;
-}
-.comment-date {
-  color: #536471;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.comment-form {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-.comment-form input {
-  margin-bottom: 0;
-}
-.comment-btn {
-  width: auto;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
 }
 
 /* ===== Ranking ===== */
@@ -299,7 +220,7 @@ textarea {
 .rank-badge {
   position: absolute;
   left: 0;
-  top: 16px;
+  top: 18px;
   width: 30px;
   height: 30px;
   border-radius: 50%;
@@ -313,20 +234,32 @@ textarea {
 .rank-1 .rank-badge {
   background: gold;
 }
+
 .rank-2 .rank-badge {
   background: silver;
 }
+
 .rank-3 .rank-badge {
   background: #cd7f32;
   color: #fff;
 }
 
+/* ★ ランキング用調整 */
+.ranking-card .post-car {
+  font-size: 20px;
+}
+
+.rank-1 .post-car {
+  font-size: 22px;
+}
+
 /* ===== Profile ===== */
-.profile-card {
+.profile-card,
+.profile-box {
   background: #f7f9fa;
   border-radius: 20px;
   padding: 16px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .profile-name {
@@ -334,7 +267,15 @@ textarea {
   font-weight: 900;
 }
 
-/* ===== Auth (Login / Register) ===== */
+.profile-edit {
+  background: #fff;
+  border: 1px solid #e6ecf0;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 20px;
+}
+
+/* ===== Auth ===== */
 .auth-container {
   max-width: 420px;
   margin: 40px auto;
@@ -356,13 +297,17 @@ textarea {
   font-weight: bold;
 }
 
-/* =================================================
-   ★ 追記：投稿時間の表示を全ページで統一（安全）
-================================================= */
-.post-date,
-.post-time {
-  display: block;
-  font-size: 13px;
-  color: #536471;
-  margin-top: 2px;
+/* ===== Mobile ===== */
+@media (max-width: 600px) {
+  .logo {
+    font-size: 22px;
+  }
+
+  .nav-link {
+    font-size: 14px;
+  }
+
+  .post-car {
+    font-size: 17px;
+  }
 }
