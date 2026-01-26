@@ -67,6 +67,8 @@ body {
 /* ===== Layout ===== */
 .container {
   padding: 12px;
+  max-width: 820px;
+  margin: 0 auto;
 }
 
 /* ===== Ranking Tabs ===== */
@@ -149,8 +151,17 @@ textarea {
   margin-top: 12px;
 }
 
+/* カード化（検索・一覧で共通） */
+.post {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+}
+
 .post-card {
-  position: relative;              /* ★ 時間配置用 */
+  position: relative;
   border-bottom: 1px solid #eee;
   padding: 16px 0;
 }
@@ -159,7 +170,7 @@ textarea {
   font-weight: 700;
   text-decoration: none;
   color: #0f1419;
-  padding-right: 90px;             /* ★ 右上時間と被らない */
+  padding-right: 90px;
 }
 
 .post-car {
@@ -168,10 +179,16 @@ textarea {
   margin: 6px 0;
 }
 
+.post-car span {
+  opacity: 0.75;
+  font-weight: 600;
+}
+
 .post-text,
 .post-comment {
   font-size: 15px;
   margin-bottom: 6px;
+  line-height: 1.55;
 }
 
 .post-image {
@@ -180,12 +197,24 @@ textarea {
   margin: 8px 0;
 }
 
-/* ★ 投稿時間：おすすめと同じ「右上固定」 */
+.post-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  display: block;
+}
+
+/* 投稿上段 */
+.post-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+/* ★ 投稿時間：右上固定 */
 .post-date,
 .post-time {
-  position: absolute;
-  top: 16px;
-  right: 0;
   font-size: 13px;
   color: #536471;
   white-space: nowrap;
@@ -209,6 +238,11 @@ textarea {
   padding: 8px 12px;
   font-weight: 800;
   cursor: pointer;
+}
+
+.like-btn:hover,
+.follow-btn:hover {
+  background: #f7f9fa;
 }
 
 .delete-btn {
@@ -248,7 +282,6 @@ textarea {
   color: #fff;
 }
 
-/* ★ ランキング用強調 */
 .ranking-card .post-car {
   font-size: 20px;
 }
@@ -301,6 +334,69 @@ textarea {
   font-weight: bold;
 }
 
+/* ===== Search Page ===== */
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0 18px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 999px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+}
+
+.search-btn {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  background: #000;
+  color: #fff;
+  font-size: 14px;
+}
+
+.search-section {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+}
+
+.search-title {
+  font-size: 15px;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.search-chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f2f2f2;
+  font-size: 14px;
+  text-decoration: none;
+  color: #0f1419;
+}
+
+.chip:hover {
+  background: #e6ecf0;
+}
+
+.search-empty,
+.search-guide {
+  opacity: 0.7;
+  font-size: 14px;
+}
+
 /* ===== Mobile ===== */
 @media (max-width: 600px) {
   .logo {
@@ -313,5 +409,13 @@ textarea {
 
   .post-car {
     font-size: 17px;
+  }
+
+  .container {
+    padding: 10px;
+  }
+
+  .search-box {
+    gap: 8px;
   }
 }
