@@ -50,11 +50,6 @@ body {
   color: #1d9bf0;
 }
 
-.inline-form {
-  display: inline;
-  margin: 0;
-}
-
 .logout-btn {
   border: none;
   background: #fff;
@@ -71,57 +66,7 @@ body {
   margin: 0 auto;
 }
 
-/* ===== Ranking Tabs ===== */
-.ranking-tabs-wrap {
-  display: flex;
-  justify-content: center;
-  margin: 12px 0;
-}
-
-.ranking-tabs {
-  display: flex;
-  gap: 12px;
-}
-
-.rank-tab {
-  padding: 10px 22px;
-  border-radius: 999px;
-  background: #eef3f4;
-  color: #536471;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.rank-tab.active {
-  background: #1d9bf0;
-  color: #fff;
-}
-
-/* ===== Titles ===== */
-.ranking-title {
-  font-size: 22px;
-  font-weight: 900;
-  margin: 16px 0;
-}
-
-/* ===== Forms ===== */
-.search-form,
-.post-form,
-.auth-card {
-  margin-bottom: 20px;
-}
-
-.form-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.form-row.bottom {
-  align-items: center;
-}
-
-/* ⚠ 共通input（検索以外） */
+/* ===== 共通 input（検索以外） ===== */
 input,
 textarea {
   width: 100%;
@@ -136,59 +81,13 @@ textarea {
   min-height: 100px;
 }
 
-.primary-btn {
-  width: 100%;
-  padding: 14px;
-  border-radius: 999px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: 800;
-  cursor: pointer;
-}
-
 /* ===== Posts ===== */
-.posts {
-  margin-top: 12px;
-}
-
 .post {
   background: #fff;
   border-radius: 18px;
   padding: 16px;
   margin-bottom: 14px;
   box-shadow: 0 1px 0 rgba(0,0,0,0.06);
-}
-
-.post-user {
-  font-weight: 700;
-  text-decoration: none;
-  color: #0f1419;
-}
-
-.post-car {
-  font-size: 18px;
-  font-weight: 900;
-  margin: 6px 0;
-}
-
-.post-car span {
-  opacity: 0.75;
-  font-weight: 600;
-}
-
-.post-text,
-.post-comment {
-  font-size: 15px;
-  margin-bottom: 6px;
-  line-height: 1.55;
-}
-
-.post-image img {
-  width: 100%;
-  height: auto;
-  border-radius: 16px;
-  display: block;
 }
 
 .post-top {
@@ -198,75 +97,54 @@ textarea {
   gap: 10px;
 }
 
+.post-car {
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 2px;
+}
+
+.post-car span {
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+/* ユーザー名＋いいね */
+.post-sub {
+  font-size: 14px;
+  color: #536471;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.post-sub a {
+  color: #0f1419;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.post-sub a:hover {
+  text-decoration: underline;
+}
+
 .post-date {
   font-size: 13px;
   color: #536471;
   white-space: nowrap;
 }
 
-/* ===== Actions ===== */
-.post-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
+.post-comment {
+  font-size: 15px;
+  line-height: 1.55;
   margin-top: 8px;
 }
 
-.like-btn,
-.delete-btn,
-.comment-btn,
-.follow-btn {
-  border: 1px solid #cfd9de;
-  background: #fff;
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.like-btn:hover,
-.follow-btn:hover {
-  background: #f7f9fa;
-}
-
-.delete-btn {
-  border-color: #ffd1d1;
-}
-
-/* ===== Profile ===== */
-.profile-card,
-.profile-box {
-  background: #f7f9fa;
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.profile-name {
-  font-size: 22px;
-  font-weight: 900;
-}
-
-/* ===== Auth ===== */
-.auth-container {
-  max-width: 420px;
-  margin: 40px auto;
-}
-
-.auth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.auth-btn {
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 999px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: bold;
+.post-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 16px;
+  margin-top: 10px;
+  display: block;
 }
 
 /* ===== Search Page（完全隔離） ===== */
@@ -278,7 +156,7 @@ textarea {
 }
 
 .search-box .search-input {
-  width: auto;              /* 共通 input を無効化 */
+  width: auto;
   flex: 1;
   margin-bottom: 0;
   padding: 12px 16px;
@@ -353,9 +231,5 @@ textarea {
 
   .container {
     padding: 10px;
-  }
-
-  .search-box {
-    gap: 8px;
   }
 }
