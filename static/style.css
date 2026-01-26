@@ -419,3 +419,22 @@ textarea {
     gap: 8px;
   }
 }
+/* ===== Search input override (IMPORTANT) ===== */
+.search-box input.search-input {
+  width: auto;              /* ← 100% を無効化 */
+  margin-bottom: 0;         /* ← 下余白を消す */
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: 2px solid #cfd9de;
+  font-size: 15px;
+}
+
+.search-box button.search-btn {
+  margin-bottom: 0;         /* ← input の影響を遮断 */
+  white-space: nowrap;
+}
+
+/* スマホでも横並びを維持 */
+.search-box {
+  align-items: center;
+}
