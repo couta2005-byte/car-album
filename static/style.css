@@ -121,6 +121,7 @@ body {
   align-items: center;
 }
 
+/* ⚠ 共通input（検索以外） */
 input,
 textarea {
   width: 100%;
@@ -151,7 +152,6 @@ textarea {
   margin-top: 12px;
 }
 
-/* カード化（検索・一覧で共通） */
 .post {
   background: #fff;
   border-radius: 18px;
@@ -160,17 +160,10 @@ textarea {
   box-shadow: 0 1px 0 rgba(0,0,0,0.06);
 }
 
-.post-card {
-  position: relative;
-  border-bottom: 1px solid #eee;
-  padding: 16px 0;
-}
-
 .post-user {
   font-weight: 700;
   text-decoration: none;
   color: #0f1419;
-  padding-right: 90px;
 }
 
 .post-car {
@@ -191,12 +184,6 @@ textarea {
   line-height: 1.55;
 }
 
-.post-image {
-  width: 100%;
-  border-radius: 16px;
-  margin: 8px 0;
-}
-
 .post-image img {
   width: 100%;
   height: auto;
@@ -204,7 +191,6 @@ textarea {
   display: block;
 }
 
-/* 投稿上段 */
 .post-top {
   display: flex;
   justify-content: space-between;
@@ -212,9 +198,7 @@ textarea {
   gap: 10px;
 }
 
-/* ★ 投稿時間：右上固定 */
-.post-date,
-.post-time {
+.post-date {
   font-size: 13px;
   color: #536471;
   white-space: nowrap;
@@ -249,47 +233,6 @@ textarea {
   border-color: #ffd1d1;
 }
 
-/* ===== Ranking ===== */
-.ranking-card {
-  position: relative;
-  padding-left: 42px;
-}
-
-.rank-badge {
-  position: absolute;
-  left: 0;
-  top: 18px;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: #eef3f4;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 900;
-}
-
-.rank-1 .rank-badge {
-  background: gold;
-}
-
-.rank-2 .rank-badge {
-  background: silver;
-}
-
-.rank-3 .rank-badge {
-  background: #cd7f32;
-  color: #fff;
-}
-
-.ranking-card .post-car {
-  font-size: 20px;
-}
-
-.rank-1 .post-car {
-  font-size: 22px;
-}
-
 /* ===== Profile ===== */
 .profile-card,
 .profile-box {
@@ -302,14 +245,6 @@ textarea {
 .profile-name {
   font-size: 22px;
   font-weight: 900;
-}
-
-.profile-edit {
-  background: #fff;
-  border: 1px solid #e6ecf0;
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 20px;
 }
 
 /* ===== Auth ===== */
@@ -334,28 +269,33 @@ textarea {
   font-weight: bold;
 }
 
-/* ===== Search Page ===== */
+/* ===== Search Page（完全隔離） ===== */
 .search-box {
   display: flex;
+  align-items: center;
   gap: 10px;
   margin: 8px 0 18px;
 }
 
-.search-input {
+.search-box .search-input {
+  width: auto;              /* 共通 input を無効化 */
   flex: 1;
-  padding: 12px 14px;
+  margin-bottom: 0;
+  padding: 12px 16px;
   border-radius: 999px;
-  border: 1px solid #ddd;
+  border: 2px solid #cfd9de;
   font-size: 15px;
 }
 
-.search-btn {
+.search-box .search-btn {
+  margin-bottom: 0;
   padding: 10px 18px;
   border-radius: 999px;
   border: none;
   background: #000;
   color: #fff;
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .search-section {
@@ -418,23 +358,4 @@ textarea {
   .search-box {
     gap: 8px;
   }
-}
-/* ===== Search input override (IMPORTANT) ===== */
-.search-box input.search-input {
-  width: auto;              /* ← 100% を無効化 */
-  margin-bottom: 0;         /* ← 下余白を消す */
-  padding: 12px 16px;
-  border-radius: 999px;
-  border: 2px solid #cfd9de;
-  font-size: 15px;
-}
-
-.search-box button.search-btn {
-  margin-bottom: 0;         /* ← input の影響を遮断 */
-  white-space: nowrap;
-}
-
-/* スマホでも横並びを維持 */
-.search-box {
-  align-items: center;
 }
