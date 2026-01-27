@@ -11,50 +11,59 @@ body {
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
   background: #ffffff;
   color: #0f1419;
+  line-height: 1.5;
 }
 
 /* =========================
-   Header / Nav
+   Header / Nav（スマホ最優先）
 ========================= */
 .header {
   background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .header-inner {
   display: flex;
+  flex-wrap: wrap;              /* ← 折り返し許可 */
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
+  gap: 10px;
+  padding: 10px 12px;
 }
 
 .logo {
   color: #fff;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
-  gap: 14px;
-  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .nav-link {
   color: #bbb;
-  font-size: 14px;
+  font-size: 13px;
   text-decoration: none;
+  padding: 4px 2px;
 }
 
 .nav-link.active {
   color: #1d9bf0;
+  font-weight: 700;
 }
 
 .logout-btn {
+  margin-left: auto;
   border: none;
   background: #fff;
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   font-size: 12px;
   cursor: pointer;
 }
@@ -65,11 +74,11 @@ body {
 .container {
   max-width: 680px;
   margin: 0 auto;
-  padding: 10px 12px 24px;
+  padding: 12px 12px 28px;
 }
 
 /* =========================
-   Forms
+   Forms（統一感）
 ========================= */
 input,
 textarea {
@@ -79,13 +88,16 @@ textarea {
   border: 2px solid #cfd9de;
   font-size: 14px;
   margin-bottom: 10px;
+  background: #fff;
 }
 
 textarea {
   min-height: 90px;
+  resize: vertical;
 }
 
-.primary-btn {
+.primary-btn,
+button[type="submit"] {
   width: 100%;
   padding: 12px;
   border-radius: 999px;
@@ -97,13 +109,13 @@ textarea {
 }
 
 /* =========================
-   Post Card（重要）
+   Post Card（最重要）
 ========================= */
 .post {
   background: #fff;
   border-radius: 18px;
   padding: 14px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   box-shadow: 0 1px 0 rgba(0,0,0,0.06);
 }
 
@@ -119,7 +131,7 @@ textarea {
 }
 
 .post-car span {
-  opacity: 0.7;
+  opacity: 0.6;
   font-weight: 600;
 }
 
@@ -128,6 +140,7 @@ textarea {
   color: #536471;
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .post-sub a {
@@ -148,13 +161,19 @@ textarea {
   margin-top: 6px;
 }
 
-/* 🔥 画像サイズ制御（切らない） */
+/* =========================
+   Post Image（切らない・暴走防止）
+========================= */
+.post-image {
+  margin-top: 10px;
+}
+
 .post-image img {
   width: 100%;
-  max-height: 360px;        /* ← スマホでの暴走防止 */
+  max-height: 320px;        /* ← スマホ最適 */
+  height: auto;
   object-fit: contain;     /* ← 絶対に切らない */
   border-radius: 16px;
-  margin-top: 8px;
   background: #f2f2f2;
   display: block;
 }
@@ -165,14 +184,15 @@ textarea {
 .post-actions {
   display: flex;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
 }
 
 .like-btn,
 .delete-btn,
 .follow-btn {
   border-radius: 999px;
-  padding: 6px 12px;
+  padding: 6px 14px;
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
@@ -187,27 +207,30 @@ textarea {
 
 .delete-btn {
   border-color: #ffd1d1;
+  color: #d11a2a;
 }
 
 /* =========================
-   Ranking（暴走防止）
+   Ranking（縦暴走完全防止）
 ========================= */
 .ranking-title {
   font-size: 20px;
   font-weight: 900;
-  margin: 12px 0;
+  margin: 14px 0 8px;
 }
 
 .ranking-card {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .ranking-card img {
   width: 100%;
-  max-height: 280px;
-  object-fit: contain;   /* ← 切らない */
+  max-height: 260px;
+  height: auto;
+  object-fit: contain;
   border-radius: 16px;
   background: #f2f2f2;
+  display: block;
 }
 
 /* =========================
@@ -223,10 +246,11 @@ textarea {
 .profile-name {
   font-size: 20px;
   font-weight: 900;
+  margin-bottom: 6px;
 }
 
 /* =========================
-   Search（そのまま使える）
+   Search（現状維持＋微調整）
 ========================= */
 .search-box {
   display: flex;
@@ -247,17 +271,23 @@ textarea {
   border: none;
   background: #000;
   color: #fff;
+  font-weight: 700;
 }
 
 /* =========================
-   Mobile微調整
+   Mobile 微調整
 ========================= */
 @media (max-width: 600px) {
   .logo {
-    font-size: 20px;
+    font-size: 18px;
   }
 
-  .post-image img {
-    max-height: 300px;
+  .nav-link {
+    font-size: 12px;
+  }
+
+  .post-image img,
+  .ranking-card img {
+    max-height: 280px;
   }
 }
