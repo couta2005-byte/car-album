@@ -21,8 +21,6 @@ body {
 }
 
 .header-inner {
-  max-width: 960px;
-  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -46,13 +44,10 @@ body {
   color: #bbb;
   font-size: 14px;
   text-decoration: none;
-  padding: 6px 10px;
-  border-radius: 999px;
 }
 
 .nav-link.active {
-  color: #fff;
-  background: #1d9bf0;
+  color: #1d9bf0;
 }
 
 .logout-btn {
@@ -69,21 +64,14 @@ body {
    Layout
 ========================= */
 .container {
-  max-width: 680px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 16px 12px 32px;
+  padding: 12px;
 }
 
 /* =========================
-   Forms（PCで間延びしない）
+   Forms
 ========================= */
-.post-form {
-  background: #f7f9fa;
-  border-radius: 18px;
-  padding: 14px;
-  margin-bottom: 18px;
-}
-
 input,
 textarea {
   width: 100%;
@@ -96,12 +84,11 @@ textarea {
 
 textarea {
   min-height: 90px;
-  resize: vertical;
 }
 
 .primary-btn {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border-radius: 999px;
   border: none;
   background: #1d9bf0;
@@ -137,6 +124,12 @@ textarea {
   color: #536471;
 }
 
+.post-sub a {
+  color: #0f1419;
+  text-decoration: none;
+  font-weight: 600;
+}
+
 .post-date {
   font-size: 12px;
   color: #536471;
@@ -150,20 +143,20 @@ textarea {
 }
 
 /* =========================
-   画像表示（酔わない最適解）
+   Image（サイズ暴走完全防止）
 ========================= */
 .post-image {
   margin-top: 10px;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
+/* 横幅基準・高さ自動（切らない・黒板出さない） */
 .post-image img {
   width: 100%;
-  height: auto;                 /* ← 最重要 */
-  max-height: 420px;            /* PC上限 */
-  object-fit: contain;          /* 切らない */
-  border-radius: 16px;
+  height: auto;
   display: block;
-  background: #eee;             /* 黒やめる */
+  border-radius: 16px;
 }
 
 /* =========================
@@ -200,11 +193,7 @@ textarea {
    Ranking
 ========================= */
 .ranking-card {
-  margin-bottom: 22px;
-}
-
-.ranking-card .post-image img {
-  max-height: 360px;
+  margin-bottom: 18px;
 }
 
 /* =========================
@@ -228,7 +217,7 @@ textarea {
 .search-box {
   display: flex;
   gap: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .search-input {
@@ -250,15 +239,7 @@ textarea {
    Mobile
 ========================= */
 @media (max-width: 600px) {
-  .header-inner {
-    padding: 10px 12px;
-  }
-
-  .logo {
-    font-size: 20px;
-  }
-
-  .post-image img {
-    max-height: 260px;   /* ← スマホで暴走しない */
+  .container {
+    padding: 10px;
   }
 }
