@@ -19,25 +19,26 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 12px 14px;
 }
 
 .logo {
   color: #fff;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 900;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
 }
 
 .nav-link {
-  color: #ccc;
-  font-size: 15px;
+  color: #aaa;
+  font-size: 14px;
   text-decoration: none;
 }
 
@@ -56,60 +57,62 @@ body {
 
 /* ===== Layout ===== */
 .container {
-  padding: 12px;
-  max-width: 720px;   /* ← 横幅を抑えてSNS感 */
+  padding: 10px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
-/* ===== 共通 input ===== */
+/* ===== Form ===== */
 input,
 textarea {
   width: 100%;
-  padding: 14px;
-  margin-bottom: 10px;
-  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 12px;
   border: 2px solid #cfd9de;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 textarea {
-  min-height: 100px;
+  min-height: 90px;
 }
 
-/* ===== 投稿カード ===== */
+button {
+  cursor: pointer;
+}
+
+/* ===== Post Card ===== */
 .post {
   background: #fff;
-  border-radius: 18px;
-  padding: 14px;
-  margin-bottom: 18px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
 }
 
-/* 上段 */
+/* 投稿上部（文字エリア） */
 .post-top {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .post-car {
-  font-size: 17px;
-  font-weight: 900;
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .post-car span {
-  opacity: 0.7;
-  font-weight: 600;
+  font-size: 13px;
+  opacity: 0.6;
 }
 
-/* ユーザー＋いいね */
 .post-sub {
-  font-size: 14px;
+  font-size: 13px;
   color: #536471;
   display: flex;
   gap: 6px;
-  align-items: center;
 }
 
 .post-sub a {
@@ -126,73 +129,63 @@ textarea {
 
 /* コメント */
 .post-comment {
-  font-size: 15px;
-  line-height: 1.55;
-  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 6px;
 }
 
-/* ===== 画像（最重要） ===== */
+/* ===== Image（超重要）===== */
 .post-image {
-  margin-top: 10px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #f2f2f2;
+  margin-top: 8px;
 }
 
 .post-image img {
   width: 100%;
-  max-height: 420px;          /* ← ★ デカすぎ防止 */
-  object-fit: cover;          /* ← トリミング */
+  height: auto;
+  max-height: 240px;        /* ← スマホ基準 */
+  object-fit: contain;     /* ← 絶対に切らない */
+  border-radius: 14px;
   display: block;
+  background: #f7f9f9;
 }
 
-/* ===== 検索 ===== */
+/* ===== Buttons ===== */
+.like-btn,
+.delete-btn,
+.follow-btn {
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid #e6ecf0;
+}
+
+/* ===== Search（現状維持寄り）===== */
 .search-box {
   display: flex;
-  gap: 10px;
-  margin: 10px 0 18px;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
 .search-input {
   flex: 1;
+  padding: 12px 16px;
   border-radius: 999px;
+  border: 2px solid #cfd9de;
 }
 
 .search-btn {
+  padding: 10px 16px;
   border-radius: 999px;
-  padding: 10px 18px;
   border: none;
   background: #000;
   color: #fff;
 }
 
-.search-section {
-  margin-bottom: 16px;
-}
-
-.search-title {
-  font-size: 15px;
-  font-weight: 800;
-  margin-bottom: 8px;
-}
-
-.search-chips {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.chip {
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: #f2f2f2;
-  font-size: 14px;
-  text-decoration: none;
-  color: #0f1419;
-}
-
-/* ===== ランキング ===== */
-.rank-badge {
+/* ===== Ranking ===== */
+.rank-number {
+  font-size: 18px;
   font-weight: 900;
   margin-right: 6px;
 }
@@ -200,14 +193,18 @@ textarea {
 /* ===== Mobile ===== */
 @media (max-width: 600px) {
   .logo {
-    font-size: 22px;
+    font-size: 20px;
   }
 
-  .container {
-    padding: 10px;
+  .nav-link {
+    font-size: 13px;
+  }
+
+  .post-car {
+    font-size: 15px;
   }
 
   .post-image img {
-    max-height: 320px;   /* ← スマホはさらに抑える */
+    max-height: 220px;
   }
 }
