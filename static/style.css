@@ -20,7 +20,6 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  gap: 12px;
 }
 
 .logo {
@@ -35,8 +34,6 @@ body {
   display: flex;
   gap: 16px;
   align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
 }
 
 .nav-link {
@@ -66,13 +63,7 @@ body {
   margin: 0 auto;
 }
 
-/* ===== 共通フォーム ===== */
-.form-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
+/* ===== Forms ===== */
 input,
 textarea {
   width: 100%;
@@ -87,7 +78,7 @@ textarea {
   min-height: 100px;
 }
 
-.primary-btn {
+button {
   width: 100%;
   padding: 14px;
   border-radius: 14px;
@@ -98,7 +89,7 @@ textarea {
   cursor: pointer;
 }
 
-/* ===== Posts ===== */
+/* ===== Posts（おすすめ・検索 共通） ===== */
 .post {
   background: #fff;
   border-radius: 18px;
@@ -159,45 +150,40 @@ textarea {
   display: block;
 }
 
-/* ===== Search（投稿フォーム準拠） ===== */
+/* ===== Search : 探す専用 ===== */
+
+/* 検索フォームを“固定的”に見せる */
 .search-box {
-  margin: 8px 0 18px;
-}
-
-.search-box input {
-  margin-bottom: 10px;
-}
-
-.search-box button {
-  width: 100%;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-/* ===== Search Result ===== */
-.search-section {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   background: #fff;
-  border-radius: 18px;
-  padding: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+  padding: 12px 0 16px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #e6ecf0;
 }
 
+/* 検索中の文脈 */
+.search-context {
+  font-size: 14px;
+  color: #536471;
+  margin: 6px 0 14px;
+}
+
+/* セクション区切り（おすすめとの差別化） */
 .search-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 800;
-  margin-bottom: 10px;
+  color: #536471;
+  margin: 20px 0 8px;
 }
 
+/* アカウント候補 */
 .search-chips {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  margin-bottom: 8px;
 }
 
 .chip {
@@ -209,10 +195,15 @@ textarea {
   color: #0f1419;
 }
 
+.chip:hover {
+  background: #e6ecf0;
+}
+
 .search-empty,
 .search-guide {
-  opacity: 0.7;
   font-size: 14px;
+  color: #536471;
+  margin: 12px 0;
 }
 
 /* ===== Mobile ===== */
