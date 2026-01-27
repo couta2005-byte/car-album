@@ -14,16 +14,18 @@ body {
 }
 
 /* =========================
-   Header / Nav
+   Header / Nav（再設計）
 ========================= */
 .header {
   background: #000;
 }
 
 .header-inner {
+  max-width: 720px;
+  margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 12px;
   padding: 12px 14px;
 }
 
@@ -32,22 +34,28 @@ body {
   font-size: 22px;
   font-weight: 900;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
+  flex: 1;
+  justify-content: center;
 }
 
 .nav-link {
   color: #bbb;
   font-size: 14px;
   text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 8px;
 }
 
 .nav-link.active {
   color: #1d9bf0;
+  background: rgba(29,155,240,0.12);
 }
 
 .logout-btn {
@@ -57,7 +65,9 @@ body {
   border-radius: 999px;
   padding: 6px 14px;
   font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 /* =========================
@@ -66,7 +76,7 @@ body {
 .container {
   max-width: 680px;
   margin: 0 auto;
-  padding: 10px 12px 24px;
+  padding: 12px 12px 28px;
 }
 
 /* =========================
@@ -104,8 +114,8 @@ textarea {
   background: #fff;
   border-radius: 18px;
   padding: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  margin-bottom: 18px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
 }
 
 .post-top {
@@ -129,6 +139,7 @@ textarea {
   color: #536471;
   display: flex;
   gap: 6px;
+  flex-wrap: wrap;
 }
 
 .post-sub a {
@@ -150,23 +161,31 @@ textarea {
 }
 
 /* =========================
-   画像表示（気持ち悪さ完全対策）
+   画像表示（最重要・完全安定）
 ========================= */
 .post-image {
   margin-top: 10px;
-  background: #111;               /* 黒で統一して違和感を消す */
+  background: #111;
   border-radius: 16px;
+  overflow: hidden;
+
+  aspect-ratio: 4 / 3;          /* ← 全投稿で高さ固定 */
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
 
 .post-image img {
-  max-width: 100%;
-  max-height: 60vh;               /* ← 画面基準で制限 */
-  object-fit: contain;            /* ← 絶対に切らない */
+  width: 100%;
+  height: 100%;
+  object-fit: contain;          /* 切らない */
   display: block;
+}
+
+/* 壊れ画像対策 */
+.post-image img:not([src]),
+.post-image img[src=""] {
+  display: none;
 }
 
 /* =========================
@@ -203,11 +222,11 @@ textarea {
    Ranking
 ========================= */
 .ranking-card {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
-.ranking-card .post-image img {
-  max-height: 45vh;               /* ランキングはさらに抑制 */
+.ranking-card .post-image {
+  aspect-ratio: 4 / 3;
 }
 
 /* =========================
@@ -217,7 +236,7 @@ textarea {
   background: #f7f9fa;
   border-radius: 18px;
   padding: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .profile-name {
@@ -247,17 +266,27 @@ textarea {
   border: none;
   background: #000;
   color: #fff;
+  font-weight: 700;
 }
 
 /* =========================
    Mobile微調整
 ========================= */
 @media (max-width: 600px) {
+  .header-inner {
+    gap: 8px;
+  }
+
   .logo {
     font-size: 20px;
   }
 
-  .post-image img {
-    max-height: 50vh;   /* スマホはさらに抑える */
+  .nav {
+    gap: 6px;
+  }
+
+  .nav-link {
+    font-size: 13px;
+    padding: 4px 6px;
   }
 }
