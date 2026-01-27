@@ -66,7 +66,13 @@ body {
   margin: 0 auto;
 }
 
-/* ===== 共通 input（検索以外） ===== */
+/* ===== 共通フォーム ===== */
+.form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 input,
 textarea {
   width: 100%;
@@ -79,6 +85,17 @@ textarea {
 
 textarea {
   min-height: 100px;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 /* ===== Posts ===== */
@@ -108,7 +125,6 @@ textarea {
   font-weight: 600;
 }
 
-/* ユーザー名＋いいね */
 .post-sub {
   font-size: 14px;
   color: #536471;
@@ -121,10 +137,6 @@ textarea {
   color: #0f1419;
   text-decoration: none;
   font-weight: 600;
-}
-
-.post-sub a:hover {
-  text-decoration: underline;
 }
 
 .post-date {
@@ -147,35 +159,27 @@ textarea {
   display: block;
 }
 
-/* ===== Search Page（完全隔離） ===== */
+/* ===== Search（投稿フォーム準拠） ===== */
 .search-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   margin: 8px 0 18px;
 }
 
-.search-box .search-input {
-  width: auto;
-  flex: 1;
-  margin-bottom: 0;
-  padding: 12px 16px;
-  border-radius: 999px;
-  border: 2px solid #cfd9de;
-  font-size: 15px;
+.search-box input {
+  margin-bottom: 10px;
 }
 
-.search-box .search-btn {
-  margin-bottom: 0;
-  padding: 10px 18px;
-  border-radius: 999px;
+.search-box button {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
   border: none;
-  background: #000;
+  background: #1d9bf0;
   color: #fff;
-  font-size: 14px;
-  white-space: nowrap;
+  font-weight: 800;
+  cursor: pointer;
 }
 
+/* ===== Search Result ===== */
 .search-section {
   background: #fff;
   border-radius: 18px;
@@ -203,10 +207,6 @@ textarea {
   font-size: 14px;
   text-decoration: none;
   color: #0f1419;
-}
-
-.chip:hover {
-  background: #e6ecf0;
 }
 
 .search-empty,
