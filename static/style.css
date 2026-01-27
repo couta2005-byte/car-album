@@ -24,7 +24,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 12px 14px;
 }
 
 .logo {
@@ -36,7 +36,7 @@ body {
 
 .nav {
   display: flex;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
 }
 
@@ -64,9 +64,9 @@ body {
    Layout
 ========================= */
 .container {
-  max-width: 720px;
+  max-width: 680px;
   margin: 0 auto;
-  padding: 12px;
+  padding: 10px 12px 24px;
 }
 
 /* =========================
@@ -88,7 +88,7 @@ textarea {
 
 .primary-btn {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   border-radius: 999px;
   border: none;
   background: #1d9bf0;
@@ -104,7 +104,7 @@ textarea {
   background: #fff;
   border-radius: 18px;
   padding: 14px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
@@ -119,9 +119,16 @@ textarea {
   font-weight: 900;
 }
 
+.post-car span {
+  opacity: 0.7;
+  font-weight: 600;
+}
+
 .post-sub {
   font-size: 13px;
   color: #536471;
+  display: flex;
+  gap: 6px;
 }
 
 .post-sub a {
@@ -143,20 +150,29 @@ textarea {
 }
 
 /* =========================
-   Image（サイズ暴走完全防止）
+   画像表示（←ここが本命）
 ========================= */
+
+/* 一覧表示用コンテナ */
 .post-image {
   margin-top: 10px;
+  background: #111;
   border-radius: 16px;
   overflow: hidden;
+
+  /* 重要 */
+  max-height: 320px;      /* ← PCでも占領しない */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 横幅基準・高さ自動（切らない・黒板出さない） */
+/* 一覧表示用画像 */
 .post-image img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;   /* 切らない */
   display: block;
-  border-radius: 16px;
 }
 
 /* =========================
@@ -190,10 +206,10 @@ textarea {
 }
 
 /* =========================
-   Ranking
+   Ranking（さらに小さく）
 ========================= */
-.ranking-card {
-  margin-bottom: 18px;
+.ranking-card .post-image {
+  max-height: 260px;
 }
 
 /* =========================
@@ -236,10 +252,14 @@ textarea {
 }
 
 /* =========================
-   Mobile
+   Mobile（スマホ最適）
 ========================= */
 @media (max-width: 600px) {
-  .container {
-    padding: 10px;
+  .logo {
+    font-size: 20px;
+  }
+
+  .post-image {
+    max-height: 220px;  /* ← スマホは絶対これ以上いかない */
   }
 }
