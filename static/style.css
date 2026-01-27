@@ -27,7 +27,6 @@ body {
   font-size: 26px;
   font-weight: 900;
   text-decoration: none;
-  white-space: nowrap;
 }
 
 .nav {
@@ -40,7 +39,6 @@ body {
   color: #ccc;
   font-size: 15px;
   text-decoration: none;
-  white-space: nowrap;
 }
 
 .nav-link.active {
@@ -59,11 +57,11 @@ body {
 /* ===== Layout ===== */
 .container {
   padding: 12px;
-  max-width: 820px;
+  max-width: 720px;   /* ← 横幅を抑えてSNS感 */
   margin: 0 auto;
 }
 
-/* ===== Forms ===== */
+/* ===== 共通 input ===== */
 input,
 textarea {
   width: 100%;
@@ -78,26 +76,16 @@ textarea {
   min-height: 100px;
 }
 
-button {
-  width: 100%;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-/* ===== Posts（おすすめ・検索 共通） ===== */
+/* ===== 投稿カード ===== */
 .post {
   background: #fff;
   border-radius: 18px;
-  padding: 16px;
-  margin-bottom: 14px;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+  padding: 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
+/* 上段 */
 .post-top {
   display: flex;
   justify-content: space-between;
@@ -106,9 +94,8 @@ button {
 }
 
 .post-car {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 900;
-  margin-bottom: 2px;
 }
 
 .post-car span {
@@ -116,12 +103,13 @@ button {
   font-weight: 600;
 }
 
+/* ユーザー＋いいね */
 .post-sub {
   font-size: 14px;
   color: #536471;
   display: flex;
-  align-items: center;
   gap: 6px;
+  align-items: center;
 }
 
 .post-sub a {
@@ -131,59 +119,67 @@ button {
 }
 
 .post-date {
-  font-size: 13px;
+  font-size: 12px;
   color: #536471;
   white-space: nowrap;
 }
 
+/* コメント */
 .post-comment {
   font-size: 15px;
   line-height: 1.55;
   margin-top: 8px;
 }
 
+/* ===== 画像（最重要） ===== */
+.post-image {
+  margin-top: 10px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f2f2f2;
+}
+
 .post-image img {
   width: 100%;
-  height: auto;
-  border-radius: 16px;
-  margin-top: 10px;
+  max-height: 420px;          /* ← ★ デカすぎ防止 */
+  object-fit: cover;          /* ← トリミング */
   display: block;
 }
 
-/* ===== Search : 探す専用 ===== */
-
-/* 検索フォームを“固定的”に見せる */
+/* ===== 検索 ===== */
 .search-box {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: #fff;
-  padding: 12px 0 16px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid #e6ecf0;
+  display: flex;
+  gap: 10px;
+  margin: 10px 0 18px;
 }
 
-/* 検索中の文脈 */
-.search-context {
-  font-size: 14px;
-  color: #536471;
-  margin: 6px 0 14px;
+.search-input {
+  flex: 1;
+  border-radius: 999px;
 }
 
-/* セクション区切り（おすすめとの差別化） */
+.search-btn {
+  border-radius: 999px;
+  padding: 10px 18px;
+  border: none;
+  background: #000;
+  color: #fff;
+}
+
+.search-section {
+  margin-bottom: 16px;
+}
+
 .search-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
-  color: #536471;
-  margin: 20px 0 8px;
+  margin-bottom: 8px;
 }
 
-/* アカウント候補 */
 .search-chips {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 8px;
 }
 
 .chip {
@@ -195,15 +191,10 @@ button {
   color: #0f1419;
 }
 
-.chip:hover {
-  background: #e6ecf0;
-}
-
-.search-empty,
-.search-guide {
-  font-size: 14px;
-  color: #536471;
-  margin: 12px 0;
+/* ===== ランキング ===== */
+.rank-badge {
+  font-weight: 900;
+  margin-right: 6px;
 }
 
 /* ===== Mobile ===== */
@@ -212,15 +203,11 @@ button {
     font-size: 22px;
   }
 
-  .nav-link {
-    font-size: 14px;
-  }
-
-  .post-car {
-    font-size: 17px;
-  }
-
   .container {
     padding: 10px;
+  }
+
+  .post-image img {
+    max-height: 320px;   /* ← スマホはさらに抑える */
   }
 }
