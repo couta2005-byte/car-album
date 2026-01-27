@@ -11,60 +11,56 @@ body {
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
   background: #ffffff;
   color: #0f1419;
-  line-height: 1.5;
 }
 
 /* =========================
-   Header / Nav（スマホ最優先）
+   Header / Nav
 ========================= */
 .header {
   background: #000;
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
 .header-inner {
+  max-width: 920px;
+  margin: 0 auto;
   display: flex;
-  flex-wrap: wrap;              /* ← 折り返し許可 */
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
+  justify-content: space-between;
+  padding: 12px 16px;
 }
 
 .logo {
   color: #fff;
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 900;
   text-decoration: none;
-  white-space: nowrap;
 }
 
 .nav {
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
 }
 
 .nav-link {
   color: #bbb;
-  font-size: 13px;
+  font-size: 14px;
   text-decoration: none;
-  padding: 4px 2px;
+  font-weight: 700;
 }
 
 .nav-link.active {
   color: #1d9bf0;
-  font-weight: 700;
 }
 
 .logout-btn {
-  margin-left: auto;
   border: none;
-  background: #fff;
+  background: #1d9bf0;
+  color: #fff;
   border-radius: 999px;
   padding: 6px 14px;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 800;
   cursor: pointer;
 }
 
@@ -72,13 +68,13 @@ body {
    Layout
 ========================= */
 .container {
-  max-width: 680px;
+  max-width: 720px;
   margin: 0 auto;
-  padding: 12px 12px 28px;
+  padding: 12px 14px 40px;
 }
 
 /* =========================
-   Forms（統一感）
+   Forms
 ========================= */
 input,
 textarea {
@@ -88,16 +84,13 @@ textarea {
   border: 2px solid #cfd9de;
   font-size: 14px;
   margin-bottom: 10px;
-  background: #fff;
 }
 
 textarea {
   min-height: 90px;
-  resize: vertical;
 }
 
-.primary-btn,
-button[type="submit"] {
+.primary-btn {
   width: 100%;
   padding: 12px;
   border-radius: 999px;
@@ -109,16 +102,17 @@ button[type="submit"] {
 }
 
 /* =========================
-   Post Card（最重要）
+   Post Card（SNS設計）
 ========================= */
 .post {
   background: #fff;
   border-radius: 18px;
   padding: 14px;
   margin-bottom: 16px;
-  box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+  border: 1px solid #e6ecf0;
 }
 
+/* 上部情報 */
 .post-top {
   display: flex;
   justify-content: space-between;
@@ -131,7 +125,7 @@ button[type="submit"] {
 }
 
 .post-car span {
-  opacity: 0.6;
+  opacity: 0.7;
   font-weight: 600;
 }
 
@@ -140,13 +134,12 @@ button[type="submit"] {
   color: #536471;
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
 }
 
 .post-sub a {
   color: #0f1419;
   text-decoration: none;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .post-date {
@@ -162,19 +155,24 @@ button[type="submit"] {
 }
 
 /* =========================
-   Post Image（切らない・暴走防止）
+   画像（SNS型・決定版）
 ========================= */
 .post-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;      /* ← ここが全て */
   margin-top: 10px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #f2f2f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .post-image img {
   width: 100%;
-  max-height: 320px;        /* ← スマホ最適 */
-  height: auto;
-  object-fit: contain;     /* ← 絶対に切らない */
-  border-radius: 16px;
-  background: #f2f2f2;
+  height: 100%;
+  object-fit: contain;      /* 切らない */
   display: block;
 }
 
@@ -185,7 +183,6 @@ button[type="submit"] {
   display: flex;
   gap: 10px;
   margin-top: 10px;
-  flex-wrap: wrap;
 }
 
 .like-btn,
@@ -207,30 +204,23 @@ button[type="submit"] {
 
 .delete-btn {
   border-color: #ffd1d1;
-  color: #d11a2a;
 }
 
 /* =========================
-   Ranking（縦暴走完全防止）
+   Ranking
 ========================= */
 .ranking-title {
   font-size: 20px;
   font-weight: 900;
-  margin: 14px 0 8px;
+  margin: 16px 0;
 }
 
 .ranking-card {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
-.ranking-card img {
-  width: 100%;
-  max-height: 260px;
-  height: auto;
-  object-fit: contain;
-  border-radius: 16px;
-  background: #f2f2f2;
-  display: block;
+.ranking-card .post-image {
+  aspect-ratio: 4 / 3;
 }
 
 /* =========================
@@ -246,11 +236,10 @@ button[type="submit"] {
 .profile-name {
   font-size: 20px;
   font-weight: 900;
-  margin-bottom: 6px;
 }
 
 /* =========================
-   Search（現状維持＋微調整）
+   Search（既存維持）
 ========================= */
 .search-box {
   display: flex;
@@ -275,19 +264,14 @@ button[type="submit"] {
 }
 
 /* =========================
-   Mobile 微調整
+   Mobile
 ========================= */
 @media (max-width: 600px) {
   .logo {
-    font-size: 18px;
+    font-size: 20px;
   }
 
-  .nav-link {
-    font-size: 12px;
-  }
-
-  .post-image img,
-  .ranking-card img {
-    max-height: 280px;
+  .container {
+    padding: 10px 10px 32px;
   }
 }
