@@ -2,9 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ランキング | Car Album</title>
+  <title>Ranking | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=5">
 </head>
 <body>
 
@@ -12,40 +12,55 @@
 
 <main class="container">
 
-<div class="ranking-tabs-wrap">
-  <div class="ranking-tabs">
-    <a href="/ranking?period=day" class="rank-tab {% if period=='day' %}active{% endif %}">日</a>
-    <a href="/ranking?period=week" class="rank-tab {% if period=='week' %}active{% endif %}">週</a>
-    <a href="/ranking?period=month" class="rank-tab {% if period=='month' %}active{% endif %}">月</a>
-  </div>
-</div>
-
-<h2 class="ranking-title">{{ ranking_title }}</h2>
-
-<div class="posts">
-{% for post in posts %}
-  <article class="post-card ranking-card rank-{{ loop.index }}">
-    <div class="rank-badge">{{ loop.index }}</div>
-
-    <!-- ★ 車名 + 時間（おすすめと同じ構造） -->
-    <div class="post-top">
-      <div class="post-car">{{ post.car }}</div>
-      <div class="post-date">{{ post.created_at }}</div>
+  <div class="ranking-head">
+    <div class="ranking-tabs">
+      <a class="rank-tab {% if period=='day' %}active{% endif %}" href="/ranking?period=day">日</a>
+      <a class="rank-tab {% if period=='week' %}active{% endif %}" href="/ranking?period=week">週</a>
+      <a class="rank-tab {% if period=='month' %}active{% endif %}" href="/ranking?period=month">月</a>
     </div>
 
-    <!-- ひとこと -->
-    {% if post.comment %}
-      <div class="post-comment">{{ post.comment }}</div>
-    {% endif %}
+    <h2 class="ranking-title">{{ ranking_title or "ランキング" }}</h2>
+  </div>
 
-    <!-- 画像 -->
-    {% if post.image %}
-      <img src="{{ post.image }}" class="post-image">
-    {% endif %}
+  <div class="ranking-list">
+  {% for post in posts %}
+    <article class="post rank-post">
 
-  </article>
-{% endfor %}
-</div>
+      <!-- 1行目：順位 / ユーザー名：車名 / 時間 -->
+      <div class="rank-top">
+        <div class="rank-left">
+          <div class="rank-badge">{{ loop.index }}</div>
+
+          <div class="rank-meta">
+            <div class="rank-name">
+              <a href="/user/{{ post.username | urlencode }}" class="post-user">{{ post.username }}</a>
+              <span class="post-sep">：</span>
+              <span class="post-car">{{ post.car }}</span>
+            </div>
+
+            {% if post.comment %}
+              <div class="rank-comment">{{ post.comment }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="rank-right">
+          <div class="rank-time">{{ post.created_at }}</div>
+          <div class="rank-like">
+            ❤️ {{ post.likes }}
+          </div>
+        </div>
+      </div>
+
+      {% if post.image %}
+        <div class="post-image">
+          <img src="{{ post.image }}" alt="投稿画像">
+        </div>
+      {% endif %}
+
+    </article>
+  {% endfor %}
+  </div>
 
 </main>
 </body>

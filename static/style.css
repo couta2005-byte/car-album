@@ -244,3 +244,118 @@ textarea {
     align-items: center;
   }
 }
+/* =========================
+   Ranking UI
+========================= */
+.ranking-head {
+  margin: 10px 0 14px;
+}
+
+.ranking-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.rank-tab {
+  display: inline-block;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 2px solid #d0d7de;
+  color: #536471;
+  font-weight: 800;
+  font-size: 13px;
+  background: #fff;
+}
+
+.rank-tab.active {
+  border-color: #1d9bf0;
+  color: #1d9bf0;
+}
+
+.ranking-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.ranking-list {
+  margin-top: 10px;
+}
+
+.rank-post {
+  padding: 14px;
+}
+
+.rank-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rank-left {
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rank-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.rank-meta {
+  min-width: 0;
+}
+
+.rank-name {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  flex-wrap: nowrap;
+}
+
+.rank-comment {
+  margin-top: 6px;
+  color: #0f1419;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.rank-right {
+  text-align: right;
+  flex: 0 0 auto;
+}
+
+.rank-time {
+  font-size: 12px;
+  color: #536471;
+  white-space: nowrap;
+}
+
+.rank-like {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #e0245e;
+}
+
+@media (max-width: 600px) {
+  .rank-top {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .rank-right {
+    text-align: left;
+  }
+}
+
