@@ -139,25 +139,23 @@ textarea {
 }
 
 /* =========================
-   Image（歪みゼロ・最終確定）
+   Image（最終・完全版）
 ========================= */
 
-/* 画像の器：横はみ出し防止＋高さ上限だけ */
+/* 器：はみ出し防止だけ */
 .post-image {
   margin-top: 10px;
   width: 100%;
-  max-height: 420px;
   border-radius: 16px;
   overflow: hidden;
 }
 
-/* 画像本体：比率は一切触らない */
+/* 画像：比率は画像に任せる */
 .post-image img {
   display: block;
   width: 100%;
-  height: auto;
-  max-height: 420px;
-  object-fit: contain;
+  height: auto;          /* ← 絶対に触らない */
+  max-width: 100%;
 }
 
 /* =========================
@@ -191,11 +189,11 @@ textarea {
 }
 
 /* =========================
-   Ranking（制限なし）
+   Ranking
 ========================= */
-.ranking-card .post-image,
 .ranking-card .post-image img {
-  max-height: none;
+  width: 100%;
+  height: auto;
 }
 
 /* =========================
@@ -243,10 +241,5 @@ textarea {
 @media (max-width: 600px) {
   .logo {
     font-size: 20px;
-  }
-
-  .post-image,
-  .post-image img {
-    max-height: 360px;
   }
 }
