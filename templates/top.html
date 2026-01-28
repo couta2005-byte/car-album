@@ -1,41 +1,81 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<title>{{ title }}</title>
-<link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8">
+  <title>Car Album</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<h1 class="title">{{ title }}</h1>
+{% include "_nav.html" %}
 
-<div class="top-tabs">
-  <a href="/top?range=daily" class="{% if range=='daily' %}active{% endif %}">今日</a>
-  <a href="/top?range=weekly" class="{% if range=='weekly' %}active{% endif %}">今週</a>
-  <a href="/top?range=monthly" class="{% if range=='monthly' %}active{% endif %}">今月</a>
-</div>
+<main class="container">
+
+{% if user %}
+<form action="/post" method="post" enctype="multipart/form-data" class="post-form">
+  <div class="form-row">
+    <input name="maker" placeholder="メーカー">
+    <input name="car" placeholder="車名">
+    <input name="region" placeholder="地域">
+  </div>
+  <textarea name="comment" placeholder="コメント（ひとこと）"></textarea>
+  <div class="form-row bottom">
+    <input type="file" name="image">
+    <button class="primary-btn">投稿</button>
+  </div>
+</form>
+{% endif %}
 
 <div class="posts">
 {% for post in posts %}
-  <div class="post">
-    <div class="post-header">
-      <strong>{{ loop.index }}位 {{ post.username }}（{{ post.car }}）</strong>
-      <span class="time">{{ post.created_at }}</span>
+  <article class="post-card">
+
+    <div class="post-top">
+      <a href="/user/{{ post.username | urlencode }}" class="post-user">
+        {{ post.username }}
+      </a>
+      <span class="post-date">{{ post.created_at }}</span>
     </div>
 
-    {% if post.image %}
-      <img src="{{ post.image }}" class="thumb">
+    <div class="post-car">{{ post.car }}</div>
+
+    {% if post.comment %}
+      <div class="post-text">{{ post.comment }}</div>
     {% endif %}
 
-    <p>{{ post.comment }}</p>
-    <div class="likes">👍 {{ post.likes }}</div>
-  </div>
+    {% if post.image %}
+      <img src="{{ post.image }}" class="post-image">
+    {% endif %}
+
+    <div class="post-actions">
+
+      {% if user %}
+        {% if post.id in liked_posts %}
+          <form action="/unlike/{{ post.id }}" method="post">
+            <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
+          </form>
+        {% else %}
+          <form action="/like/{{ post.id }}" method="post">
+            <button type="submit" class="like-btn">🤍 {{ post.likes }}</button>
+          </form>
+        {% endif %}
+      {% else %}
+        <span>🤍 {{ post.likes }}</span>
+      {% endif %}
+
+      {% if user == post.username %}
+        <form action="/delete/{{ post.id }}" method="post"
+              onsubmit="return confirm('この投稿を削除しますか？');">
+          <button type="submit" class="delete-btn">🗑 削除</button>
+        </form>
+      {% endif %}
+
+    </div>
+  </article>
 {% endfor %}
 </div>
 
-<div style="text-align:center;margin:20px;">
-  <a href="/">← 新着に戻る</a>
-</div>
-
+</main>
 </body>
 </html>
