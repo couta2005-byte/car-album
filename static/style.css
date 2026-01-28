@@ -178,20 +178,54 @@ textarea {
 }
 
 /* =========================
+   Ranking Tabs（日・週・月）
+========================= */
+.ranking-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 4px 0 14px;
+}
+
+.ranking-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px 0;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  background: #f1f1f1;
+  color: #333;
+  border: 1px solid #e0e0e0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ranking-tab.active {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.ranking-tab:active {
+  transform: scale(0.97);
+}
+
+/* =========================
    Ranking（最終完成版）
 ========================= */
 
 /* ランキングカード本体 */
 .ranking-card {
   position: relative;
-  padding: 16px 16px 16px 76px; /* ← 被り完全防止 */
+  padding: 16px 16px 16px 76px;
   border-radius: 20px;
   margin-bottom: 18px;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-/* 左ラインで順位表現（やりすぎ防止） */
+/* 左ライン（順位） */
 .ranking-card::before {
   content: "";
   position: absolute;
@@ -226,7 +260,7 @@ textarea {
 .rank-2 .rank-badge { background: #adb5bd; }
 .rank-3 .rank-badge { background: #c97a3d; }
 
-/* タイトル行：ユーザー名：車名 */
+/* タイトル行 */
 .ranking-title {
   display: flex;
   flex-wrap: wrap;
@@ -267,7 +301,7 @@ textarea {
   color: #e0245e;
 }
 
-/* ランキング内画像は制限解除 */
+/* ランキング内画像 */
 .ranking-card .post-image {
   max-height: none;
 }

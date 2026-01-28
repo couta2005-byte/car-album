@@ -1,76 +1,76 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>ランキング | Carbum</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <title>ランキング | Car Album</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
 
-{% include "_nav.html" %}
+  {% include "_nav.html" %}
 
-<main class="container">
-
-  <!-- 期間切り替え -->
-  <div class="ranking-tabs">
-    <a href="/ranking?period=day"
-       class="ranking-tab {% if period=='day' %}active{% endif %}">日</a>
-    <a href="/ranking?period=week"
-       class="ranking-tab {% if period=='week' %}active{% endif %}">週</a>
-    <a href="/ranking?period=month"
-       class="ranking-tab {% if period=='month' %}active{% endif %}">月</a>
-  </div>
-
-  <h2 class="ranking-heading">
-    {% if period=='day' %}日間{% elif period=='week' %}週間{% else %}月間{% endif %}
-    ランキング TOP10
-  </h2>
-
-  <!-- ランキング一覧 -->
-  {% for post in posts %}
-  <article class="ranking-card rank-{{ loop.index }}">
-
-    <!-- 順位 -->
-    <div class="rank-badge">
-      {{ loop.index }}
+  <main class="container">
+    <!-- ▼ 日/週/月 タブ（ボタン化） -->
+    <div class="ranking-tabs">
+      <a href="/ranking?period=day"
+         class="ranking-tab {% if period == 'day' %}active{% endif %}">
+        日
+      </a>
+      <a href="/ranking?period=week"
+         class="ranking-tab {% if period == 'week' %}active{% endif %}">
+        週
+      </a>
+      <a href="/ranking?period=month"
+         class="ranking-tab {% if period == 'month' %}active{% endif %}">
+        月
+      </a>
     </div>
 
-    <!-- 本文 -->
-    <div class="ranking-body">
-
-      <!-- ユーザー名 : 車名 -->
-      <div class="ranking-title">
-        <span class="ranking-user">{{ post.username }}</span>
-        <span class="ranking-sep">：</span>
-        <span class="ranking-car">{{ post.car }}</span>
-      </div>
-
-      <!-- コメント -->
-      {% if post.comment %}
-      <div class="ranking-comment">
-        {{ post.comment }}
-      </div>
+    <!-- ▼ タイトル -->
+    <h1 class="ranking-title">
+      {% if period == 'day' %}
+        日間ランキング TOP10
+      {% elif period == 'week' %}
+        週間ランキング TOP10
+      {% else %}
+        月間ランキング TOP10
       {% endif %}
+    </h1>
 
-      <!-- 画像（3位以下のみ） -->
-      {% if post.image and loop.index >= 3 %}
-      <div class="post-image">
-        <img src="{{ post.image }}" alt="">
-      </div>
-      {% endif %}
+    <!-- ▼ ランキング一覧 -->
+    <div class="ranking-list">
+      {% for r in rankings %}
+        <div class="rank-card">
+          <!-- 順位バッジ -->
+          <div class="rank-badge rank-{{ loop.index }}">
+            {{ loop.index }}
+          </div>
 
-      <!-- メタ -->
-      <div class="ranking-meta">
-        <span class="ranking-date">{{ post.created_at }}</span>
-        <span class="ranking-like">❤ {{ post.likes }}</span>
-      </div>
+          <!-- テキスト -->
+          <div class="rank-body">
+            <div class="rank-main">
+              <div class="rank-name">
+                {{ r.username }}：{{ r.car }}
+              </div>
+              <div class="rank-sub">
+                {{ r.comment }}
+              </div>
+              <div class="rank-time">
+                {{ r.created_at }}
+              </div>
+            </div>
 
+            <!-- いいね -->
+            <div class="rank-like">
+              <span class="heart">❤</span>
+              <span class="like-count">{{ r.like_count }}</span>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
-  </article>
-  {% endfor %}
-
-</main>
+  </main>
 
 </body>
 </html>
