@@ -139,38 +139,35 @@ textarea {
 }
 
 /* =========================
-   Image（最終調整：縦OK・横制御）
+   Image（改良版：縦OK・横制御）
 ========================= */
 
+/* 画像の器：高さだけ制限 */
 .post-image {
   margin-top: 10px;
   border-radius: 16px;
   overflow: hidden;
+
+  max-height: 420px;   /* 基準高さ */
 }
 
-/* 共通 */
+/* 基本：縦画像（今まで通り） */
 .post-image img {
-  width: 100%;
-  height: auto;
   display: block;
-  border-radius: 16px;
-}
-
-/* 横画像（16:9 〜 横長）だけ抑制 */
-.post-image img[style*="aspect-ratio"],
-.post-image img {
+  height: auto;
+  width: auto;
   max-height: 420px;
+  max-width: 100%;
   object-fit: cover;
 }
 
-/* 縦画像は自由（暴走させない上限だけ） */
-@supports (aspect-ratio: 1 / 1) {
+/* 横画像だけ幅を抑制する */
+@media (min-aspect-ratio: 4/3) {
   .post-image img {
-    aspect-ratio: auto;
-  }
-
-  .post-image img:not([width]) {
-    max-height: 520px;
+    width: 100%;
+    height: auto;
+    max-height: 360px;   /* 横だけ少し低く */
+    object-fit: cover;
   }
 }
 
@@ -205,8 +202,9 @@ textarea {
 }
 
 /* =========================
-   Ranking（今の表示を尊重）
+   Ranking（制限なし）
 ========================= */
+.ranking-card .post-image,
 .ranking-card .post-image img {
   max-height: none;
 }
@@ -258,7 +256,10 @@ textarea {
     font-size: 20px;
   }
 
-  /* 横だけ抑える */
+  .post-image {
+    max-height: 360px;
+  }
+
   .post-image img {
     max-height: 360px;
   }
