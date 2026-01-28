@@ -114,6 +114,12 @@ textarea {
   gap: 10px;
 }
 
+.post-user {
+  font-weight: 700;
+  text-decoration: none;
+  color: #0f1419;
+}
+
 .post-car {
   font-size: 16px;
   font-weight: 900;
@@ -143,35 +149,37 @@ textarea {
   white-space: nowrap;
 }
 
-.post-comment {
+.post-comment,
+.post-text {
   font-size: 14px;
   line-height: 1.6;
   margin-top: 6px;
 }
 
 /* =========================
-   画像表示（←ここが本命）
+   画像表示（安全設計・切れない歪まない）
 ========================= */
 
-/* 一覧表示用コンテナ */
+/* 画像コンテナ（一覧・検索・プロフィール共通） */
 .post-image {
   margin-top: 10px;
   background: #111;
   border-radius: 16px;
   overflow: hidden;
 
-  /* 重要 */
-  max-height: 320px;      /* ← PCでも占領しない */
+  max-height: 320px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* 一覧表示用画像 */
+/* 中の img */
 .post-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;   /* 切らない */
+  max-width: 100%;
+  max-height: 320px;
+  width: auto;
+  height: auto;
+  object-fit: contain; /* 切らない・歪まない */
   display: block;
 }
 
@@ -206,9 +214,13 @@ textarea {
 }
 
 /* =========================
-   Ranking（さらに小さく）
+   Ranking（画像だけ少し低め）
 ========================= */
 .ranking-card .post-image {
+  max-height: 260px;
+}
+
+.ranking-card .post-image img {
   max-height: 260px;
 }
 
@@ -260,6 +272,18 @@ textarea {
   }
 
   .post-image {
-    max-height: 220px;  /* ← スマホは絶対これ以上いかない */
+    max-height: 220px;
+  }
+
+  .post-image img {
+    max-height: 220px;
+  }
+
+  .ranking-card .post-image {
+    max-height: 200px;
+  }
+
+  .ranking-card .post-image img {
+    max-height: 200px;
   }
 }
