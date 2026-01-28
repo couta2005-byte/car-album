@@ -1,76 +1,45 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8" />
-  <title>ランキング | Car Album</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/static/style.css" />
-</head>
-<body>
+# ======================
+# ranking（安定版）
+# ======================
+@app.get("/ranking", response_class=HTMLResponse)
+def ranking(
+    request: Request,
+    period: str = Query(default="day"),
+    user: str = Cookie(default=None)
+):
+    me = unquote(user) if user else None
+    now_utc = datetime.utcnow()
 
-  {% include "_nav.html" %}
+    if period == "week":
+        since = now_utc - timedelta(days=7)
+        title = "週間ランキング TOP10"
+    elif period == "month":
+        since = now_utc - timedelta(days=30)
+        title = "月間ランキング TOP10"
+    else:
+        # ★ 日間は「直近24時間」に変更（ここが肝）
+        since = now_utc - timedelta(hours=24)
+        title = "日間ランキング TOP10"
 
-  <main class="container">
-    <!-- ▼ 日/週/月 タブ（ボタン化） -->
-    <div class="ranking-tabs">
-      <a href="/ranking?period=day"
-         class="ranking-tab {% if period == 'day' %}active{% endif %}">
-        日
-      </a>
-      <a href="/ranking?period=week"
-         class="ranking-tab {% if period == 'week' %}active{% endif %}">
-        週
-      </a>
-      <a href="/ranking?period=month"
-         class="ranking-tab {% if period == 'month' %}active{% endif %}">
-        月
-      </a>
-    </div>
+    db = get_db()
+    try:
+        posts = fetch_posts(
+            db,
+            "WHERE p.created_at >= %s",
+            (since,),
+            order_sql="ORDER BY like_count DESC, p.id DESC",
+            limit_sql="LIMIT 10"
+        )
+        liked_posts = get_liked_posts(db, me)
+    finally:
+        db.close()
 
-    <!-- ▼ タイトル -->
-    <h1 class="ranking-title">
-      {% if period == 'day' %}
-        日間ランキング TOP10
-      {% elif period == 'week' %}
-        週間ランキング TOP10
-      {% else %}
-        月間ランキング TOP10
-      {% endif %}
-    </h1>
-
-    <!-- ▼ ランキング一覧 -->
-    <div class="ranking-list">
-      {% for r in rankings %}
-        <div class="rank-card">
-          <!-- 順位バッジ -->
-          <div class="rank-badge rank-{{ loop.index }}">
-            {{ loop.index }}
-          </div>
-
-          <!-- テキスト -->
-          <div class="rank-body">
-            <div class="rank-main">
-              <div class="rank-name">
-                {{ r.username }}：{{ r.car }}
-              </div>
-              <div class="rank-sub">
-                {{ r.comment }}
-              </div>
-              <div class="rank-time">
-                {{ r.created_at }}
-              </div>
-            </div>
-
-            <!-- いいね -->
-            <div class="rank-like">
-              <span class="heart">❤</span>
-              <span class="like-count">{{ r.like_count }}</span>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-  </main>
-
-</body>
-</html>
+    return templates.TemplateResponse("ranking.html", {
+        "request": request,
+        "posts": posts,
+        "user": me,
+        "liked_posts": liked_posts,
+        "mode": f"ranking_{period}",
+        "ranking_title": title,
+        "period": period
+    })
