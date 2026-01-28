@@ -139,21 +139,24 @@ textarea {
 }
 
 /* =========================
-   Image（ランキングと完全同一思想）
+   Image（最終回答）
 ========================= */
 
-/* 余計な固定枠は作らない */
+/* 見せるための器 */
 .post-image {
   margin-top: 10px;
+  border-radius: 16px;
+  overflow: hidden;
+
+  max-height: 420px;      /* ← ここが暴走防止 */
 }
 
-/* imgそのものを表示する */
+/* 主役は画像 */
 .post-image img {
   width: 100%;
-  height: auto;          /* ← これが正義 */
-  max-height: 520px;     /* フィード上限 */
-  object-fit: contain;   /* 切らない・歪まない */
-  border-radius: 16px;
+  height: auto;
+  max-height: 420px;
+  object-fit: cover;     /* ← ここ重要：違和感を消す */
   display: block;
 }
 
@@ -188,10 +191,14 @@ textarea {
 }
 
 /* =========================
-   Ranking（画像は完全自由）
+   Ranking（制限なしでOK）
 ========================= */
+.ranking-card .post-image {
+  max-height: none;
+}
+
 .ranking-card .post-image img {
-  max-height: none;   /* ← ランキングは制限なし */
+  max-height: none;
 }
 
 /* =========================
@@ -241,7 +248,8 @@ textarea {
     font-size: 20px;
   }
 
+  .post-image,
   .post-image img {
-    max-height: 420px;
+    max-height: 360px;
   }
 }
