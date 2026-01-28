@@ -139,25 +139,39 @@ textarea {
 }
 
 /* =========================
-   Image（最終回答）
+   Image（最終調整：縦OK・横制御）
 ========================= */
 
-/* 見せるための器 */
 .post-image {
   margin-top: 10px;
   border-radius: 16px;
   overflow: hidden;
-
-  max-height: 420px;      /* ← ここが暴走防止 */
 }
 
-/* 主役は画像 */
+/* 共通 */
 .post-image img {
   width: 100%;
   height: auto;
-  max-height: 420px;
-  object-fit: cover;     /* ← ここ重要：違和感を消す */
   display: block;
+  border-radius: 16px;
+}
+
+/* 横画像（16:9 〜 横長）だけ抑制 */
+.post-image img[style*="aspect-ratio"],
+.post-image img {
+  max-height: 420px;
+  object-fit: cover;
+}
+
+/* 縦画像は自由（暴走させない上限だけ） */
+@supports (aspect-ratio: 1 / 1) {
+  .post-image img {
+    aspect-ratio: auto;
+  }
+
+  .post-image img:not([width]) {
+    max-height: 520px;
+  }
 }
 
 /* =========================
@@ -191,12 +205,8 @@ textarea {
 }
 
 /* =========================
-   Ranking（制限なしでOK）
+   Ranking（今の表示を尊重）
 ========================= */
-.ranking-card .post-image {
-  max-height: none;
-}
-
 .ranking-card .post-image img {
   max-height: none;
 }
@@ -248,7 +258,7 @@ textarea {
     font-size: 20px;
   }
 
-  .post-image,
+  /* 横だけ抑える */
   .post-image img {
     max-height: 360px;
   }
