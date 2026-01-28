@@ -157,29 +157,30 @@ textarea {
 }
 
 /* =========================
-   画像表示（安全設計・切れない歪まない）
+   Image（サイズ統一・非破壊）
 ========================= */
 
-/* 画像コンテナ（一覧・検索・プロフィール共通） */
+/* 画像の外枠：全投稿で同じサイズ */
 .post-image {
   margin-top: 10px;
   background: #111;
   border-radius: 16px;
   overflow: hidden;
 
-  max-height: 320px;
+  width: 100%;
+  height: 260px;              /* ★ 全投稿で統一 */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* 中の img */
+/* 中の画像：切れない・歪まない */
 .post-image img {
   max-width: 100%;
-  max-height: 320px;
+  max-height: 100%;
   width: auto;
   height: auto;
-  object-fit: contain; /* 切らない・歪まない */
+  object-fit: contain;
   display: block;
 }
 
@@ -214,14 +215,10 @@ textarea {
 }
 
 /* =========================
-   Ranking（画像だけ少し低め）
+   Ranking（少し低め）
 ========================= */
 .ranking-card .post-image {
-  max-height: 260px;
-}
-
-.ranking-card .post-image img {
-  max-height: 260px;
+  height: 220px;
 }
 
 /* =========================
@@ -272,18 +269,10 @@ textarea {
   }
 
   .post-image {
-    max-height: 220px;
-  }
-
-  .post-image img {
-    max-height: 220px;
+    height: 220px;
   }
 
   .ranking-card .post-image {
-    max-height: 200px;
-  }
-
-  .ranking-card .post-image img {
-    max-height: 200px;
+    height: 200px;
   }
 }
