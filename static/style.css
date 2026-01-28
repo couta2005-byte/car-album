@@ -358,4 +358,91 @@ textarea {
     text-align: left;
   }
 }
+/* =========================
+   Ranking Improved
+========================= */
+
+.ranking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.ranking-card {
+  position: relative;
+  border-radius: 22px;
+  padding: 16px;
+  background: linear-gradient(180deg, #ffffff, #f6f9fc);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+}
+
+/* 順位ごとの色 */
+.rank-1 { background: linear-gradient(135deg, #fff6cc, #ffffff); }
+.rank-2 { background: linear-gradient(135deg, #f0f0f0, #ffffff); }
+.rank-3 { background: linear-gradient(135deg, #fbe3d3, #ffffff); }
+
+.rank-circle {
+  position: absolute;
+  top: -14px;
+  left: -14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #111;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-1 .rank-circle { background: #f5b400; }
+.rank-2 .rank-circle { background: #9ea3a8; }
+.rank-3 .rank-circle { background: #c07a44; }
+
+.ranking-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ranking-car {
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.ranking-likes {
+  font-size: 14px;
+  font-weight: 800;
+  color: #e0245e;
+}
+
+.ranking-comment {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.ranking-image {
+  margin-top: 10px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.ranking-image img {
+  width: 100%;
+  display: block;
+}
+
+.ranking-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #536471;
+}
+
+.ranking-user {
+  font-weight: 700;
+}
 
