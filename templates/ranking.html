@@ -25,15 +25,12 @@
     {% for post in posts %}
       <article class="ranking-card rank-{{ loop.index }}">
 
-        <!-- 順位 -->
+        <!-- 順位バッジ -->
         <div class="rank-circle">
-          {% if loop.index == 1 %}🥇
-          {% elif loop.index == 2 %}🥈
-          {% elif loop.index == 3 %}🥉
-          {% else %}{{ loop.index }}{% endif %}
+          {{ loop.index }}
         </div>
 
-        <!-- 中身 -->
+        <!-- 本体 -->
         <div class="ranking-body">
 
           <div class="ranking-head">
@@ -47,7 +44,7 @@
 
           {% if post.image %}
             <div class="ranking-image">
-              <img src="{{ post.image }}">
+              <img src="{{ post.image }}" alt="投稿画像">
             </div>
           {% endif %}
 
