@@ -139,7 +139,7 @@ textarea {
 }
 
 /* =========================
-   Image（完全はみ出し防止）
+   Image（はみ出し防止）
 ========================= */
 .post-image {
   margin-top: 10px;
@@ -152,18 +152,8 @@ textarea {
 .post-image img {
   display: block;
   width: 100%;
-  max-width: 100%;
   height: auto;
   object-fit: cover;
-}
-
-@media (min-aspect-ratio: 4/3) {
-  .post-image {
-    max-height: 360px;
-  }
-  .post-image img {
-    height: 360px;
-  }
 }
 
 /* =========================
@@ -188,23 +178,33 @@ textarea {
 }
 
 /* =========================
-   Ranking（★完全修正版）
+   Ranking（最終完成版）
 ========================= */
 
-/* カード本体：左に余白を作る */
+/* ランキングカード本体 */
 .ranking-card {
   position: relative;
-  padding: 16px 16px 16px 76px; /* ← これが被り解消の核心 */
+  padding: 16px 16px 16px 76px; /* ← 被り完全防止 */
   border-radius: 20px;
   margin-bottom: 18px;
   background: #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-/* 背景色 */
-.rank-1 { background: linear-gradient(135deg,#fff6cc,#ffffff); }
-.rank-2 { background: linear-gradient(135deg,#f1f3f5,#ffffff); }
-.rank-3 { background: linear-gradient(135deg,#ffe6d5,#ffffff); }
+/* 左ラインで順位表現（やりすぎ防止） */
+.ranking-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  border-radius: 20px 0 0 20px;
+}
+
+.rank-1::before { background: #ffd43b; }
+.rank-2::before { background: #adb5bd; }
+.rank-3::before { background: #f1a36b; }
 
 /* 順位バッジ */
 .rank-badge {
@@ -226,10 +226,13 @@ textarea {
 .rank-2 .rank-badge { background: #adb5bd; }
 .rank-3 .rank-badge { background: #c97a3d; }
 
-/* ランキング本文 */
+/* タイトル行：ユーザー名：車名 */
 .ranking-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
   font-size: 16px;
-  font-weight: 900;
 }
 
 .ranking-user {
@@ -237,7 +240,6 @@ textarea {
 }
 
 .ranking-sep {
-  margin: 0 2px;
   color: #666;
 }
 
@@ -245,11 +247,13 @@ textarea {
   font-weight: 900;
 }
 
+/* コメント */
 .ranking-comment {
   margin-top: 6px;
   font-size: 14px;
 }
 
+/* 下段メタ */
 .ranking-meta {
   margin-top: 8px;
   display: flex;
@@ -263,11 +267,9 @@ textarea {
   color: #e0245e;
 }
 
-/* ランキング画像：制限解除 */
-.ranking-card .post-image,
-.ranking-card .post-image img {
+/* ランキング内画像は制限解除 */
+.ranking-card .post-image {
   max-height: none;
-  height: auto;
 }
 
 /* =========================
