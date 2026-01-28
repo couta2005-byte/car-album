@@ -9,34 +9,29 @@ body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
-  background: #f7f9fa;
+  background: #ffffff;
   color: #0f1419;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
 }
 
 /* =========================
    Header / Nav
 ========================= */
 .header {
-  background: linear-gradient(180deg, #000 0%, #111 100%);
+  background: #000;
 }
 
 .header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
+  padding: 12px 14px;
 }
 
 .logo {
   color: #fff;
   font-size: 22px;
   font-weight: 900;
-  letter-spacing: 1px;
+  text-decoration: none;
 }
 
 .nav {
@@ -46,13 +41,13 @@ a {
 }
 
 .nav-link {
-  color: #aaa;
+  color: #bbb;
   font-size: 14px;
+  text-decoration: none;
 }
 
 .nav-link.active {
   color: #1d9bf0;
-  font-weight: 700;
 }
 
 .logout-btn {
@@ -62,7 +57,6 @@ a {
   border-radius: 999px;
   padding: 6px 14px;
   font-size: 12px;
-  font-weight: 700;
   cursor: pointer;
 }
 
@@ -72,43 +66,20 @@ a {
 .container {
   max-width: 680px;
   margin: 0 auto;
-  padding: 12px 12px 32px;
-}
-
-.posts {
-  margin-top: 16px;
+  padding: 10px 12px 24px;
 }
 
 /* =========================
    Forms
 ========================= */
-.post-form {
-  background: #fff;
-  border-radius: 20px;
-  padding: 16px;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-}
-
-.form-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.form-row.bottom {
-  align-items: center;
-}
-
 input,
 textarea {
   width: 100%;
   padding: 12px 14px;
   border-radius: 14px;
-  border: 2px solid #d0d7de;
+  border: 2px solid #cfd9de;
   font-size: 14px;
   margin-bottom: 10px;
-  background: #fff;
 }
 
 textarea {
@@ -117,50 +88,36 @@ textarea {
 
 .primary-btn {
   width: 100%;
-  padding: 14px;
+  padding: 12px;
   border-radius: 999px;
   border: none;
   background: #1d9bf0;
   color: #fff;
   font-weight: 800;
-  font-size: 15px;
-  box-shadow: 0 6px 14px rgba(29,155,240,0.35);
   cursor: pointer;
 }
 
 /* =========================
-   Post Card
+   Post Card（共通）
 ========================= */
 .post {
   background: #fff;
-  border-radius: 20px;
+  border-radius: 18px;
   padding: 14px;
-  margin-bottom: 18px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
 .post-top {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   gap: 10px;
 }
 
-.post-title {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  flex-wrap: nowrap;
-}
-
 .post-user {
-  font-size: 14px;
   font-weight: 700;
-}
-
-.post-sep {
-  font-size: 14px;
-  color: #536471;
+  text-decoration: none;
+  color: #0f1419;
 }
 
 .post-car {
@@ -174,6 +131,7 @@ textarea {
   white-space: nowrap;
 }
 
+.post-text,
 .post-comment {
   font-size: 14px;
   line-height: 1.6;
@@ -181,19 +139,31 @@ textarea {
 }
 
 /* =========================
-   Image
+   Image（完全はみ出し防止）
 ========================= */
 .post-image {
   margin-top: 10px;
   width: 100%;
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
+  max-height: 420px;
 }
 
 .post-image img {
-  width: 100%;
-  height: auto;
   display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+@media (min-aspect-ratio: 4/3) {
+  .post-image {
+    max-height: 360px;
+  }
+  .post-image img {
+    height: 360px;
+  }
 }
 
 /* =========================
@@ -202,158 +172,102 @@ textarea {
 .post-actions {
   display: flex;
   gap: 10px;
-  margin-top: 12px;
-  align-items: center;
+  margin-top: 10px;
 }
 
-.like-btn {
+.like-btn,
+.delete-btn,
+.follow-btn {
   border-radius: 999px;
   padding: 6px 14px;
   font-size: 13px;
   font-weight: 700;
-  border: 1px solid #ffd1e1;
-  background: #fff0f5;
-  color: #e0245e;
   cursor: pointer;
-}
-
-.delete-btn {
-  margin-left: auto;
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 13px;
-  border: 1px solid #ffd1d1;
+  border: 1px solid #cfd9de;
   background: #fff;
-  cursor: pointer;
 }
 
 /* =========================
-   Ranking Tabs（改善版）
+   Ranking（★完全修正版）
 ========================= */
-.ranking-tabs {
-  display: flex;
-  gap: 12px;
-  margin: 8px 0 14px;
-}
 
-.ranking-tab {
-  flex: 1;
-  text-align: center;
-  padding: 14px 0;
-  border-radius: 999px;
-  font-size: 15px;
-  font-weight: 900;
-  background: #e9eef3;
-  color: #536471;
-  transition: all 0.2s ease;
-}
-
-.ranking-tab.active {
-  background: linear-gradient(135deg, #1d9bf0, #5ab0ff);
-  color: #fff;
-  box-shadow: 0 6px 14px rgba(29,155,240,0.35);
-}
-
-/* =========================
-   Ranking Cards
-========================= */
-.ranking-title {
-  margin: 0 0 8px;
-  font-size: 22px;
-  font-weight: 900;
-}
-
-.ranking-list {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
+/* カード本体：左に余白を作る */
 .ranking-card {
   position: relative;
-  border-radius: 22px;
-  padding: 18px;
+  padding: 16px 16px 16px 76px; /* ← これが被り解消の核心 */
+  border-radius: 20px;
+  margin-bottom: 18px;
   background: #fff;
-  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-/* 表彰台カラー */
-.rank-1 {
-  background: linear-gradient(135deg, #fff6cc, #ffffff);
-}
-.rank-2 {
-  background: linear-gradient(135deg, #f0f0f0, #ffffff);
-}
-.rank-3 {
-  background: linear-gradient(135deg, #fbe3d3, #ffffff);
-}
+/* 背景色 */
+.rank-1 { background: linear-gradient(135deg,#fff6cc,#ffffff); }
+.rank-2 { background: linear-gradient(135deg,#f1f3f5,#ffffff); }
+.rank-3 { background: linear-gradient(135deg,#ffe6d5,#ffffff); }
 
 /* 順位バッジ */
-.rank-circle {
+.rank-badge {
   position: absolute;
-  top: -14px;
-  left: -14px;
-  width: 52px;
-  height: 52px;
+  left: 16px;
+  top: 18px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: #111;
-  color: #fff;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 900;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #fff;
 }
 
-.rank-1 .rank-circle { background: #f5b400; }
-.rank-2 .rank-circle { background: #9ea3a8; }
-.rank-3 .rank-circle { background: #c07a44; }
+.rank-1 .rank-badge { background: #f5b400; }
+.rank-2 .rank-badge { background: #adb5bd; }
+.rank-3 .rank-badge { background: #c97a3d; }
 
-/* Ranking content */
-.ranking-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+/* ランキング本文 */
+.ranking-title {
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.ranking-user {
+  font-weight: 800;
+}
+
+.ranking-sep {
+  margin: 0 2px;
+  color: #666;
 }
 
 .ranking-car {
-  font-size: 22px;
   font-weight: 900;
-}
-
-.ranking-likes {
-  font-size: 15px;
-  font-weight: 900;
-  color: #e0245e;
 }
 
 .ranking-comment {
   margin-top: 6px;
   font-size: 14px;
-  line-height: 1.6;
 }
 
-.ranking-image {
-  margin-top: 10px;
-  border-radius: 18px;
-  overflow: hidden;
-}
-
-.ranking-image img {
-  width: 100%;
-  display: block;
-}
-
-.ranking-footer {
+.ranking-meta {
+  margin-top: 8px;
   display: flex;
   justify-content: space-between;
-  margin-top: 10px;
   font-size: 12px;
-  color: #536471;
+  color: #666;
 }
 
-.ranking-user {
-  font-weight: 700;
+.ranking-like {
+  font-weight: 800;
+  color: #e0245e;
+}
+
+/* ランキング画像：制限解除 */
+.ranking-card .post-image,
+.ranking-card .post-image img {
+  max-height: none;
+  height: auto;
 }
 
 /* =========================
@@ -362,9 +276,5 @@ textarea {
 @media (max-width: 600px) {
   .logo {
     font-size: 20px;
-  }
-
-  .form-row {
-    flex-direction: column;
   }
 }
