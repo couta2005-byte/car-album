@@ -131,28 +131,28 @@ textarea {
   white-space: nowrap;
 }
 
-.post-comment,
-.post-text {
+.post-text,
+.post-comment {
   font-size: 14px;
   line-height: 1.6;
   margin-top: 6px;
 }
 
 /* =========================
-   Image（最終・違和感ゼロ）
+   Image（ランキングと完全同一思想）
 ========================= */
-/*
-  フィードは 16:9 に寄せる
-  → 車SNSとして一番自然
-*/
 
-img.post-image {
+/* 余計な固定枠は作らない */
+.post-image {
   margin-top: 10px;
+}
+
+/* imgそのものを表示する */
+.post-image img {
   width: 100%;
-  aspect-ratio: 16 / 9;   /* ★ ここが肝 */
-  height: auto;
-  object-fit: contain;    /* 切らない */
-  background: #f2f3f5;    /* 黒ベタ廃止 */
+  height: auto;          /* ← これが正義 */
+  max-height: 520px;     /* フィード上限 */
+  object-fit: contain;   /* 切らない・歪まない */
   border-radius: 16px;
   display: block;
 }
@@ -188,12 +188,10 @@ img.post-image {
 }
 
 /* =========================
-   Ranking（今の見た目を維持）
+   Ranking（画像は完全自由）
 ========================= */
-.ranking-card img.post-image {
-  aspect-ratio: auto;
-  max-height: 320px;
-  background: #f2f3f5;
+.ranking-card .post-image img {
+  max-height: none;   /* ← ランキングは制限なし */
 }
 
 /* =========================
@@ -241,5 +239,9 @@ img.post-image {
 @media (max-width: 600px) {
   .logo {
     font-size: 20px;
+  }
+
+  .post-image img {
+    max-height: 420px;
   }
 }
