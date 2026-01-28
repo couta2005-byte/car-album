@@ -66,7 +66,7 @@ body {
 .container {
   max-width: 680px;
   margin: 0 auto;
-  padding: 10px 12px 24px;
+  padding: 10px 12px 28px;
 }
 
 /* =========================
@@ -139,7 +139,7 @@ textarea {
 }
 
 /* =========================
-   Image（はみ出し防止）
+   Image（※絶対にサイズ変更しない）
 ========================= */
 .post-image {
   margin-top: 10px;
@@ -182,29 +182,26 @@ textarea {
 ========================= */
 .ranking-tabs {
   display: flex;
-  gap: 8px;
-  margin: 4px 0 14px;
+  gap: 10px;
+  margin: 6px 0 16px;
 }
 
 .ranking-tab {
   flex: 1;
   text-align: center;
-  padding: 10px 0;
+  padding: 11px 0;
   border-radius: 999px;
   font-size: 14px;
   font-weight: 800;
   text-decoration: none;
-  background: #f1f1f1;
+  background: #f3f4f6;
   color: #333;
-  border: 1px solid #e0e0e0;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  border: none;
 }
 
 .ranking-tab.active {
   background: #000;
   color: #fff;
-  border-color: #000;
 }
 
 .ranking-tab:active {
@@ -212,20 +209,18 @@ textarea {
 }
 
 /* =========================
-   Ranking（最終完成版）
+   Ranking（完成形）
 ========================= */
-
-/* ランキングカード本体 */
 .ranking-card {
   position: relative;
-  padding: 16px 16px 16px 76px;
-  border-radius: 20px;
-  margin-bottom: 18px;
+  padding: 16px 16px 18px 78px;
+  border-radius: 22px;
+  margin-bottom: 22px;
   background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
 }
 
-/* 左ライン（順位） */
+/* 左アクセント */
 .ranking-card::before {
   content: "";
   position: absolute;
@@ -233,7 +228,7 @@ textarea {
   top: 0;
   width: 6px;
   height: 100%;
-  border-radius: 20px 0 0 20px;
+  border-radius: 22px 0 0 22px;
 }
 
 .rank-1::before { background: #ffd43b; }
@@ -243,7 +238,7 @@ textarea {
 /* 順位バッジ */
 .rank-badge {
   position: absolute;
-  left: 16px;
+  left: 18px;
   top: 18px;
   width: 44px;
   height: 44px;
@@ -257,10 +252,10 @@ textarea {
 }
 
 .rank-1 .rank-badge { background: #f5b400; }
-.rank-2 .rank-badge { background: #adb5bd; }
+.rank-2 .rank-badge { background: #9ca3af; }
 .rank-3 .rank-badge { background: #c97a3d; }
 
-/* タイトル行 */
+/* タイトル */
 .ranking-title {
   display: flex;
   flex-wrap: wrap;
@@ -285,11 +280,12 @@ textarea {
 .ranking-comment {
   margin-top: 6px;
   font-size: 14px;
+  color: #333;
 }
 
-/* 下段メタ */
+/* メタ情報 */
 .ranking-meta {
-  margin-top: 8px;
+  margin-top: 10px;
   display: flex;
   justify-content: space-between;
   font-size: 12px;
@@ -301,7 +297,7 @@ textarea {
   color: #e0245e;
 }
 
-/* ランキング内画像 */
+/* ランキング内画像（サイズ完全維持） */
 .ranking-card .post-image {
   max-height: none;
 }
