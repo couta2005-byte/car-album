@@ -75,9 +75,31 @@ a {
   padding: 12px 12px 32px;
 }
 
+.posts {
+  margin-top: 16px;
+}
+
 /* =========================
    Forms
 ========================= */
+.post-form {
+  background: #fff;
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.form-row.bottom {
+  align-items: center;
+}
+
 input,
 textarea {
   width: 100%;
@@ -120,42 +142,42 @@ textarea {
 /* ユーザー名：車名 */
 .post-top {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
+}
+
+.post-title {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
   flex-wrap: wrap;
 }
 
 .post-user {
-  font-weight: 700;
   font-size: 14px;
-  color: #0f1419;
+  font-weight: 700;
 }
 
-/* 「：」をCSSで追加 */
-.post-user::after {
-  content: "：";
-  margin: 0 2px;
+.post-sep {
+  font-size: 14px;
   color: #536471;
 }
 
-/* 車名を主役に */
 .post-car {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 900;
-  color: #0f1419;
 }
 
-/* 日付 */
 .post-date {
-  margin-left: auto;
   font-size: 12px;
   color: #536471;
   white-space: nowrap;
 }
 
 /* コメント */
-.post-text,
-.post-comment {
+.post-comment,
+.post-text {
   font-size: 14px;
   line-height: 1.6;
   margin-top: 6px;
@@ -185,6 +207,7 @@ textarea {
   display: flex;
   gap: 10px;
   margin-top: 12px;
+  align-items: center;
 }
 
 .like-btn {
@@ -195,6 +218,7 @@ textarea {
   border: 1px solid #ffd1e1;
   background: #fff0f5;
   color: #e0245e;
+  cursor: pointer;
 }
 
 .follow-btn {
@@ -205,6 +229,7 @@ textarea {
   border: 1px solid #cfe7ff;
   background: #eef6ff;
   color: #1d9bf0;
+  cursor: pointer;
 }
 
 .delete-btn {
@@ -214,6 +239,7 @@ textarea {
   font-size: 13px;
   border: 1px solid #ffd1d1;
   background: #fff;
+  cursor: pointer;
 }
 
 /* =========================
@@ -255,6 +281,18 @@ textarea {
   background: #000;
   color: #fff;
   font-weight: 700;
+  cursor: pointer;
+}
+
+/* =========================
+   Ranking（将来用・保持）
+========================= */
+.ranking-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 /* =========================
@@ -263,5 +301,19 @@ textarea {
 @media (max-width: 600px) {
   .logo {
     font-size: 20px;
+  }
+
+  .form-row {
+    flex-direction: column;
+  }
+
+  .post-top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  .post-date {
+    margin-left: 0;
   }
 }
