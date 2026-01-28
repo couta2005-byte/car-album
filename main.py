@@ -705,3 +705,18 @@ def delete_post(post_id: int, user: str = Cookie(default=None)):
 
     run_db(_do)
     return RedirectResponse("/", status_code=303)
+# ======================
+# Render / uvicorn 起動
+# ======================
+if __name__ == "__main__":
+    import uvicorn
+
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=port,
+        log_level="info"
+    )
+
+
