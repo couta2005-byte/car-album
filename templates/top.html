@@ -29,27 +29,34 @@
 
 <div class="posts">
 {% for post in posts %}
-  <article class="post-card">
+  <article class="post">
 
+    <!-- 上段：ユーザー名：車名 ＋ 時間 -->
     <div class="post-top">
-      <a href="/user/{{ post.username | urlencode }}" class="post-user">
-        {{ post.username }}
-      </a>
+      <div class="post-title">
+        <a href="/user/{{ post.username | urlencode }}" class="post-user">
+          {{ post.username }}
+        </a>
+        <span class="post-sep">：</span>
+        <span class="post-car">{{ post.car }}</span>
+      </div>
       <span class="post-date">{{ post.created_at }}</span>
     </div>
 
-    <div class="post-car">{{ post.car }}</div>
-
+    <!-- コメント -->
     {% if post.comment %}
-      <div class="post-text">{{ post.comment }}</div>
+      <div class="post-comment">{{ post.comment }}</div>
     {% endif %}
 
+    <!-- 画像 -->
     {% if post.image %}
-      <img src="{{ post.image }}" class="post-image">
+      <div class="post-image">
+        <img src="{{ post.image }}" alt="投稿画像">
+      </div>
     {% endif %}
 
+    <!-- アクション -->
     <div class="post-actions">
-
       {% if user %}
         {% if post.id in liked_posts %}
           <form action="/unlike/{{ post.id }}" method="post">
@@ -70,8 +77,8 @@
           <button type="submit" class="delete-btn">🗑 削除</button>
         </form>
       {% endif %}
-
     </div>
+
   </article>
 {% endfor %}
 </div>
