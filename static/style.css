@@ -139,36 +139,32 @@ textarea {
 }
 
 /* =========================
-   Image（横のはみ出し完全防止）
+   Image（歪みゼロ最終版）
 ========================= */
 
-/* 器：必ずカード幅に収める */
+/* 器：横は絶対はみ出させない */
 .post-image {
   margin-top: 10px;
-  width: 100%;            /* ★ これが大事 */
+  width: 100%;
   border-radius: 16px;
   overflow: hidden;
-  max-height: 420px;      /* 縦は今まで通りOK */
+  max-height: 420px;
 }
 
-/* 基本：縦画像は自然表示（縦はOKにする方針） */
+/* デフォルト：縦画像（一切歪ませない） */
 .post-image img {
   display: block;
-  width: 100%;
-  max-width: 100%;        /* ★ 念押し（はみ出し防止） */
-  height: auto;           /* 縦は自然に */
-  object-fit: cover;
-  /* 角丸は付けない：枠だけに付ける（ズレ防止） */
+  max-width: 100%;
+  height: auto;
+  width: auto;
 }
 
-/* 横画像だけ：高さを固定して絶対にはみ出させない */
+/* 横画像だけ制御（暴走防止） */
 @media (min-aspect-ratio: 4/3) {
-  .post-image {
-    max-height: 360px;     /* 横は少し低めで暴走止める */
-  }
   .post-image img {
-    height: 360px;         /* ★ ここが決定打：幅100%×高さ固定 */
-    object-fit: cover;     /* 切り取りは最小限で自然に見せる */
+    width: 100%;
+    height: 360px;
+    object-fit: cover;
   }
 }
 
@@ -262,11 +258,7 @@ textarea {
     max-height: 360px;
   }
 
-  /* スマホの横画像はもう少し低め */
   @media (min-aspect-ratio: 4/3) {
-    .post-image {
-      max-height: 320px;
-    }
     .post-image img {
       height: 320px;
     }
