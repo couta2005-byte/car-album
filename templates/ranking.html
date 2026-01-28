@@ -12,102 +12,68 @@
 
 <main class="container">
 
-  <!-- ===================== -->
-  <!-- ランキング切替 -->
-  <!-- ===================== -->
-  <div class="ranking-tabs">
+  <!-- 期間切り替え -->
+  <div class="period-switch">
     <a href="/ranking?period=day"
-       class="ranking-tab {% if period == 'day' %}active{% endif %}">
+       class="period-btn {% if period=='day' %}active{% endif %}">
       日
     </a>
     <a href="/ranking?period=week"
-       class="ranking-tab {% if period == 'week' %}active{% endif %}">
+       class="period-btn {% if period=='week' %}active{% endif %}">
       週
     </a>
     <a href="/ranking?period=month"
-       class="ranking-tab {% if period == 'month' %}active{% endif %}">
+       class="period-btn {% if period=='month' %}active{% endif %}">
       月
     </a>
   </div>
 
-  <h2 class="ranking-title">{{ ranking_title }}</h2>
+  <h2 class="ranking-heading">{{ ranking_title }}</h2>
 
-  <!-- ===================== -->
-  <!-- 投稿一覧 -->
-  <!-- ===================== -->
   {% if posts %}
-    <div class="posts">
-      {% for post in posts %}
-        <article class="post">
+    {% for post in posts %}
+      <div class="ranking-card rank-{{ loop.index }}">
 
-          <!-- 上段：順位・ユーザー・車名・時間 -->
-          <div class="post-top">
-            <div class="post-title">
-              <span class="rank-no">#{{ loop.index }}</span>
+        <!-- 順位バッジ -->
+        <div class="rank-badge">
+          {{ loop.index }}
+        </div>
 
-              <a href="/user/{{ post.username | urlencode }}"
-                 class="post-user">
-                {{ post.username }}
-              </a>
+        <!-- タイトル：ユーザー名：車名 -->
+        <div class="ranking-title">
+          <span class="ranking-user">{{ post.username }}</span>
+          <span class="ranking-sep">：</span>
+          <span class="ranking-car">{{ post.car }}</span>
+        </div>
 
-              {% if post.car %}
-                <span class="post-sep">：</span>
-                <span class="post-car">{{ post.car }}</span>
-              {% endif %}
-            </div>
-
-            <span class="post-date">{{ post.created_at }}</span>
+        <!-- コメント -->
+        {% if post.comment %}
+          <div class="ranking-comment">
+            {{ post.comment }}
           </div>
+        {% endif %}
 
-          <!-- コメント -->
-          {% if post.comment %}
-            <div class="post-comment">
-              {{ post.comment }}
-            </div>
-          {% endif %}
-
-          <!-- 画像 -->
-          {% if post.image %}
-            <div class="post-image">
-              <img src="{{ post.image }}" alt="投稿画像">
-            </div>
-          {% endif %}
-
-          <!-- アクション -->
-          <div class="post-actions">
-            {% if user %}
-              {% if post.id in liked_posts %}
-                <form action="/unlike/{{ post.id }}" method="post">
-                  <button type="submit" class="like-btn">
-                    ❤️ {{ post.likes }}
-                  </button>
-                </form>
-              {% else %}
-                <form action="/like/{{ post.id }}" method="post">
-                  <button type="submit" class="like-btn">
-                    🤍 {{ post.likes }}
-                  </button>
-                </form>
-              {% endif %}
-            {% else %}
-              <span class="like-btn">
-                🤍 {{ post.likes }}
-              </span>
-            {% endif %}
+        <!-- 画像（サイズはCSS任せ・変更なし） -->
+        {% if post.image %}
+          <div class="post-image">
+            <img src="{{ post.image }}" alt="投稿画像">
           </div>
+        {% endif %}
 
-        </article>
-      {% endfor %}
-    </div>
+        <!-- メタ情報 -->
+        <div class="ranking-meta">
+          <span class="ranking-date">{{ post.created_at }}</span>
+          <span class="ranking-like">❤️ {{ post.likes }}</span>
+        </div>
 
+      </div>
+    {% endfor %}
   {% else %}
-    <!-- 投稿がない場合 -->
-    <div class="empty-state">
-      <p>この期間の投稿はまだありません</p>
-    </div>
+    <p style="color:#888; margin-top:24px;">
+      ランキング対象の投稿がありません
+    </p>
   {% endif %}
 
 </main>
-
 </body>
 </html>
