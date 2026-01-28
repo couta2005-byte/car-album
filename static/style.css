@@ -139,7 +139,6 @@ textarea {
   box-shadow: 0 8px 20px rgba(0,0,0,0.06);
 }
 
-/* ユーザー名：車名 */
 .post-top {
   display: flex;
   justify-content: space-between;
@@ -175,7 +174,6 @@ textarea {
   white-space: nowrap;
 }
 
-/* コメント */
 .post-comment,
 .post-text {
   font-size: 14px;
@@ -184,7 +182,7 @@ textarea {
 }
 
 /* =========================
-   Image（完成形）
+   Image
 ========================= */
 .post-image {
   margin-top: 10px;
@@ -285,7 +283,7 @@ textarea {
 }
 
 /* =========================
-   Ranking（将来用・保持）
+   Ranking（保持）
 ========================= */
 .ranking-card {
   background: #fff;
