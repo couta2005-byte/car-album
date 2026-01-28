@@ -1,14 +1,17 @@
 <header class="header">
   <div class="header-inner">
-    <a href="/" class="logo">Car Album</a>
+    <!-- ロゴ -->
+    <a href="/" class="logo">Carbum</a>
 
     <nav class="nav">
       <!-- 共通 -->
-      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">
+      <a href="/"
+         class="nav-link {% if mode=='home' %}active{% endif %}">
         おすすめ
       </a>
 
-      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">
+      <a href="/search"
+         class="nav-link {% if mode=='search' %}active{% endif %}">
         検索
       </a>
 
@@ -30,7 +33,7 @@
         </a>
 
         <form action="/logout" method="post" style="display:inline;">
-          <button type="submit" class="nav-link logout-btn">
+          <button type="submit" class="logout-btn">
             ログアウト
           </button>
         </form>
