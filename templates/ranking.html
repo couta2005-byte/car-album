@@ -1,45 +1,113 @@
-# ======================
-# ranking（安定版）
-# ======================
-@app.get("/ranking", response_class=HTMLResponse)
-def ranking(
-    request: Request,
-    period: str = Query(default="day"),
-    user: str = Cookie(default=None)
-):
-    me = unquote(user) if user else None
-    now_utc = datetime.utcnow()
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ ranking_title }} | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
 
-    if period == "week":
-        since = now_utc - timedelta(days=7)
-        title = "週間ランキング TOP10"
-    elif period == "month":
-        since = now_utc - timedelta(days=30)
-        title = "月間ランキング TOP10"
-    else:
-        # ★ 日間は「直近24時間」に変更（ここが肝）
-        since = now_utc - timedelta(hours=24)
-        title = "日間ランキング TOP10"
+{% include "_nav.html" %}
 
-    db = get_db()
-    try:
-        posts = fetch_posts(
-            db,
-            "WHERE p.created_at >= %s",
-            (since,),
-            order_sql="ORDER BY like_count DESC, p.id DESC",
-            limit_sql="LIMIT 10"
-        )
-        liked_posts = get_liked_posts(db, me)
-    finally:
-        db.close()
+<main class="container">
 
-    return templates.TemplateResponse("ranking.html", {
-        "request": request,
-        "posts": posts,
-        "user": me,
-        "liked_posts": liked_posts,
-        "mode": f"ranking_{period}",
-        "ranking_title": title,
-        "period": period
-    })
+  <!-- ===================== -->
+  <!-- ランキング切替 -->
+  <!-- ===================== -->
+  <div class="ranking-tabs">
+    <a href="/ranking?period=day"
+       class="ranking-tab {% if period == 'day' %}active{% endif %}">
+      日
+    </a>
+    <a href="/ranking?period=week"
+       class="ranking-tab {% if period == 'week' %}active{% endif %}">
+      週
+    </a>
+    <a href="/ranking?period=month"
+       class="ranking-tab {% if period == 'month' %}active{% endif %}">
+      月
+    </a>
+  </div>
+
+  <h2 class="ranking-title">{{ ranking_title }}</h2>
+
+  <!-- ===================== -->
+  <!-- 投稿一覧 -->
+  <!-- ===================== -->
+  {% if posts %}
+    <div class="posts">
+      {% for post in posts %}
+        <article class="post">
+
+          <!-- 上段：順位・ユーザー・車名・時間 -->
+          <div class="post-top">
+            <div class="post-title">
+              <span class="rank-no">#{{ loop.index }}</span>
+
+              <a href="/user/{{ post.username | urlencode }}"
+                 class="post-user">
+                {{ post.username }}
+              </a>
+
+              {% if post.car %}
+                <span class="post-sep">：</span>
+                <span class="post-car">{{ post.car }}</span>
+              {% endif %}
+            </div>
+
+            <span class="post-date">{{ post.created_at }}</span>
+          </div>
+
+          <!-- コメント -->
+          {% if post.comment %}
+            <div class="post-comment">
+              {{ post.comment }}
+            </div>
+          {% endif %}
+
+          <!-- 画像 -->
+          {% if post.image %}
+            <div class="post-image">
+              <img src="{{ post.image }}" alt="投稿画像">
+            </div>
+          {% endif %}
+
+          <!-- アクション -->
+          <div class="post-actions">
+            {% if user %}
+              {% if post.id in liked_posts %}
+                <form action="/unlike/{{ post.id }}" method="post">
+                  <button type="submit" class="like-btn">
+                    ❤️ {{ post.likes }}
+                  </button>
+                </form>
+              {% else %}
+                <form action="/like/{{ post.id }}" method="post">
+                  <button type="submit" class="like-btn">
+                    🤍 {{ post.likes }}
+                  </button>
+                </form>
+              {% endif %}
+            {% else %}
+              <span class="like-btn">
+                🤍 {{ post.likes }}
+              </span>
+            {% endif %}
+          </div>
+
+        </article>
+      {% endfor %}
+    </div>
+
+  {% else %}
+    <!-- 投稿がない場合 -->
+    <div class="empty-state">
+      <p>この期間の投稿はまだありません</p>
+    </div>
+  {% endif %}
+
+</main>
+
+</body>
+</html>
