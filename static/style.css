@@ -139,33 +139,25 @@ textarea {
 }
 
 /* =========================
-   Image（歪みゼロ最終版）
+   Image（歪みゼロ・最終確定）
 ========================= */
 
-/* 器：横は絶対はみ出させない */
+/* 画像の器：横はみ出し防止＋高さ上限だけ */
 .post-image {
   margin-top: 10px;
   width: 100%;
+  max-height: 420px;
   border-radius: 16px;
   overflow: hidden;
-  max-height: 420px;
 }
 
-/* デフォルト：縦画像（一切歪ませない） */
+/* 画像本体：比率は一切触らない */
 .post-image img {
   display: block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
-  width: auto;
-}
-
-/* 横画像だけ制御（暴走防止） */
-@media (min-aspect-ratio: 4/3) {
-  .post-image img {
-    width: 100%;
-    height: 360px;
-    object-fit: cover;
-  }
+  max-height: 420px;
+  object-fit: contain;
 }
 
 /* =========================
@@ -204,7 +196,6 @@ textarea {
 .ranking-card .post-image,
 .ranking-card .post-image img {
   max-height: none;
-  height: auto;
 }
 
 /* =========================
@@ -254,13 +245,8 @@ textarea {
     font-size: 20px;
   }
 
-  .post-image {
+  .post-image,
+  .post-image img {
     max-height: 360px;
-  }
-
-  @media (min-aspect-ratio: 4/3) {
-    .post-image img {
-      height: 320px;
-    }
   }
 }
