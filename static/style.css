@@ -139,35 +139,36 @@ textarea {
 }
 
 /* =========================
-   Image（改良版：縦OK・横制御）
+   Image（横のはみ出し完全防止）
 ========================= */
 
-/* 画像の器：高さだけ制限 */
+/* 器：必ずカード幅に収める */
 .post-image {
   margin-top: 10px;
+  width: 100%;            /* ★ これが大事 */
   border-radius: 16px;
   overflow: hidden;
-
-  max-height: 420px;   /* 基準高さ */
+  max-height: 420px;      /* 縦は今まで通りOK */
 }
 
-/* 基本：縦画像（今まで通り） */
+/* 基本：縦画像は自然表示（縦はOKにする方針） */
 .post-image img {
   display: block;
-  height: auto;
-  width: auto;
-  max-height: 420px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 100%;        /* ★ 念押し（はみ出し防止） */
+  height: auto;           /* 縦は自然に */
   object-fit: cover;
+  /* 角丸は付けない：枠だけに付ける（ズレ防止） */
 }
 
-/* 横画像だけ幅を抑制する */
+/* 横画像だけ：高さを固定して絶対にはみ出させない */
 @media (min-aspect-ratio: 4/3) {
+  .post-image {
+    max-height: 360px;     /* 横は少し低めで暴走止める */
+  }
   .post-image img {
-    width: 100%;
-    height: auto;
-    max-height: 360px;   /* 横だけ少し低く */
-    object-fit: cover;
+    height: 360px;         /* ★ ここが決定打：幅100%×高さ固定 */
+    object-fit: cover;     /* 切り取りは最小限で自然に見せる */
   }
 }
 
@@ -207,6 +208,7 @@ textarea {
 .ranking-card .post-image,
 .ranking-card .post-image img {
   max-height: none;
+  height: auto;
 }
 
 /* =========================
@@ -260,7 +262,13 @@ textarea {
     max-height: 360px;
   }
 
-  .post-image img {
-    max-height: 360px;
+  /* スマホの横画像はもう少し低め */
+  @media (min-aspect-ratio: 4/3) {
+    .post-image {
+      max-height: 320px;
+    }
+    .post-image img {
+      height: 320px;
+    }
   }
 }
