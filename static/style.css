@@ -125,11 +125,6 @@ textarea {
   font-weight: 900;
 }
 
-.post-car span {
-  opacity: 0.7;
-  font-weight: 600;
-}
-
 .post-date {
   font-size: 12px;
   color: #536471;
@@ -144,21 +139,20 @@ textarea {
 }
 
 /* =========================
-   Image（違和感ゼロ設計）
+   Image（最終・違和感ゼロ）
 ========================= */
 /*
-  ・高さは自動
-  ・デカくなりすぎないよう max-height だけ制限
-  ・縦横比は完全保持
+  フィードは 16:9 に寄せる
+  → 車SNSとして一番自然
 */
 
 img.post-image {
   margin-top: 10px;
   width: 100%;
+  aspect-ratio: 16 / 9;   /* ★ ここが肝 */
   height: auto;
-  max-height: 420px;        /* ← フィード上限 */
-  object-fit: contain;
-  background: #111;
+  object-fit: contain;    /* 切らない */
+  background: #f2f3f5;    /* 黒ベタ廃止 */
   border-radius: 16px;
   display: block;
 }
@@ -194,10 +188,12 @@ img.post-image {
 }
 
 /* =========================
-   Ranking（少し小さめ）
+   Ranking（今の見た目を維持）
 ========================= */
 .ranking-card img.post-image {
-  max-height: 300px;
+  aspect-ratio: auto;
+  max-height: 320px;
+  background: #f2f3f5;
 }
 
 /* =========================
@@ -240,18 +236,10 @@ img.post-image {
 }
 
 /* =========================
-   Mobile（スマホ最適）
+   Mobile
 ========================= */
 @media (max-width: 600px) {
   .logo {
     font-size: 20px;
-  }
-
-  img.post-image {
-    max-height: 300px;
-  }
-
-  .ranking-card img.post-image {
-    max-height: 240px;
   }
 }
