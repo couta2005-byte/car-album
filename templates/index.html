@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=5">
+  <link rel="stylesheet" href="/static/style.css?v=6">
 </head>
 <body>
 
@@ -31,16 +31,16 @@
 
 <div class="posts">
 {% for post in posts %}
-  <article class="post" style="position:relative;">
-
-    <!-- 🔹 投稿詳細へ飛ぶ透明リンク（ユーザー名以外） -->
-    <a href="/post/{{ post.id }}"
-       class="post-link-overlay"
-       aria-label="投稿詳細"></a>
+  <article class="post"
+           role="link"
+           tabindex="0"
+           onclick="location.href='/post/{{ post.id }}';"
+           onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }"
+           style="position:relative;">
 
     <div class="post-top">
       <div class="post-title">
-        <!-- 🔹 ユーザー名は最前面でプロフィールへ -->
+        <!-- 🔹 ユーザー名はプロフィールへ（詳細遷移を止める） -->
         <a href="/user/{{ post.username | urlencode }}"
            class="post-user"
            style="position:relative; z-index:2;"
@@ -63,16 +63,14 @@
       </div>
     {% endif %}
 
-    <!-- 🔹 アクションは誤タップ防止で前面 -->
-    <div class="post-actions" style="position:relative; z-index:2;">
-
+    <!-- 🔹 アクション（詳細遷移を止める） -->
+    <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
       {% if user %}
         <!-- ✅ リロード無しいいねボタン -->
         <button type="button"
                 class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
                 data-post-id="{{ post.id }}"
-                data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
-                onclick="event.stopPropagation();">
+                data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
           <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
           <span class="like-count">{{ post.likes }}</span>
         </button>
@@ -92,15 +90,6 @@
 </div>
 
 </main>
-
-<!-- 🔹 投稿カード全体リンク用 -->
-<style>
-.post-link-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-</style>
 
 <script>
   // ✅ 一覧：いいね即反映（/api/like/{post_id}）
