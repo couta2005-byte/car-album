@@ -751,3 +751,53 @@ textarea {
   background: rgba(224,36,94,0.08) !important;
   color: #e0245e !important;
 }
+/* =========================
+   Like Button Design v1（スクショのやつに統一）
+   - 通常：薄グレー枠
+   - いいね済：ピンク枠 + 薄ピンク背景
+========================= */
+
+.like-btn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 40px;
+  padding: 8px 18px;
+
+  border-radius: 999px;
+  border: 1px solid #cfd9de;
+  background: #fff;
+
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  color: #536471;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
+}
+
+.like-btn:hover{
+  background: #f6f7f8;
+}
+
+.like-btn:active{
+  transform: scale(0.985);
+}
+
+/* いいね済（スクショのピンク縁） */
+.like-btn.active{
+  border-color: rgba(224,36,94,0.35);
+  background: rgba(224,36,94,0.08);
+  color: #e0245e;
+}
+
+/* ランキング右端に寄せる（保険） */
+.ranking-meta .like-btn{
+  margin-left: auto;
+}

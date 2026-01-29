@@ -67,7 +67,8 @@
         <button type="button"
                 class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
                 data-post-id="{{ post.id }}"
-                data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
+                data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
+                aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}">
           <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
           <span class="like-count">{{ post.likes }}</span>
         </button>
@@ -103,6 +104,8 @@
 
     if (btn.dataset.loading === "1") return;
     btn.dataset.loading = "1";
+    btn.disabled = true;
+    btn.classList.add("is-loading");
 
     try {
       const res = await fetch(`/api/like/${postId}`, {
@@ -132,6 +135,7 @@
       // 状態更新
       btn.dataset.liked = data.liked ? "1" : "0";
       btn.classList.toggle("active", !!data.liked);
+      btn.setAttribute("aria-pressed", data.liked ? "true" : "false");
 
       // アイコン更新
       const iconEl = btn.querySelector(".like-icon");
@@ -141,6 +145,8 @@
       alert("通信エラー");
     } finally {
       btn.dataset.loading = "0";
+      btn.disabled = false;
+      btn.classList.remove("is-loading");
     }
   }, true); // ←ここが最重要（capture）
 </script>
