@@ -6,6 +6,7 @@ from fastapi.templating import Jinja2Templates
 import psycopg2, os, uuid
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
+from typing import Optional, Dict, List, Any
 
 # ★ password hash（bcrypt不具合回避：pbkdf2_sha256のみ使用）
 from passlib.context import CryptContext
@@ -32,6 +33,10 @@ def jst_midnight_to_utc_naive(dt_jst_aware: datetime) -> datetime:
     # JSTの0:00をUTCに変換して、naive化（DB比較用）
     dt0 = dt_jst_aware.replace(hour=0, minute=0, second=0, microsecond=0)
     return dt0.astimezone(timezone.utc).replace(tzinfo=None)
+
+def fmt_jst(dt: Optional[datetime]) -> str:
+    # 表示は常に JST（UTC+9）で統一
+    return ((dt + timedelta(hours=9)).strftime("%Y-%m-%d %H:%M") if dt else "")
 
 # ======================
 # password hash
@@ -182,23 +187,42 @@ def get_liked_posts(db, me):
     finally:
         cur.close()
 
-def get_comments_map(db):
-    comments = {}
+# ======================
+# comments fetch (必要なpost_idだけ取る)
+#  - ここがポイント：一覧/詳細で確実に comments と comment_count が一致する
+#  - テンプレは dict 形式（c.username / c.comment / c.created_at）で扱える
+# ======================
+def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str, Any]]]:
+    if not post_ids:
+        return {}
+
+    # IN句を安全に組み立て
+    placeholders = ",".join(["%s"] * len(post_ids))
+    sql = f"""
+        SELECT post_id, username, comment, created_at
+        FROM comments
+        WHERE post_id IN ({placeholders})
+        ORDER BY id ASC
+    """
+
     cur = db.cursor()
     try:
-        cur.execute("""
-            SELECT post_id, username, comment, created_at
-            FROM comments
-            ORDER BY id ASC
-        """)
-        for c in cur.fetchall():
-            comments.setdefault(c[0], []).append(c)
+        cur.execute(sql, tuple(post_ids))
+        rows = cur.fetchall()
     finally:
         cur.close()
-    return comments
+
+    out: Dict[int, List[Dict[str, Any]]] = {}
+    for post_id, username, comment, created_at in rows:
+        out.setdefault(post_id, []).append({
+            "username": username,
+            "comment": comment,
+            "created_at": fmt_jst(created_at)
+        })
+    return out
 
 # ======================
-# posts fetch (JST display)
+# posts fetch (JST display + comment_count付与)
 # ======================
 def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
     cur = db.cursor()
@@ -221,21 +245,28 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", lim
     finally:
         cur.close()
 
-    comments_map = get_comments_map(db)
+    # ★ ここが改良：必要な投稿IDだけコメントを取る
+    post_ids = [r[0] for r in rows]
+    comments_map = fetch_comments_for_posts(db, post_ids)
 
-    return [{
-        "id": r[0],
-        "username": r[1],
-        "maker": r[2],
-        "region": r[3],
-        "car": r[4],
-        "comment": r[5],
-        "image": r[6],
-        # ★ 表示は必ずJST（UTC+9）
-        "created_at": ((r[7] + timedelta(hours=9)).strftime("%Y-%m-%d %H:%M") if r[7] else ""),
-        "likes": r[8],
-        "comments": comments_map.get(r[0], [])
-    } for r in rows]
+    posts = []
+    for r in rows:
+        pid = r[0]
+        post_comments = comments_map.get(pid, [])
+        posts.append({
+            "id": pid,
+            "username": r[1],
+            "maker": r[2],
+            "region": r[3],
+            "car": r[4],
+            "comment": r[5],
+            "image": r[6],
+            "created_at": fmt_jst(r[7]),
+            "likes": r[8],
+            "comments": post_comments,
+            "comment_count": len(post_comments)
+        })
+    return posts
 
 # ======================
 # top
@@ -277,9 +308,7 @@ def register_page(request: Request):
 @app.get("/search", response_class=HTMLResponse)
 def search(
     request: Request,
-    # 新仕様：1つの入力で4項目を横断検索
     q: str = Query(default=""),
-    # 旧仕様（互換維持）：maker/car/region のAND検索も残す（既存機能カットしない）
     maker: str = Query(default=""),
     car: str = Query(default=""),
     region: str = Query(default=""),
@@ -298,7 +327,6 @@ def search(
         posts = []
 
         if q:
-            # 新仕様：OR検索（メーカー/車名/地域/アカウント名）
             like = f"%{q}%"
             posts = fetch_posts(
                 db,
@@ -313,7 +341,6 @@ def search(
                 order_sql="ORDER BY p.id DESC"
             )
 
-            # ユーザー候補（アカウント名）
             cur = db.cursor()
             try:
                 cur.execute("""
@@ -326,9 +353,7 @@ def search(
                 users = [r[0] for r in cur.fetchall()]
             finally:
                 cur.close()
-
         else:
-            # 旧仕様：AND検索（maker/car/region）
             if maker or car or region:
                 posts = fetch_posts(
                     db,
@@ -345,10 +370,8 @@ def search(
         "posts": posts,
         "user": me,
         "liked_posts": liked_posts,
-        # 新仕様
         "q": q,
         "users": users,
-        # 旧仕様（互換維持）
         "maker": maker,
         "car": car,
         "region": region,
@@ -395,7 +418,6 @@ def ranking(
     user: str = Cookie(default=None)
 ):
     me = unquote(user) if user else None
-
     now_utc = datetime.utcnow()
 
     if period == "week":
@@ -405,7 +427,6 @@ def ranking(
         since_utc_naive = now_utc - timedelta(days=30)
         title = "月間ランキング TOP10"
     else:
-        # ★日間は直近24時間（空表示回避）
         since_utc_naive = now_utc - timedelta(hours=24)
         title = "日間ランキング TOP10"
 
@@ -457,7 +478,7 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
     })
 
 # ======================
-# comment（NEW：post_detail用）
+# comment（post_detail用）
 # ======================
 @app.post("/comment/{post_id}")
 def add_comment(
@@ -472,11 +493,9 @@ def add_comment(
     me = unquote(user)
     comment = (comment or "").strip()
     if not comment:
-        # 空コメントは無視して元へ
         return redirect_back(request, fallback=f"/post/{post_id}")
 
     def _do(db, cur):
-        # post存在チェック（ないpost_idにコメントしない）
         cur.execute("SELECT 1 FROM posts WHERE id=%s", (post_id,))
         if cur.fetchone() is None:
             return
@@ -487,7 +506,6 @@ def add_comment(
 
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
-
 # ======================
 # profile（復旧）
 # ======================
@@ -766,7 +784,6 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
 
     run_db(_do)
-    # refererがpost_detailだと詳細が消えるので、fallbackはトップへ
     return redirect_back(request, fallback="/")
 
 # ======================
@@ -782,3 +799,4 @@ if __name__ == "__main__":
         port=port,
         log_level="info"
     )
+
