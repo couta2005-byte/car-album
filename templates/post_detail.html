@@ -14,6 +14,7 @@
 
   <a href="/" class="back-link">← 戻る</a>
 
+  <!-- ================= 投稿本体 ================= -->
   <div class="post">
     <div class="post-top">
       <strong class="post-user">{{ post.username }}</strong>
@@ -49,21 +50,21 @@
     </div>
   </div>
 
-  <!-- コメント -->
-  <section class="comments">
-    <h3 class="comments-title">
-      コメント（{{ post.comments | length }}）
-    </h3>
+  <!-- ================= コメント一覧 ================= -->
+  <section class="comment-section">
+    <h3>コメント（{{ post.comments | length }}）</h3>
 
     {% if post.comments %}
-      <ul class="comment-list">
+      <ul>
         {% for c in post.comments %}
           <li class="comment-item">
             <div class="comment-header">
               <strong>{{ c[1] }}</strong>
-              <span class="comment-date">{{ c[3] }}</span>
+              <span class="comment-time">{{ c[3] }}</span>
             </div>
-            <div class="comment-body">{{ c[2] }}</div>
+            <div class="comment-body">
+              {{ c[2] }}
+            </div>
           </li>
         {% endfor %}
       </ul>
@@ -72,8 +73,10 @@
     {% endif %}
   </section>
 
+  <!-- ================= コメント投稿 ================= -->
   {% if user %}
     <section class="comment-form">
+      <h4>この投稿にコメントする</h4>
       <form action="/comment/{{ post.id }}" method="post">
         <textarea name="comment" rows="3" required></textarea>
         <button type="submit">コメント</button>
@@ -82,5 +85,6 @@
   {% endif %}
 
 </main>
+
 </body>
 </html>
