@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- キャッシュ回避：数字を変えるだけで強制更新 -->
-  <link rel="stylesheet" href="/static/style.css?v=2004">
+  <!-- ★全ページで同じvにする（重要） -->
+  <link rel="stylesheet" href="/static/style.css?v=8">
 </head>
 <body>
 
@@ -13,14 +13,10 @@
 
 <main class="container">
 
-  <!-- 期間切り替え -->
   <div class="ranking-tabs">
-    <a href="/ranking?period=day"
-       class="ranking-tab {% if period=='day' %}active{% endif %}">日</a>
-    <a href="/ranking?period=week"
-       class="ranking-tab {% if period=='week' %}active{% endif %}">週</a>
-    <a href="/ranking?period=month"
-       class="ranking-tab {% if period=='month' %}active{% endif %}">月</a>
+    <a href="/ranking?period=day" class="ranking-tab {% if period=='day' %}active{% endif %}">日</a>
+    <a href="/ranking?period=week" class="ranking-tab {% if period=='week' %}active{% endif %}">週</a>
+    <a href="/ranking?period=month" class="ranking-tab {% if period=='month' %}active{% endif %}">月</a>
   </div>
 
   <h2 class="ranking-heading">{{ ranking_title }}</h2>
@@ -33,10 +29,8 @@
            onclick="location.href='/post/{{ post.id }}';"
            onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }">
 
-        <!-- 順位バッジ -->
         <div class="rank-badge">{{ loop.index }}</div>
 
-        <!-- ユーザー名：車名 -->
         <div class="ranking-title">
           <a href="/user/{{ post.username | urlencode }}"
              class="ranking-user"
@@ -45,51 +39,46 @@
           <span class="ranking-car">{{ post.car }}</span>
         </div>
 
-        <!-- コメント -->
         {% if post.comment %}
           <div class="post-text">{{ post.comment | trim }}</div>
         {% endif %}
 
-        <!-- 画像 -->
         {% if post.image %}
           <div class="post-image">
             <img src="{{ post.image }}" alt="投稿画像">
           </div>
         {% endif %}
 
-        <!-- メタ情報 -->
         <div class="ranking-meta">
           <span>{{ post.created_at | trim }}</span>
 
-          <!-- ✅ like-btn に統一（右寄せは form に margin-left:auto） -->
+          <!-- ★ここが統一ポイント：ranking-like を捨てて like-btn に統一 -->
           <form class="like-form"
                 method="post"
                 action="{% if post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}"
-                style="margin-left:auto;"
-                onclick="event.stopPropagation();">
+                onclick="event.stopPropagation();"
+                style="margin-left:auto;">
             <button type="submit"
                     class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
                     data-post-id="{{ post.id }}"
-                    data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
-                    onclick="event.stopPropagation();">
+                    data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
               <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
               <span class="like-count">{{ post.likes }}</span>
             </button>
           </form>
+
         </div>
 
       </div>
     {% endfor %}
   {% else %}
-    <p style="color:#888; margin-top:24px;">
-      ランキング対象の投稿がありません
-    </p>
+    <p style="color:#888; margin-top:24px;">ランキング対象の投稿がありません</p>
   {% endif %}
 
 </main>
 
 <script>
-  // ✅ submitでリロードさせない（フォーム保険を活かしつつJSで即反映）
+  // ✅ リロードさせない（submitを止めてAPI叩く）
   document.addEventListener("submit", async (e) => {
     const form = e.target.closest(".like-form");
     if (!form) return;
@@ -123,14 +112,14 @@
       if (countEl) countEl.textContent = String(data.likes);
 
       // 状態更新
-      btn.classList.toggle("active", !!data.liked);
       btn.dataset.liked = data.liked ? "1" : "0";
+      btn.classList.toggle("active", !!data.liked);
 
       // アイコン更新
       const iconEl = btn.querySelector(".like-icon");
       if (iconEl) iconEl.textContent = data.liked ? "❤️" : "🤍";
 
-      // フォームactionも切り替え（JS無効時の保険）
+      // form actionも保険で更新
       form.action = data.liked ? `/unlike/${postId}` : `/like/${postId}`;
 
     } catch (err) {
@@ -138,7 +127,7 @@
     } finally {
       btn.dataset.loading = "0";
     }
-  }, true); // capture=true で安全
+  });
 </script>
 
 </body>
