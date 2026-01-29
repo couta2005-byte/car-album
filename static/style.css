@@ -457,3 +457,50 @@ textarea {
 .comment-form button:hover {
   opacity: 0.9;
 }
+/* ===== コメント表示 修正（最優先） ===== */
+
+.comment-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.comment-item {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  color: #111;          /* ← 重要 */
+  opacity: 1;           /* ← 重要 */
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.comment-user {
+  font-weight: 600;
+  color: #0f1419;
+  text-decoration: none;
+}
+
+.comment-date {
+  font-size: 12px;
+  color: #666;
+}
+
+.comment-body {
+  font-size: 14px;
+  color: #0f1419;       /* ← 重要 */
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* スケルトン・ダミーを完全無効化 */
+.comment-skeleton,
+.comment-item.placeholder {
+  display: none !important;
+}
