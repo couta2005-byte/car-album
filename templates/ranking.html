@@ -5,7 +5,7 @@
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- キャッシュ回避：数字を変えるだけで強制更新 -->
-  <link rel="stylesheet" href="/static/style.css?v=1001">
+  <link rel="stylesheet" href="/static/style.css?v=2000">
 </head>
 <body>
 
@@ -16,17 +16,11 @@
   <!-- ▼ 期間切り替え（CSSと完全一致） -->
   <div class="ranking-tabs">
     <a href="/ranking?period=day"
-       class="ranking-tab {% if period=='day' %}active{% endif %}">
-      日
-    </a>
+       class="ranking-tab {% if period=='day' %}active{% endif %}">日</a>
     <a href="/ranking?period=week"
-       class="ranking-tab {% if period=='week' %}active{% endif %}">
-      週
-    </a>
+       class="ranking-tab {% if period=='week' %}active{% endif %}">週</a>
     <a href="/ranking?period=month"
-       class="ranking-tab {% if period=='month' %}active{% endif %}">
-      月
-    </a>
+       class="ranking-tab {% if period=='month' %}active{% endif %}">月</a>
   </div>
 
   <h2 class="ranking-heading">{{ ranking_title }}</h2>
@@ -37,65 +31,36 @@
            role="link"
            tabindex="0"
            onclick="location.href='/post/{{ post.id }}';"
-           onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }"
-           style="
-             text-align:left !important;
-             display:flex !important;
-             flex-direction:column !important;
-             align-items:flex-start !important;
-           ">
+           onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }">
 
         <!-- 順位バッジ -->
-        <div class="rank-badge">
-          {{ loop.index }}
-        </div>
+        <div class="rank-badge">{{ loop.index }}</div>
 
         <!-- ユーザー名：車名 -->
-        <div class="ranking-title"
-             style="text-align:left !important; width:100% !important; align-self:stretch !important;">
+        <div class="ranking-title">
           <a href="/user/{{ post.username | urlencode }}"
              class="ranking-user"
-             onclick="event.stopPropagation();">
-            {{ post.username }}
-          </a>
+             onclick="event.stopPropagation();">{{ post.username }}</a>
           <span>：</span>
           <span class="ranking-car">{{ post.car }}</span>
         </div>
 
-        <!-- コメント -->
+        <!-- コメント：★インデント空白が表示されないよう1行で出す + trim -->
         {% if post.comment %}
-          <div class="post-text"
-               style="
-                 width:100% !important;
-                 align-self:stretch !important;
-                 display:block !important;
-                 text-align:left !important;
-                 margin-top:6px !important;
-               ">
-            {{ post.comment }}
-          </div>
+          <div class="post-text">{{ post.comment | trim }}</div>
         {% endif %}
 
         <!-- 画像 -->
         {% if post.image %}
-          <div class="post-image" style="width:100% !important; align-self:stretch !important;">
+          <div class="post-image">
             <img src="{{ post.image }}" alt="投稿画像">
           </div>
         {% endif %}
 
-        <!-- メタ情報（日時：左 / ❤️：右） -->
-        <div class="ranking-meta"
-             style="
-               width:100% !important;
-               align-self:stretch !important;
-               display:flex !important;
-               align-items:center !important;
-               justify-content:flex-start !important;
-               text-align:left !important;
-             ">
-          <span style="text-align:left !important;">{{ post.created_at }}</span>
-          <span class="ranking-like"
-                style="margin-left:auto !important; text-align:right !important;">❤️ {{ post.likes }}</span>
+        <!-- メタ情報：★念のため trim -->
+        <div class="ranking-meta">
+          <span>{{ post.created_at | trim }}</span>
+          <span class="ranking-like">❤️ {{ post.likes }}</span>
         </div>
 
       </div>
@@ -105,11 +70,6 @@
       ランキング対象の投稿がありません
     </p>
   {% endif %}
-
-  <!-- ▼ テンプレ反映テスト（直ったら消してOK） -->
-  <div style="position:fixed; right:10px; bottom:10px; z-index:99999; background:#ff0033; color:#fff; padding:8px 10px; border-radius:10px; font-weight:900; font-size:12px; box-shadow:0 6px 18px rgba(0,0,0,0.2);">
-    RANKING-TEMPLATE-OK
-  </div>
 
 </main>
 </body>
