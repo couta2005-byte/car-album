@@ -1,23 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="/static/style.css">
-    <title>投稿詳細</title>
+  <meta charset="UTF-8">
+  <title>投稿詳細 | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<a href="/">← 戻る</a>
+{% include "_nav.html" %}
 
-<h2>{{ post.username }}</h2>
-<p>車名：{{ post.car_name }}</p>
-<p>{{ post.content }}</p>
+<main class="container">
 
-{% if post.image_path %}
-  <img src="/static/{{ post.image_path }}" style="max-width:100%;">
-{% endif %}
+  <a href="javascript:history.back()" class="back-link">← 戻る</a>
 
-<p>{{ post.created_at }}</p>
+  <article class="post">
 
+    <div class="post-top">
+      <a href="/user/{{ post.username | urlencode }}" class="post-user">
+        {{ post.username }}
+      </a>
+      <span class="post-date">{{ post.created_at }}</span>
+    </div>
+
+    <div class="post-car">{{ post.car }}</div>
+
+    {% if post.comment %}
+      <div class="post-comment">{{ post.comment }}</div>
+    {% endif %}
+
+    {% if post.image %}
+      <div class="post-image">
+        <img src="{{ post.image }}" alt="投稿画像">
+      </div>
+    {% endif %}
+
+    <div class="post-actions">
+      {% if user %}
+        {% if post.id in liked_posts %}
+          <form action="/unlike/{{ post.id }}" method="post">
+            <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
+          </form>
+        {% else %}
+          <form action="/like/{{ post.id }}" method="post">
+            <button type="submit" class="like-btn">🤍 {{ post.likes }}</button>
+          </form>
+        {% endif %}
+      {% else %}
+        <span>🤍 {{ post.likes }}</span>
+      {% endif %}
+
+      {% if user == post.username %}
+        <form action="/delete/{{ post.id }}" method="post"
+              onsubmit="return confirm('この投稿を削除しますか？');">
+          <button type="submit" class="delete-btn">🗑 削除</button>
+        </form>
+      {% endif %}
+    </div>
+
+  </article>
+
+</main>
 </body>
 </html>

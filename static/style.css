@@ -310,6 +310,7 @@ textarea {
     font-size: 20px;
   }
 }
+
 /* ===== ranking period buttons FIX ===== */
 .period-switch {
   display: flex;
@@ -334,4 +335,49 @@ textarea {
 .period-btn.active {
   background: #000;
   color: #fff !important;
+}
+
+/* =========================
+   追加：ランキング見出し（ranking.htmlで使用）
+========================= */
+.ranking-heading {
+  font-size: 20px;
+  font-weight: 900;
+  margin: 6px 0 16px;
+}
+
+/* =========================
+   追加：ランキングカードのクリック感（カード→投稿詳細）
+========================= */
+.ranking-card {
+  cursor: pointer;
+}
+
+.ranking-card:active {
+  transform: scale(0.995);
+}
+
+.ranking-user-link {
+  color: #0f1419;
+  text-decoration: none;
+  font-weight: 900;
+}
+
+.ranking-user-link:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   追加：投稿詳細の戻るリンク
+========================= */
+.back-link {
+  display: inline-block;
+  margin: 4px 0 12px;
+  color: #0f1419;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.back-link:hover {
+  text-decoration: underline;
 }

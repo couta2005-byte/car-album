@@ -381,7 +381,8 @@ def following(request: Request, user: str = Cookie(default=None)):
     })
 
 # ======================
-# ranking（復旧・JST境界対応）
+# ranking（表示が空になりにくい安定版）
+# - ユーザーが「何も出ない」を踏みやすいので、dayは直近24時間にする
 # ======================
 @app.get("/ranking", response_class=HTMLResponse)
 def ranking(
@@ -391,16 +392,17 @@ def ranking(
 ):
     me = unquote(user) if user else None
 
-    now_jst = jst_now_aware()
+    now_utc = datetime.utcnow()
 
     if period == "week":
-        since_utc_naive = (now_jst - timedelta(days=7)).astimezone(timezone.utc).replace(tzinfo=None)
+        since_utc_naive = now_utc - timedelta(days=7)
         title = "週間ランキング TOP10"
     elif period == "month":
-        since_utc_naive = (now_jst - timedelta(days=30)).astimezone(timezone.utc).replace(tzinfo=None)
+        since_utc_naive = now_utc - timedelta(days=30)
         title = "月間ランキング TOP10"
     else:
-        since_utc_naive = jst_midnight_to_utc_naive(now_jst)
+        # ★日間は直近24時間（空表示回避）
+        since_utc_naive = now_utc - timedelta(hours=24)
         title = "日間ランキング TOP10"
 
     db = get_db()
@@ -424,6 +426,31 @@ def ranking(
         "mode": f"ranking_{period}",
         "ranking_title": title,
         "period": period
+    })
+
+# ======================
+# post detail（NEW）
+# - ランキングの「カード本体タップ」遷移先
+# ======================
+@app.get("/post/{post_id}", response_class=HTMLResponse)
+def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)):
+    me = unquote(user) if user else None
+    db = get_db()
+    try:
+        liked_posts = get_liked_posts(db, me)
+        posts = fetch_posts(db, "WHERE p.id=%s", (post_id,))
+        if not posts:
+            return RedirectResponse("/", status_code=303)
+        post = posts[0]
+    finally:
+        db.close()
+
+    return templates.TemplateResponse("post_detail.html", {
+        "request": request,
+        "post": post,
+        "user": me,
+        "liked_posts": liked_posts,
+        "mode": "post_detail"
     })
 
 # ======================
@@ -705,6 +732,7 @@ def delete_post(post_id: int, user: str = Cookie(default=None)):
 
     run_db(_do)
     return RedirectResponse("/", status_code=303)
+
 # ======================
 # Render / uvicorn 起動
 # ======================
@@ -718,5 +746,3 @@ if __name__ == "__main__":
         port=port,
         log_level="info"
     )
-
-

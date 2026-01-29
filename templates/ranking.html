@@ -32,7 +32,11 @@
 
   {% if posts %}
     {% for post in posts %}
-      <div class="ranking-card rank-{{ loop.index }}">
+      <div class="ranking-card rank-{{ loop.index }}"
+           role="link"
+           tabindex="0"
+           onclick="location.href='/post/{{ post.id }}';"
+           onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }">
 
         <!-- 順位バッジ -->
         <div class="rank-badge">
@@ -41,7 +45,11 @@
 
         <!-- タイトル：ユーザー名：車名 -->
         <div class="ranking-title">
-          <span class="ranking-user">{{ post.username }}</span>
+          <a href="/user/{{ post.username | urlencode }}"
+             class="ranking-user ranking-user-link"
+             onclick="event.stopPropagation();">
+            {{ post.username }}
+          </a>
           <span class="ranking-sep">：</span>
           <span class="ranking-car">{{ post.car }}</span>
         </div>
