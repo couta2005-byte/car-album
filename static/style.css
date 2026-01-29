@@ -571,3 +571,55 @@ textarea {
   visibility: visible !important;
   color: #0f1419 !important;
 }
+/* =========================
+   Ranking: 中央寄り完全FIX（最終防衛）
+   ※一言・日時が真ん中に寄る事故を強制で潰す
+========================= */
+
+/* ランキングカード内は基本左寄せに固定 */
+.ranking-card {
+  text-align: left !important;
+}
+
+/* 「一言」っぽい要素を総当たりで左寄せ固定（クラス名が違っても刺さる） */
+.ranking-card p,
+.ranking-card div,
+.ranking-card span,
+.ranking-card .post-comment,
+.ranking-card .post-text,
+.ranking-card .comment,
+.ranking-card .comment-body,
+.ranking-card .ranking-comment,
+.ranking-card .ranking-text,
+.ranking-card .ranking-body {
+  text-align: left !important;
+}
+
+/* もし一言/日時が “flexで中央寄せ” されてる場合も潰す */
+.ranking-card .post-comment,
+.ranking-card .post-text,
+.ranking-card .comment,
+.ranking-card .ranking-comment,
+.ranking-card .ranking-text,
+.ranking-card .ranking-body {
+  display: block !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+}
+
+/* メタ行：日時は左、❤️は右に固定（どんな中身でも崩れにくい） */
+.ranking-meta {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+.ranking-meta .ranking-like {
+  margin-left: auto !important;
+  text-align: right !important;
+}
