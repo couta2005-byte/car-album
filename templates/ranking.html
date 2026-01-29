@@ -5,7 +5,7 @@
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- キャッシュ回避：数字を変えるだけで強制更新 -->
-  <link rel="stylesheet" href="/static/style.css?v=1000">
+  <link rel="stylesheet" href="/static/style.css?v=1001">
 </head>
 <body>
 
@@ -38,7 +38,12 @@
            tabindex="0"
            onclick="location.href='/post/{{ post.id }}';"
            onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }"
-           style="text-align:left !important;">
+           style="
+             text-align:left !important;
+             display:flex !important;
+             flex-direction:column !important;
+             align-items:flex-start !important;
+           ">
 
         <!-- 順位バッジ -->
         <div class="rank-badge">
@@ -46,7 +51,8 @@
         </div>
 
         <!-- ユーザー名：車名 -->
-        <div class="ranking-title" style="text-align:left !important;">
+        <div class="ranking-title"
+             style="text-align:left !important; width:100% !important; align-self:stretch !important;">
           <a href="/user/{{ post.username | urlencode }}"
              class="ranking-user"
              onclick="event.stopPropagation();">
@@ -61,10 +67,9 @@
           <div class="post-text"
                style="
                  width:100% !important;
+                 align-self:stretch !important;
                  display:block !important;
                  text-align:left !important;
-                 justify-content:flex-start !important;
-                 align-items:flex-start !important;
                  margin-top:6px !important;
                ">
             {{ post.comment }}
@@ -73,22 +78,24 @@
 
         <!-- 画像 -->
         {% if post.image %}
-          <div class="post-image">
+          <div class="post-image" style="width:100% !important; align-self:stretch !important;">
             <img src="{{ post.image }}" alt="投稿画像">
           </div>
         {% endif %}
 
-        <!-- メタ情報 -->
+        <!-- メタ情報（日時：左 / ❤️：右） -->
         <div class="ranking-meta"
              style="
                width:100% !important;
+               align-self:stretch !important;
                display:flex !important;
                align-items:center !important;
                justify-content:flex-start !important;
                text-align:left !important;
              ">
-          <span style="text-align:left !important; justify-content:flex-start !important;">{{ post.created_at }}</span>
-          <span class="ranking-like" style="margin-left:auto !important; text-align:right !important;">❤️ {{ post.likes }}</span>
+          <span style="text-align:left !important;">{{ post.created_at }}</span>
+          <span class="ranking-like"
+                style="margin-left:auto !important; text-align:right !important;">❤️ {{ post.likes }}</span>
         </div>
 
       </div>
@@ -99,7 +106,7 @@
     </p>
   {% endif %}
 
-  <!-- ▼ テンプレ反映テスト（これが出なければ、そもそもこの ranking.html が使われてない） -->
+  <!-- ▼ テンプレ反映テスト（直ったら消してOK） -->
   <div style="position:fixed; right:10px; bottom:10px; z-index:99999; background:#ff0033; color:#fff; padding:8px 10px; border-radius:10px; font-weight:900; font-size:12px; box-shadow:0 6px 18px rgba(0,0,0,0.2);">
     RANKING-TEMPLATE-OK
   </div>
