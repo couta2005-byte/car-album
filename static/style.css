@@ -100,7 +100,8 @@ textarea {
 /* =========================
    Post Card（共通）
 ========================= */
-.post {
+.post,
+.post-card {
   background: #fff;
   border-radius: 18px;
   padding: 14px;
@@ -108,7 +109,8 @@ textarea {
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-.post-top {
+.post-top,
+.post-header {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -125,7 +127,8 @@ textarea {
   font-weight: 900;
 }
 
-.post-date {
+.post-date,
+.post-time {
   font-size: 12px;
   color: #536471;
   white-space: nowrap;
@@ -139,7 +142,7 @@ textarea {
 }
 
 /* =========================
-   Image（※絶対にサイズ変更しない）
+   Image（サイズ維持）
 ========================= */
 .post-image {
   margin-top: 10px;
@@ -178,7 +181,22 @@ textarea {
 }
 
 /* =========================
-   Ranking Tabs（日・週・月）
+   Back link
+========================= */
+.back-link {
+  display: inline-block;
+  margin: 4px 0 12px;
+  color: #0f1419;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   Ranking Tabs
 ========================= */
 .ranking-tabs {
   display: flex;
@@ -204,12 +222,8 @@ textarea {
   color: #fff;
 }
 
-.ranking-tab:active {
-  transform: scale(0.97);
-}
-
 /* =========================
-   Ranking（完成形）
+   Ranking Card
 ========================= */
 .ranking-card {
   position: relative;
@@ -218,9 +232,13 @@ textarea {
   margin-bottom: 22px;
   background: #fff;
   box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  cursor: pointer;
 }
 
-/* 左アクセント */
+.ranking-card:active {
+  transform: scale(0.995);
+}
+
 .ranking-card::before {
   content: "";
   position: absolute;
@@ -235,7 +253,6 @@ textarea {
 .rank-2::before { background: #adb5bd; }
 .rank-3::before { background: #f1a36b; }
 
-/* 順位バッジ */
 .rank-badge {
   position: absolute;
   left: 18px;
@@ -255,11 +272,9 @@ textarea {
 .rank-2 .rank-badge { background: #9ca3af; }
 .rank-3 .rank-badge { background: #c97a3d; }
 
-/* タイトル */
 .ranking-title {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
   gap: 4px;
   font-size: 16px;
 }
@@ -268,22 +283,10 @@ textarea {
   font-weight: 800;
 }
 
-.ranking-sep {
-  color: #666;
-}
-
 .ranking-car {
   font-weight: 900;
 }
 
-/* コメント */
-.ranking-comment {
-  margin-top: 6px;
-  font-size: 14px;
-  color: #333;
-}
-
-/* メタ情報 */
 .ranking-meta {
   margin-top: 10px;
   display: flex;
@@ -297,218 +300,9 @@ textarea {
   color: #e0245e;
 }
 
-/* ランキング内画像（サイズ完全維持） */
-.ranking-card .post-image {
-  max-height: none;
-}
-
 /* =========================
-   Mobile
+   Comment Section（統一・安定）
 ========================= */
-@media (max-width: 600px) {
-  .logo {
-    font-size: 20px;
-  }
-}
-
-/* ===== ranking period buttons FIX ===== */
-.period-switch {
-  display: flex;
-  gap: 10px;
-  margin: 12px 0 20px;
-}
-
-.period-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 56px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  background: #f1f1f1;
-  color: #111 !important;
-  font-weight: 700;
-  text-decoration: none !important;
-  border: none;
-}
-
-.period-btn.active {
-  background: #000;
-  color: #fff !important;
-}
-
-/* =========================
-   追加：ランキング見出し（ranking.htmlで使用）
-========================= */
-.ranking-heading {
-  font-size: 20px;
-  font-weight: 900;
-  margin: 6px 0 16px;
-}
-
-/* =========================
-   追加：ランキングカードのクリック感（カード→投稿詳細）
-========================= */
-.ranking-card {
-  cursor: pointer;
-}
-
-.ranking-card:active {
-  transform: scale(0.995);
-}
-
-.ranking-user-link {
-  color: #0f1419;
-  text-decoration: none;
-  font-weight: 900;
-}
-
-.ranking-user-link:hover {
-  text-decoration: underline;
-}
-
-/* =========================
-   追加：投稿詳細の戻るリンク
-========================= */
-.back-link {
-  display: inline-block;
-  margin: 4px 0 12px;
-  color: #0f1419;
-  text-decoration: none;
-  font-weight: 700;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-/* ===== コメント欄 ===== */
-.comments {
-  margin-top: 32px;
-}
-
-.comments-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin-bottom: 12px;
-}
-
-.comment-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 20px;
-}
-
-.comment-item {
-  background: #f7f9fb;
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-}
-
-.comment-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.comment-user {
-  font-weight: 700;
-  color: #0f1419;
-  text-decoration: none;
-}
-
-.comment-user:hover {
-  text-decoration: underline;
-}
-
-.comment-date {
-  font-size: 12px;
-  color: #8899a6;
-}
-
-.comment-body {
-  font-size: 14px;
-  line-height: 1.6;
-  color: #0f1419;
-}
-
-/* コメントフォーム */
-.comment-form textarea {
-  width: 100%;
-  border-radius: 14px;
-  padding: 12px;
-  border: 1px solid #ddd;
-  resize: vertical;
-  font-size: 14px;
-}
-
-.comment-form button {
-  margin-top: 8px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.comment-form button:hover {
-  opacity: 0.9;
-}
-/* ===== コメント表示 修正（最優先） ===== */
-
-.comment-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.comment-item {
-  background: #fff;
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  color: #111;          /* ← 重要 */
-  opacity: 1;           /* ← 重要 */
-}
-
-.comment-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.comment-user {
-  font-weight: 600;
-  color: #0f1419;
-  text-decoration: none;
-}
-
-.comment-date {
-  font-size: 12px;
-  color: #666;
-}
-
-.comment-body {
-  font-size: 14px;
-  color: #0f1419;       /* ← 重要 */
-  line-height: 1.5;
-  white-space: pre-wrap;
-}
-
-/* スケルトン・ダミーを完全無効化 */
-.comment-skeleton,
-.comment-item.placeholder {
-  display: none !important;
-}
-/* =========================
-   Comment UI (X風・完成形)
-========================= */
-
-/* コメント全体セクション */
 .comment-section {
   margin-top: 36px;
   padding-top: 24px;
@@ -521,7 +315,6 @@ textarea {
   margin-bottom: 16px;
 }
 
-/* コメント1件 */
 .comment-item {
   background: #f7f9fb;
   border-radius: 16px;
@@ -529,7 +322,6 @@ textarea {
   margin-bottom: 12px;
 }
 
-/* ヘッダー（ユーザー名 + 時刻） */
 .comment-header {
   display: flex;
   justify-content: space-between;
@@ -537,43 +329,33 @@ textarea {
   margin-bottom: 4px;
 }
 
-/* ユーザー名 */
-.comment-header strong,
-.comment-user {
+.comment-header strong {
   font-size: 14px;
   font-weight: 800;
   color: #0f1419;
 }
 
-/* 時刻 */
-.comment-time,
-.comment-date {
+.comment-time {
   font-size: 12px;
   color: #8899a6;
-  white-space: nowrap;
 }
 
-/* コメント本文 */
 .comment-body {
   font-size: 14px;
   line-height: 1.6;
   color: #0f1419;
   white-space: pre-wrap;
   word-break: break-word;
-  padding-left: 2px;
 }
 
-/* コメントなし表示 */
 .no-comment {
   font-size: 14px;
   color: #8899a6;
-  margin-bottom: 12px;
 }
 
 /* =========================
-   Comment Form (入力欄)
+   Comment Form
 ========================= */
-
 .comment-form {
   margin-top: 28px;
 }
@@ -591,16 +373,13 @@ textarea {
   border-radius: 16px;
   border: 2px solid #cfd9de;
   font-size: 14px;
-  resize: vertical;
 }
 
-/* フォーカス時 */
 .comment-form textarea:focus {
   outline: none;
   border-color: #1d9bf0;
 }
 
-/* 送信ボタン */
 .comment-form button {
   margin-top: 10px;
   padding: 10px 22px;
@@ -617,7 +396,9 @@ textarea {
   opacity: 0.92;
 }
 
-/* ログイン案内 */
+/* =========================
+   Login Note
+========================= */
 .login-note {
   margin-top: 20px;
   font-size: 14px;
@@ -632,4 +413,13 @@ textarea {
 
 .login-note a:hover {
   text-decoration: underline;
+}
+
+/* =========================
+   Mobile
+========================= */
+@media (max-width: 600px) {
+  .logo {
+    font-size: 20px;
+  }
 }
