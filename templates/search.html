@@ -52,7 +52,11 @@
 
     {% if posts and posts|length > 0 %}
       {% for p in posts %}
-        <article class="post">
+        <article class="post"
+                 role="link"
+                 tabindex="0"
+                 onclick="location.href='/post/{{ p.id }}';"
+                 onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ p.id }}'; }">
 
           <div class="post-top">
             <div>
@@ -63,11 +67,25 @@
               </div>
 
               <div class="post-sub">
-                <a href="/user/{{ p.username | urlencode }}">
+                <a href="/user/{{ p.username | urlencode }}"
+                   onclick="event.stopPropagation();">
                   @{{ p.username }}
                 </a>
                 <span>・</span>
-                <span>❤️ {{ p.likes }}</span>
+
+                {% if user %}
+                  <!-- ✅ リロード無しいいね（検索結果） -->
+                  <button type="button"
+                          class="like-btn js-like {% if p.id in liked_posts %}active{% endif %}"
+                          data-post-id="{{ p.id }}"
+                          data-liked="{% if p.id in liked_posts %}1{% else %}0{% endif %}"
+                          onclick="event.stopPropagation();">
+                    <span class="like-icon">{% if p.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+                    <span class="like-count">{{ p.likes }}</span>
+                  </button>
+                {% else %}
+                  <span>🤍 {{ p.likes }}</span>
+                {% endif %}
               </div>
             </div>
 
@@ -103,6 +121,63 @@
   {% endif %}
 
 </main>
+
+<script>
+  // ✅ 検索：いいね即反映（/api/like/{post_id}）
+  // ※記事クリック遷移より先に止めるため capture=true
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".js-like");
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const postId = btn.dataset.postId;
+    if (!postId) return;
+
+    if (btn.dataset.loading === "1") return;
+    btn.dataset.loading = "1";
+
+    try {
+      const res = await fetch(`/api/like/${postId}`, {
+        method: "POST",
+        credentials: "same-origin"
+      });
+
+      if (res.status === 401) {
+        alert("ログインしてね");
+        return;
+      }
+      if (!res.ok) {
+        alert("いいね失敗（APIエラー）");
+        return;
+      }
+
+      const data = await res.json();
+      if (!data.ok) {
+        alert(data.error || "いいね失敗");
+        return;
+      }
+
+      // 数字更新
+      const countEl = btn.querySelector(".like-count");
+      if (countEl) countEl.textContent = String(data.likes);
+
+      // 状態更新
+      btn.dataset.liked = data.liked ? "1" : "0";
+      btn.classList.toggle("active", !!data.liked);
+
+      // アイコン更新
+      const iconEl = btn.querySelector(".like-icon");
+      if (iconEl) iconEl.textContent = data.liked ? "❤️" : "🤍";
+
+    } catch (err) {
+      alert("通信エラー");
+    } finally {
+      btn.dataset.loading = "0";
+    }
+  }, true);
+</script>
 
 </body>
 </html>
