@@ -5,7 +5,7 @@
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- キャッシュ回避：数字を変えるだけで強制更新 -->
-  <link rel="stylesheet" href="/static/style.css?v=2002">
+  <link rel="stylesheet" href="/static/style.css?v=2003">
 </head>
 <body>
 
@@ -57,26 +57,23 @@
           </div>
         {% endif %}
 
-        <!-- メタ情報：日時（左） / ❤️（右：押せる） -->
+        <!-- メタ情報 -->
         <div class="ranking-meta">
           <span>{{ post.created_at | trim }}</span>
 
-          <!-- ✅ ここが「押せる❤️」：まずフォームで確実に動かす（JSがあればリロード無し） -->
+          <!-- ✅ 押せる❤️（フォームは保険、JSでリロードは止める） -->
           <form class="like-form"
                 method="post"
                 action="{% if post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}"
                 onclick="event.stopPropagation();"
                 style="margin-left:auto;">
-
             <button type="submit"
                     class="ranking-like js-like {% if post.id in liked_posts %}active{% endif %}"
                     data-post-id="{{ post.id }}"
                     data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
               ❤️ <span class="like-count">{{ post.likes }}</span>
             </button>
-
           </form>
-
         </div>
 
       </div>
@@ -90,7 +87,7 @@
 </main>
 
 <script>
-  // ✅ いいね即反映（/api/like/{post_id}が存在する時だけ）
+  // ✅ いいね即反映（絶対リロードさせない）
   document.addEventListener("submit", async (e) => {
     const form = e.target.closest(".like-form");
     if (!form) return;
@@ -98,65 +95,50 @@
     const btn = form.querySelector(".js-like");
     if (!btn) return;
 
-    // 未ログインなら、フォーム送信で /login に飛ぶ挙動を残したいので止めない
-    // → ただしAPIが成功した時だけ preventDefault する
+    e.preventDefault(); // ←これでリロード100%止まる
+    e.stopPropagation();
 
     const postId = btn.dataset.postId;
     if (!postId) return;
 
     // 連打防止
-    if (btn.dataset.loading === "1") {
-      e.preventDefault();
-      return;
-    }
+    if (btn.dataset.loading === "1") return;
     btn.dataset.loading = "1";
 
     try {
-      // まずAPIがある前提で叩く（無ければ404になる）
       const res = await fetch(`/api/like/${postId}`, {
         method: "POST",
         credentials: "same-origin"
       });
 
-      // APIがない(404) or 何かで失敗 → フォーム送信に任せる（リロードあり）
-      if (res.status === 404) {
-        btn.dataset.loading = "0";
-        return; // preventDefaultしない＝普通に送信される
-      }
-
-      // 未ログインは APIが401返す → ここでは送信を止めず /login に飛ばしたい
       if (res.status === 401) {
-        btn.dataset.loading = "0";
-        return; // preventDefaultしない
+        alert("ログインしてね");
+        return;
       }
-
       if (!res.ok) {
-        btn.dataset.loading = "0";
-        return; // preventDefaultしない
+        alert("いいね失敗（APIエラー）");
+        return;
       }
 
       const data = await res.json();
       if (!data.ok) {
-        btn.dataset.loading = "0";
-        return; // preventDefaultしない
+        alert(data.error || "いいね失敗");
+        return;
       }
-
-      // ✅ API成功した時だけリロードを止める
-      e.preventDefault();
 
       // 数字更新
       const countEl = btn.querySelector(".like-count");
       if (countEl) countEl.textContent = String(data.likes);
 
-      // 状態更新（見た目）
+      // 状態更新
       btn.dataset.liked = data.liked ? "1" : "0";
       btn.classList.toggle("active", !!data.liked);
 
-      // 次回フォーム送信のactionも切替（保険）
+      // フォームactionも切り替え（保険）
       form.action = data.liked ? `/unlike/${postId}` : `/like/${postId}`;
 
     } catch (err) {
-      // 通信失敗 → フォーム送信に任せる
+      alert("通信エラー");
     } finally {
       btn.dataset.loading = "0";
     }
