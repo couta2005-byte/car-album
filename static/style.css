@@ -423,3 +423,20 @@ textarea {
     font-size: 20px;
   }
 }
+/* ===== コメント強制表示FIX ===== */
+.comment-item {
+  display: block !important;
+  opacity: 1 !important;
+  background: #f7f9fb !important;
+}
+
+.comment-header,
+.comment-body {
+  display: block !important;
+  visibility: visible !important;
+  color: #0f1419 !important;
+}
+
+.comment-body {
+  white-space: pre-wrap;
+}
