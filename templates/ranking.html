@@ -5,7 +5,7 @@
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- キャッシュ回避：数字を変えるだけで強制更新 -->
-  <link rel="stylesheet" href="/static/style.css?v=2003">
+  <link rel="stylesheet" href="/static/style.css?v=2004">
 </head>
 <body>
 
@@ -13,7 +13,7 @@
 
 <main class="container">
 
-  <!-- ▼ 期間切り替え（CSSと完全一致） -->
+  <!-- 期間切り替え -->
   <div class="ranking-tabs">
     <a href="/ranking?period=day"
        class="ranking-tab {% if period=='day' %}active{% endif %}">日</a>
@@ -45,7 +45,7 @@
           <span class="ranking-car">{{ post.car }}</span>
         </div>
 
-        <!-- コメント：★インデント空白が表示されないよう1行で出す + trim -->
+        <!-- コメント -->
         {% if post.comment %}
           <div class="post-text">{{ post.comment | trim }}</div>
         {% endif %}
@@ -61,17 +61,19 @@
         <div class="ranking-meta">
           <span>{{ post.created_at | trim }}</span>
 
-          <!-- ✅ 押せる❤️（フォームは保険、JSでリロードは止める） -->
+          <!-- ✅ like-btn に統一（右寄せは form に margin-left:auto） -->
           <form class="like-form"
                 method="post"
                 action="{% if post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}"
-                onclick="event.stopPropagation();"
-                style="margin-left:auto;">
+                style="margin-left:auto;"
+                onclick="event.stopPropagation();">
             <button type="submit"
-                    class="ranking-like js-like {% if post.id in liked_posts %}active{% endif %}"
+                    class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
                     data-post-id="{{ post.id }}"
-                    data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
-              ❤️ <span class="like-count">{{ post.likes }}</span>
+                    data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
+                    onclick="event.stopPropagation();">
+              <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+              <span class="like-count">{{ post.likes }}</span>
             </button>
           </form>
         </div>
@@ -87,7 +89,7 @@
 </main>
 
 <script>
-  // ✅ いいね即反映（絶対リロードさせない）
+  // ✅ submitでリロードさせない（フォーム保険を活かしつつJSで即反映）
   document.addEventListener("submit", async (e) => {
     const form = e.target.closest(".like-form");
     if (!form) return;
@@ -95,13 +97,12 @@
     const btn = form.querySelector(".js-like");
     if (!btn) return;
 
-    e.preventDefault(); // ←これでリロード100%止まる
+    e.preventDefault();
     e.stopPropagation();
 
     const postId = btn.dataset.postId;
     if (!postId) return;
 
-    // 連打防止
     if (btn.dataset.loading === "1") return;
     btn.dataset.loading = "1";
 
@@ -111,30 +112,25 @@
         credentials: "same-origin"
       });
 
-      if (res.status === 401) {
-        alert("ログインしてね");
-        return;
-      }
-      if (!res.ok) {
-        alert("いいね失敗（APIエラー）");
-        return;
-      }
+      if (res.status === 401) { alert("ログインしてね"); return; }
+      if (!res.ok) { alert("いいね失敗（APIエラー）"); return; }
 
       const data = await res.json();
-      if (!data.ok) {
-        alert(data.error || "いいね失敗");
-        return;
-      }
+      if (!data.ok) { alert(data.error || "いいね失敗"); return; }
 
       // 数字更新
       const countEl = btn.querySelector(".like-count");
       if (countEl) countEl.textContent = String(data.likes);
 
       // 状態更新
-      btn.dataset.liked = data.liked ? "1" : "0";
       btn.classList.toggle("active", !!data.liked);
+      btn.dataset.liked = data.liked ? "1" : "0";
 
-      // フォームactionも切り替え（保険）
+      // アイコン更新
+      const iconEl = btn.querySelector(".like-icon");
+      if (iconEl) iconEl.textContent = data.liked ? "❤️" : "🤍";
+
+      // フォームactionも切り替え（JS無効時の保険）
       form.action = data.liked ? `/unlike/${postId}` : `/like/${postId}`;
 
     } catch (err) {
@@ -142,7 +138,7 @@
     } finally {
       btn.dataset.loading = "0";
     }
-  });
+  }, true); // capture=true で安全
 </script>
 
 </body>
