@@ -557,7 +557,7 @@ textarea {
 }
 
 /* =========================
-   Comment 強制表示FIX（最後に置く：上書きの最終防衛ライン）
+   Comment 強制表示FIX（最後に置く：上書き doesn’t lose)
    ※「消える」「スケルトン化」「文字が透明化」を全部潰す
 ========================= */
 .comment-item {
@@ -571,9 +571,11 @@ textarea {
   visibility: visible !important;
   color: #0f1419 !important;
 }
+
 /* =========================
-   Ranking: 中央寄り完全FIX（最終防衛）
-   ※一言・日時が真ん中に寄る事故を強制で潰す
+   Ranking: 中央寄り完全FIX（最終防衛・改良版）
+   ※現状の「一言・日時が中央寄り」を確実に左へ戻す
+   ※ランキング以外を壊さないため、範囲は ranking-card 内に限定
 ========================= */
 
 /* ランキングカード内は基本左寄せに固定 */
@@ -581,9 +583,14 @@ textarea {
   text-align: left !important;
 }
 
+/* もし <center> が混ざってても左寄せに戻す */
+.ranking-card center {
+  display: block !important;
+  text-align: left !important;
+}
+
 /* 「一言」っぽい要素を総当たりで左寄せ固定（クラス名が違っても刺さる） */
 .ranking-card p,
-.ranking-card div,
 .ranking-card span,
 .ranking-card .post-comment,
 .ranking-card .post-text,
@@ -595,22 +602,45 @@ textarea {
   text-align: left !important;
 }
 
-/* もし一言/日時が “flexで中央寄せ” されてる場合も潰す */
+/* 親が flex で中央寄せしてる事故を潰す（div全部を壊すと他が死ぬので “候補クラス” を広めに補足） */
+.ranking-card .ranking-body,
+.ranking-card .ranking-content,
+.ranking-card .ranking-main,
+.ranking-card .ranking-text,
+.ranking-card .ranking-comment,
+.ranking-card .rank-body,
+.ranking-card .rank-content,
+.ranking-card .rank-main,
+.ranking-card .rank-text,
+.ranking-card .rank-comment {
+  text-align: left !important;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+}
+
+/* 子要素も左へ寄せる（親flex中央の残りカス対策） */
+.ranking-card .ranking-body > *,
+.ranking-card .ranking-content > *,
+.ranking-card .ranking-main > *,
+.ranking-card .rank-body > *,
+.ranking-card .rank-content > *,
+.ranking-card .rank-main > * {
+  align-self: flex-start !important;
+}
+
+/* 一言/日時が “inline-block” や “margin:auto” で中央寄りになる事故も潰す */
 .ranking-card .post-comment,
 .ranking-card .post-text,
 .ranking-card .comment,
 .ranking-card .ranking-comment,
 .ranking-card .ranking-text,
-.ranking-card .ranking-body {
-  display: block !important;
-  width: 100% !important;
-  justify-content: flex-start !important;
-  align-items: flex-start !important;
+.ranking-card .ranking-body,
+.ranking-card p {
   margin-left: 0 !important;
   margin-right: auto !important;
 }
 
-/* メタ行：日時は左、❤️は右に固定（どんな中身でも崩れにくい） */
+/* メタ行：日時は左、❤️は右に固定 */
 .ranking-meta {
   display: flex !important;
   align-items: center !important;
