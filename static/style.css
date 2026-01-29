@@ -504,3 +504,132 @@ textarea {
 .comment-item.placeholder {
   display: none !important;
 }
+/* =========================
+   Comment UI (X風・完成形)
+========================= */
+
+/* コメント全体セクション */
+.comment-section {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid #e6ecf0;
+}
+
+.comment-section h3 {
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 16px;
+}
+
+/* コメント1件 */
+.comment-item {
+  background: #f7f9fb;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+/* ヘッダー（ユーザー名 + 時刻） */
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+/* ユーザー名 */
+.comment-header strong,
+.comment-user {
+  font-size: 14px;
+  font-weight: 800;
+  color: #0f1419;
+}
+
+/* 時刻 */
+.comment-time,
+.comment-date {
+  font-size: 12px;
+  color: #8899a6;
+  white-space: nowrap;
+}
+
+/* コメント本文 */
+.comment-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #0f1419;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding-left: 2px;
+}
+
+/* コメントなし表示 */
+.no-comment {
+  font-size: 14px;
+  color: #8899a6;
+  margin-bottom: 12px;
+}
+
+/* =========================
+   Comment Form (入力欄)
+========================= */
+
+.comment-form {
+  margin-top: 28px;
+}
+
+.comment-form h4 {
+  font-size: 16px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 2px solid #cfd9de;
+  font-size: 14px;
+  resize: vertical;
+}
+
+/* フォーカス時 */
+.comment-form textarea:focus {
+  outline: none;
+  border-color: #1d9bf0;
+}
+
+/* 送信ボタン */
+.comment-form button {
+  margin-top: 10px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.comment-form button:hover {
+  opacity: 0.92;
+}
+
+/* ログイン案内 */
+.login-note {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #536471;
+}
+
+.login-note a {
+  color: #1d9bf0;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.login-note a:hover {
+  text-decoration: underline;
+}

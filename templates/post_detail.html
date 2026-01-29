@@ -47,7 +47,8 @@
       {% endif %}
 
       {% if user == post.username %}
-        <form action="/delete/{{ post.id }}" method="post">
+        <form action="/delete/{{ post.id }}" method="post"
+              onsubmit="return confirm('この投稿を削除しますか？');">
           <button class="delete-btn">🗑 削除</button>
         </form>
       {% endif %}
@@ -56,17 +57,19 @@
 
   <!-- ================= コメント一覧 ================= -->
   <section class="comment-section">
-    <h3>コメント ({{ post.comment_count }})</h3>
+    <h3>コメント ({{ post.comments | length }})</h3>
 
     {% if post.comments %}
       {% for c in post.comments %}
         <div class="comment-item">
           <div class="comment-header">
-            <strong>{{ c.username }}</strong>
-            <span class="comment-time">{{ c.created_at }}</span>
+            <strong>{{ c[1] }}</strong>
+            <span class="comment-time">
+              {{ (c[3] + timedelta(hours=9)).strftime("%Y-%m-%d %H:%M") }}
+            </span>
           </div>
           <div class="comment-body">
-            {{ c.comment }}
+            {{ c[2] }}
           </div>
         </div>
       {% endfor %}
@@ -80,7 +83,8 @@
     <section class="comment-form">
       <h4>この投稿にコメントする</h4>
       <form action="/comment/{{ post.id }}" method="post">
-        <textarea name="comment" rows="3" placeholder="この投稿についてどう思う？" required></textarea>
+        <textarea name="comment" rows="3"
+          placeholder="この投稿についてどう思う？" required></textarea>
         <button type="submit">コメントを送信</button>
       </form>
     </section>
