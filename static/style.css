@@ -553,3 +553,25 @@ textarea {
   visibility: visible !important;
   color: #0f1419 !important;
 }
+/* ===== Ranking: 日時が中央寄りになるのを修正 ===== */
+.ranking-card {
+  text-align: left; /* 念のため */
+}
+
+/* メタ行：左に日時、右に❤️にする */
+.ranking-meta {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.ranking-meta .ranking-like {
+  margin-left: auto; /* これで❤️が右端に飛ぶ */
+}
+
+/* 一言がもし中央寄りなら、ここで左寄せ固定 */
+.ranking-card .post-comment,
+.ranking-card .post-text,
+.ranking-card .comment,
+.ranking-card p {
+  text-align: left;
+}
