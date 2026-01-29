@@ -12,18 +12,18 @@
 
 <main class="container">
 
-  <!-- 期間切り替え -->
-  <div class="period-switch">
+  <!-- ▼ 期間切り替え（CSSと完全一致） -->
+  <div class="ranking-tabs">
     <a href="/ranking?period=day"
-       class="period-btn {% if period=='day' %}active{% endif %}">
+       class="ranking-tab {% if period=='day' %}active{% endif %}">
       日
     </a>
     <a href="/ranking?period=week"
-       class="period-btn {% if period=='week' %}active{% endif %}">
+       class="ranking-tab {% if period=='week' %}active{% endif %}">
       週
     </a>
     <a href="/ranking?period=month"
-       class="period-btn {% if period=='month' %}active{% endif %}">
+       class="ranking-tab {% if period=='month' %}active{% endif %}">
       月
     </a>
   </div>
@@ -43,25 +43,25 @@
           {{ loop.index }}
         </div>
 
-        <!-- タイトル：ユーザー名：車名 -->
+        <!-- ユーザー名：車名 -->
         <div class="ranking-title">
           <a href="/user/{{ post.username | urlencode }}"
-             class="ranking-user ranking-user-link"
+             class="ranking-user"
              onclick="event.stopPropagation();">
             {{ post.username }}
           </a>
-          <span class="ranking-sep">：</span>
+          <span>：</span>
           <span class="ranking-car">{{ post.car }}</span>
         </div>
 
         <!-- コメント -->
         {% if post.comment %}
-          <div class="ranking-comment">
+          <div class="post-text">
             {{ post.comment }}
           </div>
         {% endif %}
 
-        <!-- 画像（サイズはCSS任せ・変更なし） -->
+        <!-- 画像 -->
         {% if post.image %}
           <div class="post-image">
             <img src="{{ post.image }}" alt="投稿画像">
@@ -70,7 +70,7 @@
 
         <!-- メタ情報 -->
         <div class="ranking-meta">
-          <span class="ranking-date">{{ post.created_at }}</span>
+          <span>{{ post.created_at }}</span>
           <span class="ranking-like">❤️ {{ post.likes }}</span>
         </div>
 
