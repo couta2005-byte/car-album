@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <!-- キャッシュ対策：変わらない時は v= の数字を変える -->
+  <link rel="stylesheet" href="/static/style.css?v=1">
 </head>
 <body>
 
@@ -36,7 +37,8 @@
            role="link"
            tabindex="0"
            onclick="location.href='/post/{{ post.id }}';"
-           onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }">
+           onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }"
+           style="text-align:left;">
 
         <!-- 順位バッジ -->
         <div class="rank-badge">
@@ -44,7 +46,7 @@
         </div>
 
         <!-- ユーザー名：車名 -->
-        <div class="ranking-title">
+        <div class="ranking-title" style="text-align:left;">
           <a href="/user/{{ post.username | urlencode }}"
              class="ranking-user"
              onclick="event.stopPropagation();">
@@ -56,7 +58,7 @@
 
         <!-- コメント -->
         {% if post.comment %}
-          <div class="post-text">
+          <div class="post-text" style="text-align:left; width:100%; margin-top:6px;">
             {{ post.comment }}
           </div>
         {% endif %}
@@ -69,9 +71,10 @@
         {% endif %}
 
         <!-- メタ情報 -->
-        <div class="ranking-meta">
-          <span>{{ post.created_at }}</span>
-          <span class="ranking-like">❤️ {{ post.likes }}</span>
+        <div class="ranking-meta"
+             style="display:flex; align-items:center; justify-content:space-between; width:100%; text-align:left;">
+          <span style="text-align:left;">{{ post.created_at }}</span>
+          <span class="ranking-like" style="text-align:right;">❤️ {{ post.likes }}</span>
         </div>
 
       </div>
