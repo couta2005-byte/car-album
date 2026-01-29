@@ -1,59 +1,56 @@
-// static/like.js
-// 全ページ共通：.js-like を押したら /api/like/{id} でトグルして即反映
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".js-like");
-  if (!btn) return;
+<header class="header">
+  <div class="header-inner">
+    <!-- ロゴ -->
+    <a href="/" class="logo">Carbum</a>
 
-  // 親の onclick 遷移/フォームsubmit を止める（最重要）
-  e.preventDefault();
-  e.stopPropagation();
+    <nav class="nav">
+      <!-- 共通 -->
+      <a href="/"
+         class="nav-link {% if mode=='home' %}active{% endif %}">
+        おすすめ
+      </a>
 
-  const postId = btn.dataset.postId;
-  if (!postId) return;
+      <a href="/search"
+         class="nav-link {% if mode=='search' %}active{% endif %}">
+        検索
+      </a>
 
-  // 連打防止
-  if (btn.dataset.loading === "1") return;
-  btn.dataset.loading = "1";
-  btn.disabled = true;
+      {% if user %}
+        <!-- ===== ログイン中 ===== -->
+        <a href="/following"
+           class="nav-link {% if mode=='following' %}active{% endif %}">
+          フォロー中
+        </a>
 
-  try {
-    const res = await fetch(`/api/like/${postId}`, {
-      method: "POST",
-      credentials: "same-origin",
-    });
+        <a href="/ranking?period=day"
+           class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
+          ランキング
+        </a>
 
-    if (res.status === 401) {
-      alert("ログインしてね");
-      return;
-    }
-    if (!res.ok) {
-      alert("いいね失敗（APIエラー）");
-      return;
-    }
+        <a href="/user/{{ user | urlencode }}"
+           class="nav-link {% if mode=='profile' %}active{% endif %}">
+          プロフィール
+        </a>
 
-    const data = await res.json();
-    if (!data.ok) {
-      alert(data.error || "いいね失敗");
-      return;
-    }
+        <form action="/logout" method="post" style="display:inline;">
+          <button type="submit" class="logout-btn">
+            ログアウト
+          </button>
+        </form>
 
-    // count
-    const countEl = btn.querySelector(".like-count");
-    if (countEl) countEl.textContent = String(data.likes);
+      {% else %}
+        <!-- ===== 未ログイン ===== -->
+        <a href="/login" class="nav-link">
+          ログイン
+        </a>
 
-    // state
-    btn.dataset.liked = data.liked ? "1" : "0";
-    btn.classList.toggle("active", !!data.liked);
-    btn.setAttribute("aria-pressed", data.liked ? "true" : "false");
+        <a href="/register" class="nav-link">
+          新規登録
+        </a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
 
-    // icon
-    const iconEl = btn.querySelector(".like-icon");
-    if (iconEl) iconEl.textContent = data.liked ? "❤️" : "🤍";
-
-  } catch (err) {
-    alert("通信エラー");
-  } finally {
-    btn.dataset.loading = "0";
-    btn.disabled = false;
-  }
-}, true); // capture=true が大事（記事onclickより先に止める）
+<!-- ✅ 全ページ共通：いいねJS（ここ1回だけでOK） -->
+<script src="/static/like.js?v=2004" defer></script>
