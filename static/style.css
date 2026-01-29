@@ -511,3 +511,7 @@ textarea {
   .header-inner { padding: 12px 12px; }
   .container { padding: 12px 12px 30px; }
 }
+/* Like button position unified: always right */
+.post-actions .like-btn {
+  margin-left: auto;
+}
