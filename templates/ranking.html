@@ -5,7 +5,7 @@
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- キャッシュ回避：数字を変えるだけで強制更新 -->
-  <link rel="stylesheet" href="/static/style.css?v=2000">
+  <link rel="stylesheet" href="/static/style.css?v=2001">
 </head>
 <body>
 
@@ -57,10 +57,19 @@
           </div>
         {% endif %}
 
-        <!-- メタ情報：★念のため trim -->
+        <!-- メタ情報：日時（左） / ❤️（右：押せる） -->
         <div class="ranking-meta">
           <span>{{ post.created_at | trim }}</span>
-          <span class="ranking-like">❤️ {{ post.likes }}</span>
+
+          <!-- ❤️：リロード無し -->
+          <button type="button"
+                  class="ranking-like js-like {% if post.id in liked_posts %}active{% endif %}"
+                  data-post-id="{{ post.id }}"
+                  data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
+                  onclick="event.stopPropagation();"
+                  aria-label="いいね">
+            ❤️ <span class="like-count">{{ post.likes }}</span>
+          </button>
         </div>
 
       </div>
@@ -72,5 +81,59 @@
   {% endif %}
 
 </main>
+
+<script>
+  // ランキング：いいね即反映（/api/like/{post_id}）
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".js-like");
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const postId = btn.dataset.postId;
+    if (!postId) return;
+
+    // 連打防止
+    if (btn.dataset.loading === "1") return;
+    btn.dataset.loading = "1";
+
+    try {
+      const res = await fetch(`/api/like/${postId}`, {
+        method: "POST",
+        credentials: "same-origin"
+      });
+
+      if (res.status === 401) {
+        alert("ログインしてね");
+        return;
+      }
+      if (!res.ok) {
+        alert("いいね失敗");
+        return;
+      }
+
+      const data = await res.json();
+      if (!data.ok) {
+        alert(data.error || "いいね失敗");
+        return;
+      }
+
+      // 数字更新
+      const countEl = btn.querySelector(".like-count");
+      if (countEl) countEl.textContent = String(data.likes);
+
+      // 状態更新
+      btn.dataset.liked = data.liked ? "1" : "0";
+      btn.classList.toggle("active", !!data.liked);
+
+    } catch (err) {
+      alert("通信エラー");
+    } finally {
+      btn.dataset.loading = "0";
+    }
+  });
+</script>
+
 </body>
 </html>

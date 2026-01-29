@@ -653,3 +653,14 @@ textarea {
   margin-left: auto !important;
   text-align: right !important;
 }
+/* ranking like button 安定化 */
+.ranking-like {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+.ranking-like.active {
+  opacity: 1;
+}

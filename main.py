@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, Form, UploadFile, File, Cookie, Query
-from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -267,7 +267,6 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", lim
             "comment_count": len(post_comments)
         })
     return posts
-
 # ======================
 # top
 # ======================
@@ -506,6 +505,7 @@ def add_comment(
 
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
+
 # ======================
 # profile（復旧）
 # ======================
@@ -557,7 +557,6 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
         "liked_posts": liked_posts,
         "mode": "profile"
     })
-
 # ======================
 # profile edit
 # ======================
@@ -761,6 +760,41 @@ def unlike_post(request: Request, post_id: int, user: str = Cookie(default=None)
     return redirect_back(request, fallback=f"/post/{post_id}")
 
 # ======================
+# likes API（リロード無し用：トグルしてJSON返す）
+# ======================
+@app.post("/api/like/{post_id}")
+def api_like(post_id: int, request: Request, user: str = Cookie(default=None)):
+    if not user:
+        return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
+
+    me = unquote(user)
+
+    def _do(db, cur):
+        # 既にいいね済み？
+        cur.execute("SELECT 1 FROM likes WHERE username=%s AND post_id=%s", (me, post_id))
+        liked = cur.fetchone() is not None
+
+        if liked:
+            # 取り消し
+            cur.execute("DELETE FROM likes WHERE username=%s AND post_id=%s", (me, post_id))
+            liked = False
+        else:
+            # 追加
+            cur.execute(
+                "INSERT INTO likes (username, post_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (me, post_id)
+            )
+            liked = True
+
+        # 今のいいね数
+        cur.execute("SELECT COUNT(*) FROM likes WHERE post_id=%s", (post_id,))
+        likes_count = cur.fetchone()[0]
+
+        return {"ok": True, "liked": liked, "likes": likes_count}
+
+    return run_db(_do)
+
+# ======================
 # delete post（★元ページへ戻る安定版）
 # ======================
 @app.post("/delete/{post_id}")
@@ -799,4 +833,3 @@ if __name__ == "__main__":
         port=port,
         log_level="info"
     )
-
