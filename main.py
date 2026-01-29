@@ -160,6 +160,12 @@ def startup():
 # common
 # ======================
 def redirect_back(request: Request, fallback: str = "/"):
+    # 1) next= があれば最優先（安全な相対パスのみ許可）
+    next_url = request.query_params.get("next")
+    if next_url and next_url.startswith("/"):
+        return RedirectResponse(next_url, status_code=303)
+
+    # 2) referer があればそこへ
     referer = request.headers.get("referer")
     return RedirectResponse(referer or fallback, status_code=303)
 
@@ -323,7 +329,6 @@ def search(
 
         else:
             # 旧仕様：AND検索（maker/car/region）
-            # 旧パラメータが全部空なら、検索ページは空表示（posts=[]）でOK
             if maker or car or region:
                 posts = fetch_posts(
                     db,
@@ -382,7 +387,6 @@ def following(request: Request, user: str = Cookie(default=None)):
 
 # ======================
 # ranking（表示が空になりにくい安定版）
-# - ユーザーが「何も出ない」を踏みやすいので、dayは直近24時間にする
 # ======================
 @app.get("/ranking", response_class=HTMLResponse)
 def ranking(
@@ -429,8 +433,7 @@ def ranking(
     })
 
 # ======================
-# post detail（NEW）
-# - ランキングの「カード本体タップ」遷移先
+# post detail（中心ページ）
 # ======================
 @app.get("/post/{post_id}", response_class=HTMLResponse)
 def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)):
@@ -452,6 +455,38 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
         "liked_posts": liked_posts,
         "mode": "post_detail"
     })
+
+# ======================
+# comment（NEW：post_detail用）
+# ======================
+@app.post("/comment/{post_id}")
+def add_comment(
+    request: Request,
+    post_id: int,
+    comment: str = Form(""),
+    user: str = Cookie(default=None)
+):
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    me = unquote(user)
+    comment = (comment or "").strip()
+    if not comment:
+        # 空コメントは無視して元へ
+        return redirect_back(request, fallback=f"/post/{post_id}")
+
+    def _do(db, cur):
+        # post存在チェック（ないpost_idにコメントしない）
+        cur.execute("SELECT 1 FROM posts WHERE id=%s", (post_id,))
+        if cur.fetchone() is None:
+            return
+        cur.execute("""
+            INSERT INTO comments (post_id, username, comment, created_at)
+            VALUES (%s, %s, %s, %s)
+        """, (post_id, me, comment, utcnow_naive()))
+
+    run_db(_do)
+    return redirect_back(request, fallback=f"/post/{post_id}")
 
 # ======================
 # profile（復旧）
@@ -677,10 +712,10 @@ def logout():
     return res
 
 # ======================
-# likes
+# likes（★元ページへ戻る安定版）
 # ======================
 @app.post("/like/{post_id}")
-def like_post(post_id: int, user: str = Cookie(default=None)):
+def like_post(request: Request, post_id: int, user: str = Cookie(default=None)):
     if not user:
         return RedirectResponse("/login", status_code=303)
 
@@ -691,10 +726,10 @@ def like_post(post_id: int, user: str = Cookie(default=None)):
         )
 
     run_db(_do)
-    return RedirectResponse("/", status_code=303)
+    return redirect_back(request, fallback=f"/post/{post_id}")
 
 @app.post("/unlike/{post_id}")
-def unlike_post(post_id: int, user: str = Cookie(default=None)):
+def unlike_post(request: Request, post_id: int, user: str = Cookie(default=None)):
     if not user:
         return RedirectResponse("/login", status_code=303)
 
@@ -705,13 +740,13 @@ def unlike_post(post_id: int, user: str = Cookie(default=None)):
         )
 
     run_db(_do)
-    return RedirectResponse("/", status_code=303)
+    return redirect_back(request, fallback=f"/post/{post_id}")
 
 # ======================
-# delete post
+# delete post（★元ページへ戻る安定版）
 # ======================
 @app.post("/delete/{post_id}")
-def delete_post(post_id: int, user: str = Cookie(default=None)):
+def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)):
     if not user:
         return RedirectResponse("/login", status_code=303)
 
@@ -731,7 +766,8 @@ def delete_post(post_id: int, user: str = Cookie(default=None)):
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
 
     run_db(_do)
-    return RedirectResponse("/", status_code=303)
+    # refererがpost_detailだと詳細が消えるので、fallbackはトップへ
+    return redirect_back(request, fallback="/")
 
 # ======================
 # Render / uvicorn 起動
