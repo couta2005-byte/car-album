@@ -14,6 +14,7 @@
 
   <a href="javascript:history.back()" class="back-link">← 戻る</a>
 
+  <!-- 投稿本体 -->
   <article class="post">
 
     <div class="post-top">
@@ -60,6 +61,49 @@
 
   </article>
 
+  <!-- コメント欄 -->
+  <section class="comments">
+
+    <h3 class="comments-title">
+      コメント（{{ post.comments | length }}）
+    </h3>
+
+    {% if post.comments %}
+      <ul class="comment-list">
+        {% for c in post.comments %}
+          <li class="comment-item">
+            <div class="comment-top">
+              <a href="/user/{{ c[1] | urlencode }}" class="comment-user">
+                {{ c[1] }}
+              </a>
+              <span class="comment-date">
+                {{ (c[3] + timedelta(hours=9)).strftime("%Y-%m-%d %H:%M") if c[3] }}
+              </span>
+            </div>
+            <div class="comment-body">
+              {{ c[2] }}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="no-comment">まだコメントはありません</p>
+    {% endif %}
+
+    {% if user %}
+      <form action="/comment/{{ post.id }}" method="post" class="comment-form">
+        <textarea name="comment" rows="3" placeholder="コメントを書く…" required></textarea>
+        <button type="submit">送信</button>
+      </form>
+    {% else %}
+      <p class="login-note">
+        コメントするには <a href="/login">ログイン</a> が必要です
+      </p>
+    {% endif %}
+
+  </section>
+
 </main>
+
 </body>
 </html>
