@@ -315,6 +315,9 @@ textarea {
   box-shadow: 0 6px 18px rgba(0,0,0,0.10);
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.12s ease;
+
+  /* 追加：ランキングカード内のテキストは左寄せを基準にする（中央寄り事故防止） */
+  text-align: left;
 }
 
 .ranking-card:hover {
@@ -374,18 +377,33 @@ textarea {
   font-weight: 900;
 }
 
+/* 追加：ランキングカード内の本文（一言）が中央寄りになる事故を抑止（保険） */
+.ranking-card .post-comment,
+.ranking-card .post-text,
+.ranking-card .comment,
+.ranking-card p {
+  text-align: left;
+}
+
+/* 変更：メタ行（日時と❤️）を「左：日時 / 右：❤️」に固定する */
 .ranking-meta {
   margin-top: 10px;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: 10px;
   font-size: 12px;
   color: #666;
+
+  /* ここが原因になりやすい：space-betweenだと「中身の構造次第で日時が中央寄り」に見える */
+  justify-content: flex-start;
+  text-align: left;
 }
 
+/* 追加：❤️は右端へ */
 .ranking-like {
   font-weight: 900;
   color: #e0245e;
+  margin-left: auto;
 }
 
 /* =========================
@@ -552,26 +570,4 @@ textarea {
 .comment-body {
   visibility: visible !important;
   color: #0f1419 !important;
-}
-/* ===== Ranking: 日時が中央寄りになるのを修正 ===== */
-.ranking-card {
-  text-align: left; /* 念のため */
-}
-
-/* メタ行：左に日時、右に❤️にする */
-.ranking-meta {
-  justify-content: flex-start;
-  text-align: left;
-}
-
-.ranking-meta .ranking-like {
-  margin-left: auto; /* これで❤️が右端に飛ぶ */
-}
-
-/* 一言がもし中央寄りなら、ここで左寄せ固定 */
-.ranking-card .post-comment,
-.ranking-card .post-text,
-.ranking-card .comment,
-.ranking-card p {
-  text-align: left;
 }
