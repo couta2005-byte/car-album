@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=6">
+  <link rel="stylesheet" href="/static/style.css?v=7">
 </head>
 <body>
 
@@ -40,7 +40,6 @@
 
     <div class="post-top">
       <div class="post-title">
-        <!-- 🔹 ユーザー名はプロフィールへ（詳細遷移を止める） -->
         <a href="/user/{{ post.username | urlencode }}"
            class="post-user"
            style="position:relative; z-index:2;"
@@ -63,10 +62,8 @@
       </div>
     {% endif %}
 
-    <!-- 🔹 アクション（詳細遷移を止める） -->
     <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
       {% if user %}
-        <!-- ✅ リロード無しいいねボタン -->
         <button type="button"
                 class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
                 data-post-id="{{ post.id }}"
@@ -92,11 +89,12 @@
 </main>
 
 <script>
-  // ✅ 一覧：いいね即反映（/api/like/{post_id}）
+  // ✅ 重要：capture=true（記事onclickより先に止める）
   document.addEventListener("click", async (e) => {
     const btn = e.target.closest(".js-like");
     if (!btn) return;
 
+    // 記事クリック遷移を先に潰す
     e.preventDefault();
     e.stopPropagation();
 
@@ -144,7 +142,7 @@
     } finally {
       btn.dataset.loading = "0";
     }
-  });
+  }, true); // ←ここが最重要（capture）
 </script>
 
 </body>
