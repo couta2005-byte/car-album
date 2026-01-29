@@ -12,12 +12,10 @@
 
 <main class="container">
 
-  <!-- 戻る -->
   <a href="javascript:history.back()" class="back-link">← 戻る</a>
 
-  <!-- 投稿本体 -->
+  <!-- 投稿 -->
   <article class="post post-detail">
-
     <div class="post-top">
       <a href="/user/{{ post.username | urlencode }}" class="post-user">
         {{ post.username }}
@@ -39,24 +37,20 @@
       </div>
     {% endif %}
 
-    <!-- アクション -->
     <div class="post-actions">
-
-      <div class="post-like">
-        {% if user %}
-          {% if post.id in liked_posts %}
-            <form action="/unlike/{{ post.id }}" method="post">
-              <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
-            </form>
-          {% else %}
-            <form action="/like/{{ post.id }}" method="post">
-              <button type="submit" class="like-btn">🤍 {{ post.likes }}</button>
-            </form>
-          {% endif %}
+      {% if user %}
+        {% if post.id in liked_posts %}
+          <form action="/unlike/{{ post.id }}" method="post">
+            <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
+          </form>
         {% else %}
-          <span class="like-count">🤍 {{ post.likes }}</span>
+          <form action="/like/{{ post.id }}" method="post">
+            <button type="submit" class="like-btn">🤍 {{ post.likes }}</button>
+          </form>
         {% endif %}
-      </div>
+      {% else %}
+        <span>🤍 {{ post.likes }}</span>
+      {% endif %}
 
       {% if user == post.username %}
         <form action="/delete/{{ post.id }}" method="post"
@@ -64,58 +58,50 @@
           <button type="submit" class="delete-btn">🗑 削除</button>
         </form>
       {% endif %}
-
     </div>
   </article>
 
-  <!-- コメント欄 -->
+  <!-- コメント一覧 -->
   <section class="comments">
-
-    <h3 class="comments-title">
-      コメント（{{ post.comments | length }}）
-    </h3>
+    <h3 class="comments-title">コメント（{{ post.comments | length }}）</h3>
 
     {% if post.comments %}
       <ul class="comment-list">
         {% for c in post.comments %}
           <li class="comment-item">
-
             <div class="comment-top">
-              <a href="/user/{{ c[1] | urlencode }}" class="comment-user">
-                {{ c[1] }}
+              <a href="/user/{{ c.username | urlencode }}" class="comment-user">
+                {{ c.username }}
               </a>
-              <span class="comment-date">
-                {{ c[3] }}
-              </span>
+              <span class="comment-date">{{ c.created_at }}</span>
             </div>
-
-            <div class="comment-body">
-              {{ c[2] }}
-            </div>
-
+            <div class="comment-body">{{ c.comment }}</div>
           </li>
         {% endfor %}
       </ul>
     {% else %}
       <p class="no-comment">まだコメントはありません</p>
     {% endif %}
+  </section>
 
-    <!-- コメント投稿 -->
+  <!-- コメント投稿（ここを強調） -->
+  <section class="comment-write">
+    <h3 class="comment-write-title">この投稿にコメントする</h3>
+
     {% if user %}
       <form action="/comment/{{ post.id }}" method="post" class="comment-form">
         <textarea
           name="comment"
           rows="3"
-          placeholder="コメントを書く…"
+          placeholder="この投稿についてどう思う？"
           required></textarea>
-        <button type="submit">送信</button>
+        <button type="submit">コメントを送信</button>
       </form>
     {% else %}
       <p class="login-note">
         コメントするには <a href="/login">ログイン</a> が必要です
       </p>
     {% endif %}
-
   </section>
 
 </main>
