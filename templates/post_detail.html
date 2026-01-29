@@ -12,23 +12,31 @@
 
 <main class="container">
 
+  <!-- 戻る -->
   <a href="javascript:history.back()" class="back-link">← 戻る</a>
 
-  <!-- 投稿 -->
-  <article class="post post-detail">
+  <!-- ======================
+       投稿本体
+  ====================== -->
+  <article class="post">
+
     <div class="post-top">
       <a href="/user/{{ post.username | urlencode }}" class="post-user">
         {{ post.username }}
       </a>
-      <span class="post-date">{{ post.created_at }}</span>
+      <span class="post-date">
+        {{ post.created_at }}
+      </span>
     </div>
 
-    {% if post.car %}
-      <div class="post-car">{{ post.car }}</div>
-    {% endif %}
+    <div class="post-car">
+      {{ post.car }}
+    </div>
 
     {% if post.comment %}
-      <div class="post-comment">{{ post.comment }}</div>
+      <div class="post-comment">
+        {{ post.comment }}
+      </div>
     {% endif %}
 
     {% if post.image %}
@@ -38,32 +46,47 @@
     {% endif %}
 
     <div class="post-actions">
+
       {% if user %}
         {% if post.id in liked_posts %}
           <form action="/unlike/{{ post.id }}" method="post">
-            <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
+            <button type="submit" class="like-btn">
+              ❤️ {{ post.likes }}
+            </button>
           </form>
         {% else %}
           <form action="/like/{{ post.id }}" method="post">
-            <button type="submit" class="like-btn">🤍 {{ post.likes }}</button>
+            <button type="submit" class="like-btn">
+              🤍 {{ post.likes }}
+            </button>
           </form>
         {% endif %}
       {% else %}
-        <span>🤍 {{ post.likes }}</span>
+        <span class="like-count">🤍 {{ post.likes }}</span>
       {% endif %}
 
       {% if user == post.username %}
-        <form action="/delete/{{ post.id }}" method="post"
-              onsubmit="return confirm('この投稿を削除しますか？');">
-          <button type="submit" class="delete-btn">🗑 削除</button>
+        <form
+          action="/delete/{{ post.id }}"
+          method="post"
+          onsubmit="return confirm('この投稿を削除しますか？');">
+          <button type="submit" class="delete-btn">
+            🗑 削除
+          </button>
         </form>
       {% endif %}
+
     </div>
   </article>
 
-  <!-- コメント一覧 -->
+  <!-- ======================
+       コメント一覧
+  ====================== -->
   <section class="comments">
-    <h3 class="comments-title">コメント（{{ post.comments | length }}）</h3>
+
+    <h3 class="comments-title">
+      コメント（{{ post.comment_count }}）
+    </h3>
 
     {% if post.comments %}
       <ul class="comment-list">
@@ -73,20 +96,32 @@
               <a href="/user/{{ c.username | urlencode }}" class="comment-user">
                 {{ c.username }}
               </a>
-              <span class="comment-date">{{ c.created_at }}</span>
+              <span class="comment-date">
+                {{ c.created_at }}
+              </span>
             </div>
-            <div class="comment-body">{{ c.comment }}</div>
+            <div class="comment-body">
+              {{ c.comment }}
+            </div>
           </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p class="no-comment">まだコメントはありません</p>
+      <p class="no-comment">
+        まだコメントはありません
+      </p>
     {% endif %}
+
   </section>
 
-  <!-- コメント投稿（ここを強調） -->
+  <!-- ======================
+       コメント投稿
+  ====================== -->
   <section class="comment-write">
-    <h3 class="comment-write-title">この投稿にコメントする</h3>
+
+    <h3 class="comment-write-title">
+      この投稿にコメントする
+    </h3>
 
     {% if user %}
       <form action="/comment/{{ post.id }}" method="post" class="comment-form">
@@ -95,13 +130,16 @@
           rows="3"
           placeholder="この投稿についてどう思う？"
           required></textarea>
-        <button type="submit">コメントを送信</button>
+        <button type="submit" class="comment-submit">
+          コメントを送信
+        </button>
       </form>
     {% else %}
       <p class="login-note">
         コメントするには <a href="/login">ログイン</a> が必要です
       </p>
     {% endif %}
+
   </section>
 
 </main>
