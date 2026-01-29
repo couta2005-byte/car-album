@@ -664,3 +664,90 @@ textarea {
 .ranking-like.active {
   opacity: 1;
 }
+/* =========================
+   Like Button Unified（全ページ統一）
+   - おすすめ / 検索 / 詳細 / ランキング 全部揃える
+   - 押しやすい（タップ領域UP）
+   - activeの見た目も統一
+========================= */
+
+/* 共通：タップしやすく・見た目安定 */
+.like-btn,
+.ranking-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  /* タップ領域 */
+  min-height: 36px;
+  padding: 8px 14px;
+
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+
+  border: 1px solid #cfd9de;
+  background: #fff;
+  color: #0f1419;
+
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* hover */
+.like-btn:hover,
+.ranking-like:hover {
+  background: #f6f7f8;
+}
+
+/* active（統一） */
+.like-btn.active,
+.ranking-like.active {
+  border-color: rgba(224,36,94,0.35);
+  background: rgba(224,36,94,0.08);
+  color: #e0245e;
+}
+
+/* 押した時のフィードバック（軽く） */
+.like-btn:active,
+.ranking-like:active {
+  transform: scale(0.985);
+}
+
+/* アイコンと数字を揃える（どのテンプレでも崩れにくい） */
+.like-btn .like-icon,
+.ranking-like .like-icon {
+  display: inline-block;
+  width: 1.2em;
+  text-align: center;
+}
+
+.like-btn .like-count,
+.ranking-like .like-count {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+/* ランキングの右寄せ維持（既存のmargin-left:autoを邪魔しない） */
+.ranking-meta .ranking-like {
+  margin-left: auto;
+}
+
+/* 「button化」してる ranking-like の初期リセット事故を防ぐ（Safari等） */
+.ranking-like {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* もし古いCSSが ranking-like を span前提で色固定してた場合の上書き保険 */
+.ranking-like {
+  background: #fff !important;
+  border: 1px solid #cfd9de !important;
+  color: #0f1419 !important;
+}
+.ranking-like.active {
+  border-color: rgba(224,36,94,0.35) !important;
+  background: rgba(224,36,94,0.08) !important;
+  color: #e0245e !important;
+}
