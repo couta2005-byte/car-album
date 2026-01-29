@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- キャッシュ対策：変わらない時は v= の数字を変える -->
-  <link rel="stylesheet" href="/static/style.css?v=1">
+  <!-- キャッシュ回避：数字を変えるだけで強制更新 -->
+  <link rel="stylesheet" href="/static/style.css?v=999">
 </head>
 <body>
 
@@ -38,7 +38,7 @@
            tabindex="0"
            onclick="location.href='/post/{{ post.id }}';"
            onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }"
-           style="text-align:left;">
+           style="text-align:left !important;">
 
         <!-- 順位バッジ -->
         <div class="rank-badge">
@@ -46,7 +46,7 @@
         </div>
 
         <!-- ユーザー名：車名 -->
-        <div class="ranking-title" style="text-align:left;">
+        <div class="ranking-title" style="text-align:left !important;">
           <a href="/user/{{ post.username | urlencode }}"
              class="ranking-user"
              onclick="event.stopPropagation();">
@@ -58,7 +58,8 @@
 
         <!-- コメント -->
         {% if post.comment %}
-          <div class="post-text" style="text-align:left; width:100%; margin-top:6px;">
+          <div class="post-text"
+               style="text-align:left !important; width:100% !important; margin-top:6px !important;">
             {{ post.comment }}
           </div>
         {% endif %}
@@ -72,9 +73,9 @@
 
         <!-- メタ情報 -->
         <div class="ranking-meta"
-             style="display:flex; align-items:center; justify-content:space-between; width:100%; text-align:left;">
-          <span style="text-align:left;">{{ post.created_at }}</span>
-          <span class="ranking-like" style="text-align:right;">❤️ {{ post.likes }}</span>
+             style="display:flex !important; align-items:center !important; justify-content:flex-start !important; width:100% !important; text-align:left !important;">
+          <span style="text-align:left !important;">{{ post.created_at }}</span>
+          <span class="ranking-like" style="margin-left:auto !important; text-align:right !important;">❤️ {{ post.likes }}</span>
         </div>
 
       </div>
