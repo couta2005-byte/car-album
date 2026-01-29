@@ -31,11 +31,19 @@
 
 <div class="posts">
 {% for post in posts %}
-  <article class="post">
+  <article class="post" style="position:relative;">
+
+    <!-- 🔹 投稿詳細へ飛ぶ透明リンク（ユーザー名以外） -->
+    <a href="/post/{{ post.id }}"
+       class="post-link-overlay"
+       aria-label="投稿詳細"></a>
 
     <div class="post-top">
       <div class="post-title">
-        <a href="/user/{{ post.username | urlencode }}" class="post-user">
+        <!-- 🔹 ユーザー名は最前面でプロフィールへ -->
+        <a href="/user/{{ post.username | urlencode }}"
+           class="post-user"
+           style="position:relative; z-index:2;">
           {{ post.username }}
         </a>
         <span class="post-sep">：</span>
@@ -54,7 +62,8 @@
       </div>
     {% endif %}
 
-    <div class="post-actions">
+    <!-- 🔹 アクションは誤タップ防止で前面 -->
+    <div class="post-actions" style="position:relative; z-index:2;">
       {% if user %}
         {% if post.id in liked_posts %}
           <form action="/unlike/{{ post.id }}" method="post">
@@ -81,5 +90,15 @@
 </div>
 
 </main>
+
+<!-- 🔹 投稿カード全体リンク用 -->
+<style>
+.post-link-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+</style>
+
 </body>
 </html>
