@@ -553,3 +553,558 @@ textarea {
   visibility: visible !important;
   color: #0f1419 !important;
 }
+/* =========================
+   Reset / Base
+========================= */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  background: #ffffff;
+  color: #0f1419;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* a / button ベース */
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* =========================
+   Header / Nav
+========================= */
+.header {
+  background: #000;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  gap: 12px;
+}
+
+.logo {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 900;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.nav-link {
+  color: #bbb;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.nav-link.active {
+  color: #1d9bf0;
+  background: rgba(29,155,240,0.12);
+}
+
+.logout-btn {
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logout-btn:hover {
+  opacity: 0.92;
+}
+
+/* =========================
+   Layout
+========================= */
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 12px 12px 32px;
+}
+
+/* =========================
+   Forms（共通）
+========================= */
+input,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 2px solid #cfd9de;
+  font-size: 14px;
+  margin-bottom: 10px;
+  background: #fff;
+  color: #0f1419;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #1d9bf0;
+  box-shadow: 0 0 0 3px rgba(29,155,240,0.15);
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 999px;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  opacity: 0.92;
+}
+
+/* =========================
+   Post Card（共通）
+========================= */
+.post,
+.post-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.post-top,
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.post-user {
+  font-weight: 800;
+  text-decoration: none;
+  color: #0f1419;
+}
+
+.post-user:hover {
+  text-decoration: underline;
+}
+
+.post-car {
+  font-size: 16px;
+  font-weight: 900;
+  margin-top: 2px;
+}
+
+.post-date,
+.post-time {
+  font-size: 12px;
+  color: #536471;
+  white-space: nowrap;
+}
+
+.post-text,
+.post-comment {
+  font-size: 14px;
+  line-height: 1.65;
+  margin-top: 6px;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* =========================
+   Image（サイズ維持）
+========================= */
+.post-image {
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  max-height: 420px;
+  background: #f3f4f6;
+}
+
+.post-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* =========================
+   Actions
+========================= */
+.post-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.like-btn,
+.delete-btn,
+.follow-btn {
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  border: 1px solid #cfd9de;
+  background: #fff;
+  color: #0f1419;
+}
+
+.like-btn:hover,
+.delete-btn:hover,
+.follow-btn:hover {
+  background: #f6f7f8;
+}
+
+.like-btn.active {
+  border-color: rgba(224,36,94,0.35);
+  background: rgba(224,36,94,0.08);
+}
+
+.delete-btn {
+  border-color: rgba(244,63,94,0.35);
+}
+
+.delete-btn:hover {
+  background: rgba(244,63,94,0.08);
+}
+
+/* =========================
+   Back link
+========================= */
+.back-link {
+  display: inline-block;
+  margin: 6px 0 12px;
+  color: #0f1419;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   Ranking Tabs
+========================= */
+.ranking-tabs {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0 16px;
+}
+
+.ranking-tab {
+  flex: 1;
+  text-align: center;
+  padding: 11px 0;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+  background: #f3f4f6;
+  color: #333;
+  border: none;
+}
+
+.ranking-tab:hover {
+  opacity: 0.92;
+}
+
+.ranking-tab.active {
+  background: #000;
+  color: #fff;
+}
+
+/* =========================
+   Ranking Card
+========================= */
+.ranking-card {
+  position: relative;
+  padding: 16px 16px 18px 78px;
+  border-radius: 22px;
+  margin-bottom: 22px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
+}
+
+.ranking-card:hover {
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+
+.ranking-card:active {
+  transform: scale(0.995);
+}
+
+.ranking-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  border-radius: 22px 0 0 22px;
+}
+
+.rank-1::before { background: #ffd43b; }
+.rank-2::before { background: #adb5bd; }
+.rank-3::before { background: #f1a36b; }
+
+.rank-badge {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.rank-1 .rank-badge { background: #f5b400; }
+.rank-2 .rank-badge { background: #9ca3af; }
+.rank-3 .rank-badge { background: #c97a3d; }
+
+.ranking-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 16px;
+  align-items: baseline;
+}
+
+.ranking-user {
+  font-weight: 900;
+}
+
+.ranking-car {
+  font-weight: 900;
+}
+
+.ranking-meta {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.ranking-like {
+  font-weight: 900;
+  color: #e0245e;
+}
+
+/* =========================
+   Comment Section（統一・安定）
+   ※ここが最重要：二度とコメントが消えない
+========================= */
+.comment-section {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid #e6ecf0;
+}
+
+.comment-section h3 {
+  font-size: 18px;
+  font-weight: 900;
+  margin: 0 0 16px;
+}
+
+/* 「ul/liの黒点」事故対策：comment-section内のリストを無害化 */
+.comment-section ul,
+.comment-section ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* コメント1件（表示を最優先で担保） */
+.comment-item {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  background: #f7f9fb;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  color: #0f1419;
+  border: 1px solid rgba(15,20,25,0.06);
+}
+
+/* ヘッダー */
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+/* ユーザー名 */
+.comment-header strong {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f1419;
+}
+
+/* 時刻 */
+.comment-time {
+  font-size: 12px;
+  color: #8899a6;
+  white-space: nowrap;
+}
+
+/* 本文 */
+.comment-body {
+  display: block;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #0f1419;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* コメントなし */
+.no-comment {
+  font-size: 14px;
+  color: #8899a6;
+  margin: 0 0 12px;
+}
+
+/* =========================
+   Comment Form
+========================= */
+.comment-form {
+  margin-top: 28px;
+}
+
+.comment-form h4 {
+  font-size: 16px;
+  font-weight: 900;
+  margin: 0 0 10px;
+}
+
+.comment-form textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 2px solid #cfd9de;
+  font-size: 14px;
+  background: #fff;
+}
+
+.comment-form textarea:focus {
+  outline: none;
+  border-color: #1d9bf0;
+  box-shadow: 0 0 0 3px rgba(29,155,240,0.15);
+}
+
+.comment-form button {
+  margin-top: 10px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.comment-form button:hover {
+  opacity: 0.92;
+}
+
+/* =========================
+   Login Note
+========================= */
+.login-note {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #536471;
+}
+
+.login-note a {
+  color: #1d9bf0;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.login-note a:hover {
+  text-decoration: underline;
+}
+
+/* =========================
+   Mobile
+========================= */
+@media (max-width: 600px) {
+  .logo { font-size: 20px; }
+  .header-inner { padding: 12px 12px; }
+  .container { padding: 12px 12px 30px; }
+}
+
+/* =========================
+   Comment 強制表示FIX（最後に置く：上書きの最終防衛ライン）
+   ※「消える」「スケルトン化」「文字が透明化」を全部潰す
+========================= */
+.comment-item {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.comment-header,
+.comment-body {
+  visibility: visible !important;
+  color: #0f1419 !important;
+}
