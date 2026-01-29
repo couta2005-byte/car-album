@@ -14,7 +14,6 @@
 
   <a href="/" class="back-link">← 戻る</a>
 
-  <!-- ================= 投稿本体 ================= -->
   <div class="post">
     <div class="post-top">
       <strong class="post-user">{{ post.username }}</strong>
@@ -29,28 +28,12 @@
 
     {% if post.image %}
       <div class="post-image">
-        <img src="{{ post.image }}" alt="post image">
+        <img src="{{ post.image }}">
       </div>
     {% endif %}
-
-    <div class="post-actions">
-      {% if user %}
-        {% if post.id in liked_posts %}
-          <form action="/unlike/{{ post.id }}" method="post">
-            <button class="like-btn active">❤️ {{ post.likes }}</button>
-          </form>
-        {% else %}
-          <form action="/like/{{ post.id }}" method="post">
-            <button class="like-btn">🤍 {{ post.likes }}</button>
-          </form>
-        {% endif %}
-      {% else %}
-        <span class="like-btn">🤍 {{ post.likes }}</span>
-      {% endif %}
-    </div>
   </div>
 
-  <!-- ================= コメント一覧 ================= -->
+  <!-- コメント -->
   <section class="comment-section">
     <h3>コメント（{{ post.comments | length }}）</h3>
 
@@ -58,10 +41,10 @@
       {% for c in post.comments %}
         <div class="comment-item">
           <div class="comment-header">
-            <strong>{{ c[1] }}</strong>
-            <span class="comment-time">{{ c[3] }}</span>
+            <strong>{{ c.username }}</strong>
+            <span class="comment-time">{{ c.created_at }}</span>
           </div>
-          <div class="comment-body">{{ c[2] }}</div>
+          <div class="comment-body">{{ c.comment }}</div>
         </div>
       {% endfor %}
     {% else %}
@@ -69,22 +52,16 @@
     {% endif %}
   </section>
 
-  <!-- ================= コメント投稿 ================= -->
   {% if user %}
     <section class="comment-form">
       <h4>この投稿にコメントする</h4>
       <form action="/comment/{{ post.id }}" method="post">
-        <textarea name="comment" required placeholder="この投稿についてどう思う？"></textarea>
+        <textarea name="comment" required></textarea>
         <button type="submit">コメント</button>
       </form>
     </section>
-  {% else %}
-    <p class="login-note">
-      コメントするには <a href="/login">ログイン</a> が必要です
-    </p>
   {% endif %}
 
 </main>
-
 </body>
 </html>
