@@ -12,10 +12,11 @@
 
 <main class="container">
 
+  <!-- 戻る -->
   <a href="javascript:history.back()" class="back-link">← 戻る</a>
 
   <!-- 投稿本体 -->
-  <article class="post">
+  <article class="post post-detail">
 
     <div class="post-top">
       <a href="/user/{{ post.username | urlencode }}" class="post-user">
@@ -24,7 +25,9 @@
       <span class="post-date">{{ post.created_at }}</span>
     </div>
 
-    <div class="post-car">{{ post.car }}</div>
+    {% if post.car %}
+      <div class="post-car">{{ post.car }}</div>
+    {% endif %}
 
     {% if post.comment %}
       <div class="post-comment">{{ post.comment }}</div>
@@ -36,20 +39,24 @@
       </div>
     {% endif %}
 
+    <!-- アクション -->
     <div class="post-actions">
-      {% if user %}
-        {% if post.id in liked_posts %}
-          <form action="/unlike/{{ post.id }}" method="post">
-            <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
-          </form>
+
+      <div class="post-like">
+        {% if user %}
+          {% if post.id in liked_posts %}
+            <form action="/unlike/{{ post.id }}" method="post">
+              <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
+            </form>
+          {% else %}
+            <form action="/like/{{ post.id }}" method="post">
+              <button type="submit" class="like-btn">🤍 {{ post.likes }}</button>
+            </form>
+          {% endif %}
         {% else %}
-          <form action="/like/{{ post.id }}" method="post">
-            <button type="submit" class="like-btn">🤍 {{ post.likes }}</button>
-          </form>
+          <span class="like-count">🤍 {{ post.likes }}</span>
         {% endif %}
-      {% else %}
-        <span>🤍 {{ post.likes }}</span>
-      {% endif %}
+      </div>
 
       {% if user == post.username %}
         <form action="/delete/{{ post.id }}" method="post"
@@ -57,8 +64,8 @@
           <button type="submit" class="delete-btn">🗑 削除</button>
         </form>
       {% endif %}
-    </div>
 
+    </div>
   </article>
 
   <!-- コメント欄 -->
@@ -72,17 +79,20 @@
       <ul class="comment-list">
         {% for c in post.comments %}
           <li class="comment-item">
+
             <div class="comment-top">
               <a href="/user/{{ c[1] | urlencode }}" class="comment-user">
                 {{ c[1] }}
               </a>
               <span class="comment-date">
-                {{ (c[3] + timedelta(hours=9)).strftime("%Y-%m-%d %H:%M") if c[3] }}
+                {{ c[3] }}
               </span>
             </div>
+
             <div class="comment-body">
               {{ c[2] }}
             </div>
+
           </li>
         {% endfor %}
       </ul>
@@ -90,9 +100,14 @@
       <p class="no-comment">まだコメントはありません</p>
     {% endif %}
 
+    <!-- コメント投稿 -->
     {% if user %}
       <form action="/comment/{{ post.id }}" method="post" class="comment-form">
-        <textarea name="comment" rows="3" placeholder="コメントを書く…" required></textarea>
+        <textarea
+          name="comment"
+          rows="3"
+          placeholder="コメントを書く…"
+          required></textarea>
         <button type="submit">送信</button>
       </form>
     {% else %}
