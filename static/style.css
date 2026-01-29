@@ -225,7 +225,6 @@ textarea {
   flex-wrap: wrap;
 }
 
-.like-btn,
 .delete-btn,
 .follow-btn {
   border-radius: 999px;
@@ -238,15 +237,9 @@ textarea {
   color: #0f1419;
 }
 
-.like-btn:hover,
 .delete-btn:hover,
 .follow-btn:hover {
   background: #f6f7f8;
-}
-
-.like-btn.active {
-  border-color: rgba(224,36,94,0.35);
-  background: rgba(224,36,94,0.08);
 }
 
 .delete-btn {
@@ -315,8 +308,6 @@ textarea {
   box-shadow: 0 6px 18px rgba(0,0,0,0.10);
   cursor: pointer;
   transition: transform 0.08s ease, box-shadow 0.12s ease;
-
-  /* 追加：ランキングカード内のテキストは左寄せを基準にする（中央寄り事故防止） */
   text-align: left;
 }
 
@@ -377,7 +368,6 @@ textarea {
   font-weight: 900;
 }
 
-/* 追加：ランキングカード内の本文（一言）が中央寄りになる事故を抑止（保険） */
 .ranking-card .post-comment,
 .ranking-card .post-text,
 .ranking-card .comment,
@@ -385,7 +375,6 @@ textarea {
   text-align: left;
 }
 
-/* 変更：メタ行（日時と❤️）を「左：日時 / 右：❤️」に固定する */
 .ranking-meta {
   margin-top: 10px;
   display: flex;
@@ -393,22 +382,12 @@ textarea {
   gap: 10px;
   font-size: 12px;
   color: #666;
-
-  /* ここが原因になりやすい：space-betweenだと「中身の構造次第で日時が中央寄り」に見える */
   justify-content: flex-start;
   text-align: left;
 }
 
-/* 追加：❤️は右端へ */
-.ranking-like {
-  font-weight: 900;
-  color: #e0245e;
-  margin-left: auto;
-}
-
 /* =========================
    Comment Section（統一・安定）
-   ※ここが最重要：二度とコメントが消えない
 ========================= */
 .comment-section {
   margin-top: 36px;
@@ -422,7 +401,6 @@ textarea {
   margin: 0 0 16px;
 }
 
-/* 「ul/liの黒点」事故対策：comment-section内のリストを無害化 */
 .comment-section ul,
 .comment-section ol {
   list-style: none;
@@ -430,7 +408,6 @@ textarea {
   margin: 0;
 }
 
-/* コメント1件（表示を最優先で担保） */
 .comment-item {
   display: block;
   opacity: 1;
@@ -443,7 +420,6 @@ textarea {
   border: 1px solid rgba(15,20,25,0.06);
 }
 
-/* ヘッダー */
 .comment-header {
   display: flex;
   justify-content: space-between;
@@ -452,21 +428,18 @@ textarea {
   margin-bottom: 4px;
 }
 
-/* ユーザー名 */
 .comment-header strong {
   font-size: 14px;
   font-weight: 900;
   color: #0f1419;
 }
 
-/* 時刻 */
 .comment-time {
   font-size: 12px;
   color: #8899a6;
   white-space: nowrap;
 }
 
-/* 本文 */
 .comment-body {
   display: block;
   font-size: 14px;
@@ -476,7 +449,6 @@ textarea {
   word-break: break-word;
 }
 
-/* コメントなし */
 .no-comment {
   font-size: 14px;
   color: #8899a6;
@@ -557,8 +529,7 @@ textarea {
 }
 
 /* =========================
-   Comment 強制表示FIX（最後に置く：上書き doesn’t lose)
-   ※「消える」「スケルトン化」「文字が透明化」を全部潰す
+   Comment 強制表示FIX（最終防衛）
 ========================= */
 .comment-item {
   display: block !important;
@@ -574,22 +545,16 @@ textarea {
 
 /* =========================
    Ranking: 中央寄り完全FIX（最終防衛・改良版）
-   ※現状の「一言・日時が中央寄り」を確実に左へ戻す
-   ※ランキング以外を壊さないため、範囲は ranking-card 内に限定
 ========================= */
-
-/* ランキングカード内は基本左寄せに固定 */
 .ranking-card {
   text-align: left !important;
 }
 
-/* もし <center> が混ざってても左寄せに戻す */
 .ranking-card center {
   display: block !important;
   text-align: left !important;
 }
 
-/* 「一言」っぽい要素を総当たりで左寄せ固定（クラス名が違っても刺さる） */
 .ranking-card p,
 .ranking-card span,
 .ranking-card .post-comment,
@@ -602,7 +567,6 @@ textarea {
   text-align: left !important;
 }
 
-/* 親が flex で中央寄せしてる事故を潰す（div全部を壊すと他が死ぬので “候補クラス” を広めに補足） */
 .ranking-card .ranking-body,
 .ranking-card .ranking-content,
 .ranking-card .ranking-main,
@@ -618,7 +582,6 @@ textarea {
   align-items: flex-start !important;
 }
 
-/* 子要素も左へ寄せる（親flex中央の残りカス対策） */
 .ranking-card .ranking-body > *,
 .ranking-card .ranking-content > *,
 .ranking-card .ranking-main > *,
@@ -628,7 +591,6 @@ textarea {
   align-self: flex-start !important;
 }
 
-/* 一言/日時が “inline-block” や “margin:auto” で中央寄りになる事故も潰す */
 .ranking-card .post-comment,
 .ranking-card .post-text,
 .ranking-card .comment,
@@ -640,7 +602,6 @@ textarea {
   margin-right: auto !important;
 }
 
-/* メタ行：日時は左、❤️は右に固定 */
 .ranking-meta {
   display: flex !important;
   align-items: center !important;
@@ -649,115 +610,13 @@ textarea {
   text-align: left !important;
 }
 
-.ranking-meta .ranking-like {
-  margin-left: auto !important;
-  text-align: right !important;
-}
-/* ranking like button 安定化 */
-.ranking-like {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font: inherit;
-}
-.ranking-like.active {
-  opacity: 1;
-}
-/* =========================
-   Like Button Unified（全ページ統一）
-   - おすすめ / 検索 / 詳細 / ランキング 全部揃える
-   - 押しやすい（タップ領域UP）
-   - activeの見た目も統一
-========================= */
-
-/* 共通：タップしやすく・見た目安定 */
-.like-btn,
-.ranking-like {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  /* タップ領域 */
-  min-height: 36px;
-  padding: 8px 14px;
-
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-
-  border: 1px solid #cfd9de;
-  background: #fff;
-  color: #0f1419;
-
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* hover */
-.like-btn:hover,
-.ranking-like:hover {
-  background: #f6f7f8;
-}
-
-/* active（統一） */
-.like-btn.active,
-.ranking-like.active {
-  border-color: rgba(224,36,94,0.35);
-  background: rgba(224,36,94,0.08);
-  color: #e0245e;
-}
-
-/* 押した時のフィードバック（軽く） */
-.like-btn:active,
-.ranking-like:active {
-  transform: scale(0.985);
-}
-
-/* アイコンと数字を揃える（どのテンプレでも崩れにくい） */
-.like-btn .like-icon,
-.ranking-like .like-icon {
-  display: inline-block;
-  width: 1.2em;
-  text-align: center;
-}
-
-.like-btn .like-count,
-.ranking-like .like-count {
-  font-weight: 900;
-  letter-spacing: 0.2px;
-}
-
-/* ランキングの右寄せ維持（既存のmargin-left:autoを邪魔しない） */
-.ranking-meta .ranking-like {
-  margin-left: auto;
-}
-
-/* 「button化」してる ranking-like の初期リセット事故を防ぐ（Safari等） */
-.ranking-like {
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-/* もし古いCSSが ranking-like を span前提で色固定してた場合の上書き保険 */
-.ranking-like {
-  background: #fff !important;
-  border: 1px solid #cfd9de !important;
-  color: #0f1419 !important;
-}
-.ranking-like.active {
-  border-color: rgba(224,36,94,0.35) !important;
-  background: rgba(224,36,94,0.08) !important;
-  color: #e0245e !important;
-}
 /* =========================
    Like Button Design v1（スクショのやつに統一）
    - 通常：薄グレー枠
-   - いいね済：ピンク枠 + 薄ピンク背景
+   - active：ピンク枠 + 薄ピンク背景
+   ※ 全ページ共通で .like-btn だけ使う
 ========================= */
-
-.like-btn{
+.like-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -782,22 +641,21 @@ textarea {
   transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
 }
 
-.like-btn:hover{
+.like-btn:hover {
   background: #f6f7f8;
 }
 
-.like-btn:active{
+.like-btn:active {
   transform: scale(0.985);
 }
 
-/* いいね済（スクショのピンク縁） */
-.like-btn.active{
+.like-btn.active {
   border-color: rgba(224,36,94,0.35);
   background: rgba(224,36,94,0.08);
   color: #e0245e;
 }
 
-/* ランキング右端に寄せる（保険） */
-.ranking-meta .like-btn{
+/* ランキングなどで右寄せ */
+.ranking-meta .like-btn {
   margin-left: auto;
 }
