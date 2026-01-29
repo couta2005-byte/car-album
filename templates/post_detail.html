@@ -29,7 +29,7 @@
 
     {% if post.image %}
       <div class="post-image">
-        <img src="{{ post.image }}">
+        <img src="{{ post.image }}" alt="post image">
       </div>
     {% endif %}
 
@@ -55,19 +55,15 @@
     <h3>コメント（{{ post.comments | length }}）</h3>
 
     {% if post.comments %}
-      <ul>
-        {% for c in post.comments %}
-          <li class="comment-item">
-            <div class="comment-header">
-              <strong>{{ c[1] }}</strong>
-              <span class="comment-time">{{ c[3] }}</span>
-            </div>
-            <div class="comment-body">
-              {{ c[2] }}
-            </div>
-          </li>
-        {% endfor %}
-      </ul>
+      {% for c in post.comments %}
+        <div class="comment-item">
+          <div class="comment-header">
+            <strong>{{ c[1] }}</strong>
+            <span class="comment-time">{{ c[3] }}</span>
+          </div>
+          <div class="comment-body">{{ c[2] }}</div>
+        </div>
+      {% endfor %}
     {% else %}
       <p class="no-comment">まだコメントはありません</p>
     {% endif %}
@@ -78,10 +74,14 @@
     <section class="comment-form">
       <h4>この投稿にコメントする</h4>
       <form action="/comment/{{ post.id }}" method="post">
-        <textarea name="comment" rows="3" required></textarea>
+        <textarea name="comment" required placeholder="この投稿についてどう思う？"></textarea>
         <button type="submit">コメント</button>
       </form>
     </section>
+  {% else %}
+    <p class="login-note">
+      コメントするには <a href="/login">ログイン</a> が必要です
+    </p>
   {% endif %}
 
 </main>
