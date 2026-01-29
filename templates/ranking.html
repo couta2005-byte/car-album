@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- ★全ページで同じvにする（重要） -->
-  <link rel="stylesheet" href="/static/style.css?v=2005">
+  <link rel="stylesheet" href="/static/style.css?v=3000">
 </head>
 <body>
 
@@ -52,16 +51,20 @@
         <div class="ranking-meta">
           <span>{{ post.created_at | trim }}</span>
 
-          <!-- ✅ likeは全ページ共通：.like-btn + .js-like -->
-          <button type="button"
-                  class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
-                  data-post-id="{{ post.id }}"
-                  data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
-                  aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}"
-                  onclick="event.stopPropagation();">
-            <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
-            <span class="like-count">{{ post.likes }}</span>
-          </button>
+          <!-- ✅ 統一：buttonだけ（submit事故ゼロ） -->
+          {% if user %}
+            <button type="button"
+                    class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
+                    data-post-id="{{ post.id }}"
+                    data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
+                    aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}"
+                    onclick="event.stopPropagation();">
+              <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+              <span class="like-count">{{ post.likes }}</span>
+            </button>
+          {% else %}
+            <span style="margin-left:auto;">🤍 {{ post.likes }}</span>
+          {% endif %}
         </div>
 
       </div>

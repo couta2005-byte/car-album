@@ -1,56 +1,97 @@
-<header class="header">
-  <div class="header-inner">
-    <!-- ロゴ -->
-    <a href="/" class="logo">Carbum</a>
+// static/like.js
+// 全ページ共通：いいねを /api/like/{post_id} でトグルして即反映
+// クリック遷移（記事onclick）より先に止めるため capture=true で拾う
 
-    <nav class="nav">
-      <!-- 共通 -->
-      <a href="/"
-         class="nav-link {% if mode=='home' %}active{% endif %}">
-        おすすめ
-      </a>
+(function () {
+  function updateButtons(postId, liked, likes) {
+    const buttons = document.querySelectorAll(`.js-like[data-post-id="${postId}"]`);
+    buttons.forEach((btn) => {
+      btn.dataset.liked = liked ? "1" : "0";
+      btn.classList.toggle("active", !!liked);
+      btn.setAttribute("aria-pressed", liked ? "true" : "false");
 
-      <a href="/search"
-         class="nav-link {% if mode=='search' %}active{% endif %}">
-        検索
-      </a>
+      const iconEl = btn.querySelector(".like-icon");
+      if (iconEl) iconEl.textContent = liked ? "❤️" : "🤍";
 
-      {% if user %}
-        <!-- ===== ログイン中 ===== -->
-        <a href="/following"
-           class="nav-link {% if mode=='following' %}active{% endif %}">
-          フォロー中
-        </a>
+      const countEl = btn.querySelector(".like-count");
+      if (countEl) countEl.textContent = String(likes);
+    });
+  }
 
-        <a href="/ranking?period=day"
-           class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
-          ランキング
-        </a>
+  async function toggleLike(btn) {
+    const postId = btn.dataset.postId;
+    if (!postId) return;
 
-        <a href="/user/{{ user | urlencode }}"
-           class="nav-link {% if mode=='profile' %}active{% endif %}">
-          プロフィール
-        </a>
+    if (btn.dataset.loading === "1") return;
+    btn.dataset.loading = "1";
+    btn.disabled = true;
+    btn.classList.add("is-loading");
 
-        <form action="/logout" method="post" style="display:inline;">
-          <button type="submit" class="logout-btn">
-            ログアウト
-          </button>
-        </form>
+    try {
+      const res = await fetch(`/api/like/${postId}`, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-Requested-With": "fetch" }
+      });
 
-      {% else %}
-        <!-- ===== 未ログイン ===== -->
-        <a href="/login" class="nav-link">
-          ログイン
-        </a>
+      if (res.status === 401) {
+        alert("ログインしてね");
+        return;
+      }
+      if (!res.ok) {
+        alert("いいね失敗（APIエラー）");
+        return;
+      }
 
-        <a href="/register" class="nav-link">
-          新規登録
-        </a>
-      {% endif %}
-    </nav>
-  </div>
-</header>
+      const data = await res.json();
+      if (!data.ok) {
+        alert(data.error || "いいね失敗");
+        return;
+      }
 
-<!-- ✅ 全ページ共通：いいねJS（ここ1回だけでOK） -->
-<script src="/static/like.js?v=2004" defer></script>
+      updateButtons(postId, data.liked, data.likes);
+    } catch (e) {
+      alert("通信エラー");
+    } finally {
+      btn.dataset.loading = "0";
+      btn.disabled = false;
+      btn.classList.remove("is-loading");
+    }
+  }
+
+  // クリック（最優先で止める）
+  document.addEventListener(
+    "click",
+    (e) => {
+      const btn = e.target.closest(".js-like");
+      if (!btn) return;
+
+      // 記事カードのonclick遷移を絶対に止める
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+
+      toggleLike(btn);
+    },
+    true // capture
+  );
+
+  // 万が一 form が残ってても止める（保険）
+  document.addEventListener(
+    "submit",
+    (e) => {
+      const form = e.target.closest(".like-form");
+      if (!form) return;
+
+      const btn = form.querySelector(".js-like");
+      if (!btn) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation?.();
+
+      toggleLike(btn);
+    },
+    true
+  );
+})();

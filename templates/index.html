@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=2005">
+  <link rel="stylesheet" href="/static/style.css?v=3000">
 </head>
 <body>
 
@@ -62,11 +62,7 @@
       </div>
     {% endif %}
 
-    <!-- ✅ ここは stopPropagation でカード遷移を止める -->
-    <div class="post-actions"
-         style="position:relative; z-index:2;"
-         onclick="event.stopPropagation();">
-
+    <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
       {% if user %}
         <button type="button"
                 class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"

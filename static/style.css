@@ -1,39 +1,26 @@
 /* =========================
    Reset / Base
 ========================= */
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
-html, body {
-  height: 100%;
-}
+html, body { height: 100%; }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
   background: #ffffff;
   color: #0f1419;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* a / button ベース */
-a {
-  color: inherit;
-}
-
-button {
-  font-family: inherit;
-}
+a { color: inherit; }
+button { font-family: inherit; }
 
 /* =========================
    Header / Nav
 ========================= */
-.header {
-  background: #000;
-}
+.header { background: #000; }
 
 .header-inner {
   display: flex;
@@ -89,9 +76,7 @@ button {
   cursor: pointer;
 }
 
-.logout-btn:hover {
-  opacity: 0.92;
-}
+.logout-btn:hover { opacity: 0.92; }
 
 /* =========================
    Layout
@@ -105,8 +90,22 @@ button {
 /* =========================
    Forms（共通）
 ========================= */
-input,
-textarea {
+.post-form { margin-bottom: 16px; }
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.form-row.bottom {
+  align-items: center;
+}
+
+@media (max-width: 600px) {
+  .form-row { flex-direction: column; }
+}
+
+input, textarea {
   width: 100%;
   padding: 12px 14px;
   border-radius: 14px;
@@ -117,8 +116,7 @@ textarea {
   color: #0f1419;
 }
 
-input:focus,
-textarea:focus {
+input:focus, textarea:focus {
   outline: none;
   border-color: #1d9bf0;
   box-shadow: 0 0 0 3px rgba(29,155,240,0.15);
@@ -140,15 +138,12 @@ textarea {
   cursor: pointer;
 }
 
-.primary-btn:hover {
-  opacity: 0.92;
-}
+.primary-btn:hover { opacity: 0.92; }
 
 /* =========================
    Post Card（共通）
 ========================= */
-.post,
-.post-card {
+.post, .post-card {
   background: #fff;
   border-radius: 18px;
   padding: 14px;
@@ -156,11 +151,17 @@ textarea {
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-.post-top,
-.post-header {
+.post-top, .post-header {
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  align-items: baseline;
+}
+
+.post-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
   align-items: baseline;
 }
 
@@ -170,9 +171,9 @@ textarea {
   color: #0f1419;
 }
 
-.post-user:hover {
-  text-decoration: underline;
-}
+.post-user:hover { text-decoration: underline; }
+
+.post-sep { color: #536471; }
 
 .post-car {
   font-size: 16px;
@@ -180,15 +181,13 @@ textarea {
   margin-top: 2px;
 }
 
-.post-date,
-.post-time {
+.post-date, .post-time {
   font-size: 12px;
   color: #536471;
   white-space: nowrap;
 }
 
-.post-text,
-.post-comment {
+.post-text, .post-comment {
   font-size: 14px;
   line-height: 1.65;
   margin-top: 6px;
@@ -197,7 +196,7 @@ textarea {
 }
 
 /* =========================
-   Image（サイズ維持）
+   Image
 ========================= */
 .post-image {
   margin-top: 10px;
@@ -225,8 +224,7 @@ textarea {
   flex-wrap: wrap;
 }
 
-.delete-btn,
-.follow-btn {
+.delete-btn, .follow-btn {
   border-radius: 999px;
   padding: 7px 14px;
   font-size: 13px;
@@ -237,18 +235,10 @@ textarea {
   color: #0f1419;
 }
 
-.delete-btn:hover,
-.follow-btn:hover {
-  background: #f6f7f8;
-}
+.delete-btn:hover, .follow-btn:hover { background: #f6f7f8; }
 
-.delete-btn {
-  border-color: rgba(244,63,94,0.35);
-}
-
-.delete-btn:hover {
-  background: rgba(244,63,94,0.08);
-}
+.delete-btn { border-color: rgba(244,63,94,0.35); }
+.delete-btn:hover { background: rgba(244,63,94,0.08); }
 
 /* =========================
    Back link
@@ -261,9 +251,7 @@ textarea {
   font-weight: 800;
 }
 
-.back-link:hover {
-  text-decoration: underline;
-}
+.back-link:hover { text-decoration: underline; }
 
 /* =========================
    Ranking Tabs
@@ -287,9 +275,7 @@ textarea {
   border: none;
 }
 
-.ranking-tab:hover {
-  opacity: 0.92;
-}
+.ranking-tab:hover { opacity: 0.92; }
 
 .ranking-tab.active {
   background: #000;
@@ -311,13 +297,8 @@ textarea {
   text-align: left;
 }
 
-.ranking-card:hover {
-  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-}
-
-.ranking-card:active {
-  transform: scale(0.995);
-}
+.ranking-card:hover { box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
+.ranking-card:active { transform: scale(0.995); }
 
 .ranking-card::before {
   content: "";
@@ -360,20 +341,8 @@ textarea {
   align-items: baseline;
 }
 
-.ranking-user {
-  font-weight: 900;
-}
-
-.ranking-car {
-  font-weight: 900;
-}
-
-.ranking-card .post-comment,
-.ranking-card .post-text,
-.ranking-card .comment,
-.ranking-card p {
-  text-align: left;
-}
+.ranking-user { font-weight: 900; }
+.ranking-car  { font-weight: 900; }
 
 .ranking-meta {
   margin-top: 10px;
@@ -401,17 +370,16 @@ textarea {
   margin: 0 0 16px;
 }
 
-.comment-section ul,
-.comment-section ol {
+.comment-section ul, .comment-section ol {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
 .comment-item {
-  display: block;
-  opacity: 1;
-  visibility: visible;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
   background: #f7f9fb;
   border-radius: 16px;
   padding: 12px 14px;
@@ -431,7 +399,7 @@ textarea {
 .comment-header strong {
   font-size: 14px;
   font-weight: 900;
-  color: #0f1419;
+  color: #0f1419 !important;
 }
 
 .comment-time {
@@ -444,9 +412,10 @@ textarea {
   display: block;
   font-size: 14px;
   line-height: 1.65;
-  color: #0f1419;
+  color: #0f1419 !important;
   white-space: pre-wrap;
   word-break: break-word;
+  visibility: visible !important;
 }
 
 .no-comment {
@@ -458,30 +427,12 @@ textarea {
 /* =========================
    Comment Form
 ========================= */
-.comment-form {
-  margin-top: 28px;
-}
+.comment-form { margin-top: 28px; }
 
 .comment-form h4 {
   font-size: 16px;
   font-weight: 900;
   margin: 0 0 10px;
-}
-
-.comment-form textarea {
-  width: 100%;
-  min-height: 96px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 2px solid #cfd9de;
-  font-size: 14px;
-  background: #fff;
-}
-
-.comment-form textarea:focus {
-  outline: none;
-  border-color: #1d9bf0;
-  box-shadow: 0 0 0 3px rgba(29,155,240,0.15);
 }
 
 .comment-form button {
@@ -496,125 +447,10 @@ textarea {
   cursor: pointer;
 }
 
-.comment-form button:hover {
-  opacity: 0.92;
-}
+.comment-form button:hover { opacity: 0.92; }
 
 /* =========================
-   Login Note
-========================= */
-.login-note {
-  margin-top: 20px;
-  font-size: 14px;
-  color: #536471;
-}
-
-.login-note a {
-  color: #1d9bf0;
-  text-decoration: none;
-  font-weight: 800;
-}
-
-.login-note a:hover {
-  text-decoration: underline;
-}
-
-/* =========================
-   Mobile
-========================= */
-@media (max-width: 600px) {
-  .logo { font-size: 20px; }
-  .header-inner { padding: 12px 12px; }
-  .container { padding: 12px 12px 30px; }
-}
-
-/* =========================
-   Comment 強制表示FIX（最終防衛）
-========================= */
-.comment-item {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-.comment-header,
-.comment-body {
-  visibility: visible !important;
-  color: #0f1419 !important;
-}
-
-/* =========================
-   Ranking: 中央寄り完全FIX（最終防衛・改良版）
-========================= */
-.ranking-card {
-  text-align: left !important;
-}
-
-.ranking-card center {
-  display: block !important;
-  text-align: left !important;
-}
-
-.ranking-card p,
-.ranking-card span,
-.ranking-card .post-comment,
-.ranking-card .post-text,
-.ranking-card .comment,
-.ranking-card .comment-body,
-.ranking-card .ranking-comment,
-.ranking-card .ranking-text,
-.ranking-card .ranking-body {
-  text-align: left !important;
-}
-
-.ranking-card .ranking-body,
-.ranking-card .ranking-content,
-.ranking-card .ranking-main,
-.ranking-card .ranking-text,
-.ranking-card .ranking-comment,
-.ranking-card .rank-body,
-.ranking-card .rank-content,
-.ranking-card .rank-main,
-.ranking-card .rank-text,
-.ranking-card .rank-comment {
-  text-align: left !important;
-  justify-content: flex-start !important;
-  align-items: flex-start !important;
-}
-
-.ranking-card .ranking-body > *,
-.ranking-card .ranking-content > *,
-.ranking-card .ranking-main > *,
-.ranking-card .rank-body > *,
-.ranking-card .rank-content > *,
-.ranking-card .rank-main > * {
-  align-self: flex-start !important;
-}
-
-.ranking-card .post-comment,
-.ranking-card .post-text,
-.ranking-card .comment,
-.ranking-card .ranking-comment,
-.ranking-card .ranking-text,
-.ranking-card .ranking-body,
-.ranking-card p {
-  margin-left: 0 !important;
-  margin-right: auto !important;
-}
-
-.ranking-meta {
-  display: flex !important;
-  align-items: center !important;
-  width: 100% !important;
-  justify-content: flex-start !important;
-  text-align: left !important;
-}
-
-/* =========================
-   Like Button Design v1（スクショのやつに統一）
-   - 通常：薄グレー枠
-   - active：ピンク枠 + 薄ピンク背景
-   ※ 全ページ共通で .like-btn だけ使う
+   Like Button（スクショ統一）
 ========================= */
 .like-btn {
   display: inline-flex;
@@ -641,13 +477,8 @@ textarea {
   transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
 }
 
-.like-btn:hover {
-  background: #f6f7f8;
-}
-
-.like-btn:active {
-  transform: scale(0.985);
-}
+.like-btn:hover { background: #f6f7f8; }
+.like-btn:active { transform: scale(0.985); }
 
 .like-btn.active {
   border-color: rgba(224,36,94,0.35);
@@ -655,7 +486,28 @@ textarea {
   color: #e0245e;
 }
 
-/* ランキングなどで右寄せ */
-.ranking-meta .like-btn {
-  margin-left: auto;
+.like-btn .like-icon {
+  display: inline-block;
+  width: 1.2em;
+  text-align: center;
+}
+
+.like-btn .like-count {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+/* ランキングの右端 */
+.ranking-meta .like-btn { margin-left: auto; }
+
+/* 押せない錯覚防止：ロード中は薄く */
+.like-btn.is-loading { opacity: 0.6; }
+
+/* =========================
+   Mobile
+========================= */
+@media (max-width: 600px) {
+  .logo { font-size: 20px; }
+  .header-inner { padding: 12px 12px; }
+  .container { padding: 12px 12px 30px; }
 }

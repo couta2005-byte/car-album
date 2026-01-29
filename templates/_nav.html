@@ -1,26 +1,13 @@
 <header class="header">
   <div class="header-inner">
-    <!-- ロゴ -->
     <a href="/" class="logo">Carbum</a>
 
     <nav class="nav">
-      <!-- 共通 -->
-      <a href="/"
-         class="nav-link {% if mode=='home' %}active{% endif %}">
-        おすすめ
-      </a>
-
-      <a href="/search"
-         class="nav-link {% if mode=='search' %}active{% endif %}">
-        検索
-      </a>
+      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
+      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">検索</a>
 
       {% if user %}
-        <!-- ===== ログイン中 ===== -->
-        <a href="/following"
-           class="nav-link {% if mode=='following' %}active{% endif %}">
-          フォロー中
-        </a>
+        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
 
         <a href="/ranking?period=day"
            class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
@@ -33,24 +20,15 @@
         </a>
 
         <form action="/logout" method="post" style="display:inline;">
-          <button type="submit" class="logout-btn">
-            ログアウト
-          </button>
+          <button type="submit" class="logout-btn">ログアウト</button>
         </form>
-
       {% else %}
-        <!-- ===== 未ログイン ===== -->
-        <a href="/login" class="nav-link">
-          ログイン
-        </a>
-
-        <a href="/register" class="nav-link">
-          新規登録
-        </a>
+        <a href="/login" class="nav-link">ログイン</a>
+        <a href="/register" class="nav-link">新規登録</a>
       {% endif %}
     </nav>
   </div>
 </header>
 
-<!-- ✅ 全ページ共通：いいねJS（ここ1回だけでOK） -->
-<script src="/static/like.js?v=2004" defer></script>
+<!-- ✅ 全ページ共通：いいねJS（ここ1回だけ） -->
+<script src="/static/like.js?v=3000" defer></script>

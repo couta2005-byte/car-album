@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <title>投稿詳細 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- ★全ページで同じvにする（重要） -->
-  <link rel="stylesheet" href="/static/style.css?v=2005">
+  <link rel="stylesheet" href="/static/style.css?v=3000">
 </head>
 <body>
 
@@ -33,7 +32,6 @@
       </div>
     {% endif %}
 
-    <!-- ✅ いいね：全ページ共通ボタン -->
     <div class="post-actions" style="position:relative; z-index:2; margin-top:10px;">
       {% if user %}
         <button type="button"
@@ -50,7 +48,6 @@
     </div>
   </div>
 
-  <!-- コメント -->
   <section class="comment-section">
     <h3>コメント（{{ post.comments | length }}）</h3>
 
