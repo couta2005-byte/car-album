@@ -2,18 +2,31 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>{{ username }} | Car Album</title>
+  <title>{{ username }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=10">
 </head>
 <body>
 
 {% include "_nav.html" %}
 
 <main class="container">
-  <h2 class="profile-name">{{ username }}</h2>
 
-  <!-- プロフィール情報 -->
+  <div style="display:flex; align-items:center; gap:12px; margin: 8px 0 10px;">
+    {% if profile and profile[4] %}
+      <div class="avatar" style="width:54px; height:54px;">
+        <img src="{{ profile[4] }}" alt="icon">
+      </div>
+    {% else %}
+      <span class="avatar-fallback" style="width:54px; height:54px;"></span>
+    {% endif %}
+
+    <div>
+      <h2 class="profile-name" style="margin:0;">{{ username }}</h2>
+      <div style="color:#536471; font-size:13px;">@{{ username }}</div>
+    </div>
+  </div>
+
   <div class="profile-box" style="margin: 12px 0;">
     <div style="display:flex; gap:16px; flex-wrap:wrap;">
       <div><strong>メーカー：</strong>{{ profile[0] if profile else "" }}</div>
@@ -22,87 +35,115 @@
       <div><strong>フォロー：</strong>{{ follow_count }}</div>
       <div><strong>フォロワー：</strong>{{ follower_count }}</div>
     </div>
-    <div style="margin-top:8px;">
-      <strong>自己紹介：</strong>
-      <div style="white-space:pre-wrap;">{{ profile[3] if profile else "" }}</div>
-    </div>
+    {% if profile and profile[3] %}
+      <div style="margin-top:10px; color:#0f1419;">{{ profile[3] }}</div>
+    {% endif %}
   </div>
 
-  <!-- 自分のプロフィールなら編集 -->
   {% if me == username %}
-  <form action="/profile/edit" method="post" class="profile-edit" style="margin:16px 0;">
-    <div style="display:flex; gap:10px; flex-wrap:wrap;">
-      <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
-      <input name="car" placeholder="車名" value="{{ profile[1] if profile else '' }}">
-      <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
-    </div>
-    <textarea name="bio" rows="3" style="width:100%; margin-top:10px;">{{ profile[3] if profile else '' }}</textarea>
-    <button type="submit" style="margin-top:10px;">プロフィール更新</button>
-  </form>
-  {% endif %}
+    <section class="profile-edit" style="margin: 18px 0 22px;">
+      <h3 style="margin:0 0 10px;">プロフィール編集</h3>
 
-  <!-- フォロー操作 -->
-  {% if me and me != username %}
-    {% if is_following %}
-      <form action="/unfollow/{{ username | urlencode }}" method="post">
-        <button type="submit">フォロー解除</button>
+      <!-- ★ここが重要：enctype + icon file -->
+      <form action="/profile/edit" method="post" enctype="multipart/form-data">
+        <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
+        <input name="car" placeholder="車名" value="{{ profile[1] if profile else '' }}">
+        <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
+        <textarea name="bio" placeholder="ひとこと">{{ profile[3] if profile else '' }}</textarea>
+
+        <div style="margin: 8px 0 12px;">
+          <div style="font-weight:900; margin-bottom:6px;">ユーザーアイコン</div>
+          <input type="file" name="icon" accept="image/*">
+          <div style="color:#536471; font-size:12px; margin-top:6px;">
+            ※画像を選ばなければ、アイコンは変更しない
+          </div>
+        </div>
+
+        <button class="primary-btn" type="submit">保存</button>
       </form>
-    {% else %}
-      <form action="/follow/{{ username | urlencode }}" method="post">
-        <button type="submit">フォローする</button>
-      </form>
+    </section>
+  {% else %}
+    {% if me %}
+      {% if is_following %}
+        <form action="/unfollow/{{ username | urlencode }}" method="post">
+          <button class="follow-btn" type="submit">フォロー解除</button>
+        </form>
+      {% else %}
+        <form action="/follow/{{ username | urlencode }}" method="post">
+          <button class="follow-btn" type="submit">フォローする</button>
+        </form>
+      {% endif %}
     {% endif %}
   {% endif %}
 
-  <!-- 投稿一覧 -->
+  <h3 style="margin: 16px 0 10px;">投稿</h3>
+
   <div class="posts">
-  {% for post in posts %}
-    <article class="post-card">
+    {% for post in posts %}
+      <article class="post"
+               role="link"
+               tabindex="0"
+               onclick="location.href='/post/{{ post.id }}';"
+               onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }"
+               style="position:relative;">
 
-      <!-- ★ 車名 + 時間（おすすめと同じ） -->
-      <div class="post-top">
-        <div class="post-car">{{ post.car }}</div>
-        <div class="post-date">{{ post.created_at }}</div>
-      </div>
+        <div class="post-top">
+          <div class="post-title">
+            {% if post.user_icon %}
+              <div class="avatar" onclick="event.stopPropagation();" style="position:relative; z-index:2;">
+                <a href="/user/{{ post.username | urlencode }}" onclick="event.stopPropagation();">
+                  <img src="{{ post.user_icon }}" alt="icon">
+                </a>
+              </div>
+            {% else %}
+              <a href="/user/{{ post.username | urlencode }}" onclick="event.stopPropagation();" style="position:relative; z-index:2;">
+                <span class="avatar-fallback"></span>
+              </a>
+            {% endif %}
 
-      <!-- ひとこと -->
-      {% if post.comment %}
-        <div class="post-comment">{{ post.comment }}</div>
-      {% endif %}
+            <div class="post-title-main">
+              <a href="/user/{{ post.username | urlencode }}"
+                 class="post-user"
+                 style="position:relative; z-index:2;"
+                 onclick="event.stopPropagation();">
+                {{ post.username }}
+              </a>
+              <span class="post-sep">：</span>
+              <span class="post-car">{{ post.car }}</span>
+            </div>
+          </div>
 
-      <!-- 画像 -->
-      {% if post.image %}
-        <img src="{{ post.image }}" class="post-image">
-      {% endif %}
+          <span class="post-date">{{ post.created_at }}</span>
+        </div>
 
-      <!-- アクション -->
-      <div class="post-actions">
+        {% if post.comment %}
+          <div class="post-comment">{{ post.comment }}</div>
+        {% endif %}
 
-        {% if me %}
-          {% if post.id in liked_posts %}
-            <form action="/unlike/{{ post.id }}" method="post">
-              <button type="submit">❤️ {{ post.likes }}</button>
-            </form>
+        {% if post.image %}
+          <div class="post-image">
+            <img src="{{ post.image }}" alt="投稿画像">
+          </div>
+        {% endif %}
+
+        <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
+          {% if user %}
+            <button type="button"
+                    class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
+                    data-post-id="{{ post.id }}"
+                    data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
+              <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+              <span class="like-count">{{ post.likes }}</span>
+            </button>
           {% else %}
-            <form action="/like/{{ post.id }}" method="post">
-              <button type="submit">🤍 {{ post.likes }}</button>
-            </form>
+            <span>🤍 {{ post.likes }}</span>
           {% endif %}
-        {% else %}
-          <span>🤍 {{ post.likes }}</span>
-        {% endif %}
+        </div>
 
-        {% if me == post.username %}
-          <form action="/delete/{{ post.id }}" method="post"
-                onsubmit="return confirm('この投稿を削除しますか？');">
-            <button type="submit">🗑 削除</button>
-          </form>
-        {% endif %}
-
-      </div>
-    </article>
-  {% endfor %}
+      </article>
+    {% endfor %}
   </div>
+
 </main>
 
 </body>

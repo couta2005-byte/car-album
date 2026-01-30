@@ -3,10 +3,10 @@ from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-import psycopg2, os, uuid
+import psycopg2, os
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
-from typing import Optional, Dict, List, Any, Tuple
+from typing import Optional, Dict, List, Any
 
 # ★ password hash（bcrypt不具合回避：pbkdf2_sha256のみ使用）
 from passlib.context import CryptContext
@@ -25,14 +25,6 @@ JST = timezone(timedelta(hours=9))
 def utcnow_naive() -> datetime:
     # DB保存/比較は常にUTCのnaiveで統一（TIMESTAMPと相性が良い）
     return datetime.utcnow()
-
-def jst_now_aware() -> datetime:
-    return datetime.now(JST)
-
-def jst_midnight_to_utc_naive(dt_jst_aware: datetime) -> datetime:
-    # JSTの0:00をUTCに変換して、naive化（DB比較用）
-    dt0 = dt_jst_aware.replace(hour=0, minute=0, second=0, microsecond=0)
-    return dt0.astimezone(timezone.utc).replace(tzinfo=None)
 
 def fmt_jst(dt: Optional[datetime]) -> str:
     # 表示は常に JST（UTC+9）で統一
@@ -106,10 +98,11 @@ cloudinary.config(
 )
 
 # ======================
-# DB init
+# DB init（既存DBでも壊れないように追加カラムも保証）
 # ======================
 def init_db():
     def _do(db, cur):
+        # まずテーブル作成（従来のまま）
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
@@ -155,6 +148,10 @@ def init_db():
             created_at TIMESTAMP
         );
         """)
+
+        # ★ profiles に icon カラムを追加（既存DBでもOK）
+        cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
+
     run_db(_do)
 
 @app.on_event("startup")
@@ -188,15 +185,12 @@ def get_liked_posts(db, me):
         cur.close()
 
 # ======================
-# comments fetch (必要なpost_idだけ取る)
-#  - ここがポイント：一覧/詳細で確実に comments と comment_count が一致する
-#  - テンプレは dict 形式（c.username / c.comment / c.created_at）で扱える
+# comments fetch（必要なpost_idだけ取る）
 # ======================
 def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str, Any]]]:
     if not post_ids:
         return {}
 
-    # IN句を安全に組み立て
     placeholders = ",".join(["%s"] * len(post_ids))
     sql = f"""
         SELECT post_id, username, comment, created_at
@@ -222,7 +216,7 @@ def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str
     return out
 
 # ======================
-# posts fetch (JST display + comment_count付与)
+# posts fetch（JST表示 + comment_count + ★user_icon）
 # ======================
 def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
     cur = db.cursor()
@@ -231,13 +225,15 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", lim
             SELECT
                 p.id, p.username, p.maker, p.region, p.car,
                 p.comment, p.image, p.created_at,
-                COUNT(l.post_id) AS like_count
+                COUNT(l.post_id) AS like_count,
+                pr.icon AS user_icon
             FROM posts p
             LEFT JOIN likes l ON p.id = l.post_id
+            LEFT JOIN profiles pr ON p.username = pr.username
             {where_sql}
             GROUP BY
                 p.id, p.username, p.maker, p.region, p.car,
-                p.comment, p.image, p.created_at
+                p.comment, p.image, p.created_at, pr.icon
             {order_sql}
             {limit_sql}
         """, params)
@@ -245,7 +241,6 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", lim
     finally:
         cur.close()
 
-    # ★ ここが改良：必要な投稿IDだけコメントを取る
     post_ids = [r[0] for r in rows]
     comments_map = fetch_comments_for_posts(db, post_ids)
 
@@ -263,6 +258,7 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", lim
             "image": r[6],
             "created_at": fmt_jst(r[7]),
             "likes": r[8],
+            "user_icon": r[9],  # ★追加
             "comments": post_comments,
             "comment_count": len(post_comments)
         })
@@ -303,35 +299,11 @@ def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 # ======================
-# search（改良：絞り込みを主役にして「入力された項目だけ」WHEREに足す）
-# - maker/car/region がメイン（分かりやすい）
-# - q は互換維持（古いURLや将来用）。UIから消しても壊れない。
+# search（q OR / 詳細）
 # ======================
-def build_filter_where(maker: str, car: str, region: str) -> Tuple[str, Tuple[Any, ...]]:
-    clauses: List[str] = []
-    params: List[Any] = []
-
-    if maker:
-        clauses.append("p.maker ILIKE %s")
-        params.append(f"%{maker}%")
-
-    if car:
-        clauses.append("p.car ILIKE %s")
-        params.append(f"%{car}%")
-
-    if region:
-        clauses.append("p.region ILIKE %s")
-        params.append(f"%{region}%")
-
-    if not clauses:
-        return "", tuple()
-
-    return "WHERE " + " AND ".join(clauses), tuple(params)
-
 @app.get("/search", response_class=HTMLResponse)
 def search(
     request: Request,
-    # ★互換維持：古いリンク /search?q=トヨタ を壊さない
     q: str = Query(default=""),
     maker: str = Query(default=""),
     car: str = Query(default=""),
@@ -347,21 +319,10 @@ def search(
     db = get_db()
     try:
         liked_posts = get_liked_posts(db, me)
-        users: List[str] = []
-        posts: List[Dict[str, Any]] = []
+        users = []
+        posts = []
 
-        # 1) 絞り込み（maker/car/region）が入ってるなら、それを優先（←分かりやすい）
-        where_sql, params = build_filter_where(maker, car, region)
-        if where_sql:
-            posts = fetch_posts(
-                db,
-                where_sql,
-                params,
-                order_sql="ORDER BY p.id DESC"
-            )
-
-        # 2) 絞り込みが空で q だけ入ってる場合は、互換として「横断検索」を実行
-        elif q:
+        if q:
             like = f"%{q}%"
             posts = fetch_posts(
                 db,
@@ -388,11 +349,14 @@ def search(
                 users = [r[0] for r in cur.fetchall()]
             finally:
                 cur.close()
-
-        # 3) どっちも空なら、結果は空（※ここはテンプレ側で「条件入れてね」表示が自然）
         else:
-            posts = []
-            users = []
+            if maker or car or region:
+                posts = fetch_posts(
+                    db,
+                    "WHERE p.maker ILIKE %s AND p.car ILIKE %s AND p.region ILIKE %s",
+                    (f"%{maker}%", f"%{car}%", f"%{region}%"),
+                    order_sql="ORDER BY p.id DESC"
+                )
 
     finally:
         db.close()
@@ -402,8 +366,8 @@ def search(
         "posts": posts,
         "user": me,
         "liked_posts": liked_posts,
-        "q": q,            # 互換用（テンプレで使わないなら無視でOK）
-        "users": users,    # q のときだけ入る
+        "q": q,
+        "users": users,
         "maker": maker,
         "car": car,
         "region": region,
@@ -411,7 +375,7 @@ def search(
     })
 
 # ======================
-# following TL（復旧）
+# following TL
 # ======================
 @app.get("/following", response_class=HTMLResponse)
 def following(request: Request, user: str = Cookie(default=None)):
@@ -441,7 +405,7 @@ def following(request: Request, user: str = Cookie(default=None)):
     })
 
 # ======================
-# ranking（表示が空になりにくい安定版）
+# ranking
 # ======================
 @app.get("/ranking", response_class=HTMLResponse)
 def ranking(
@@ -486,7 +450,7 @@ def ranking(
     })
 
 # ======================
-# post detail（中心ページ）
+# post detail
 # ======================
 @app.get("/post/{post_id}", response_class=HTMLResponse)
 def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)):
@@ -540,7 +504,7 @@ def add_comment(
     return redirect_back(request, fallback=f"/post/{post_id}")
 
 # ======================
-# profile（復旧）
+# profile
 # ======================
 @app.get("/user/{username}", response_class=HTMLResponse)
 def profile(request: Request, username: str, user: str = Cookie(default=None)):
@@ -551,7 +515,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     cur = db.cursor()
     try:
         cur.execute(
-            "SELECT maker, car, region, bio FROM profiles WHERE username=%s",
+            "SELECT maker, car, region, bio, icon FROM profiles WHERE username=%s",
             (username,)
         )
         prof = cur.fetchone()
@@ -580,7 +544,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "profile": prof,
+        "profile": prof,  # (maker, car, region, bio, icon)
         "posts": posts,
         "me": me,
         "user": me,
@@ -592,14 +556,16 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     })
 
 # ======================
-# profile edit
+# profile edit（★icon upload対応）
 # ======================
 @app.post("/profile/edit")
 def profile_edit(
+    request: Request,
     maker: str = Form(""),
     car: str = Form(""),
     region: str = Form(""),
     bio: str = Form(""),
+    icon: UploadFile = File(None),  # ★追加
     user: str = Cookie(default=None)
 ):
     if not user:
@@ -607,23 +573,46 @@ def profile_edit(
 
     me = unquote(user)
 
+    # ★ icon が来たら Cloudinary へ
+    icon_url = None
+    if icon and icon.filename:
+        result = cloudinary.uploader.upload(
+            icon.file,
+            folder="carbum/icons"
+        )
+        icon_url = result.get("secure_url")
+
     def _do(db, cur):
-        cur.execute("""
-            INSERT INTO profiles (username, maker, car, region, bio)
-            VALUES (%s, %s, %s, %s, %s)
-            ON CONFLICT (username)
-            DO UPDATE SET
-                maker=EXCLUDED.maker,
-                car=EXCLUDED.car,
-                region=EXCLUDED.region,
-                bio=EXCLUDED.bio
-        """, (me, maker, car, region, bio))
+        # まず既存iconを保持したいので、iconが無い場合は上書きしない方針
+        if icon_url:
+            cur.execute("""
+                INSERT INTO profiles (username, maker, car, region, bio, icon)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                ON CONFLICT (username)
+                DO UPDATE SET
+                    maker=EXCLUDED.maker,
+                    car=EXCLUDED.car,
+                    region=EXCLUDED.region,
+                    bio=EXCLUDED.bio,
+                    icon=EXCLUDED.icon
+            """, (me, maker, car, region, bio, icon_url))
+        else:
+            cur.execute("""
+                INSERT INTO profiles (username, maker, car, region, bio)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (username)
+                DO UPDATE SET
+                    maker=EXCLUDED.maker,
+                    car=EXCLUDED.car,
+                    region=EXCLUDED.region,
+                    bio=EXCLUDED.bio
+            """, (me, maker, car, region, bio))
 
     run_db(_do)
     return RedirectResponse(f"/user/{quote(me)}", status_code=303)
 
 # ======================
-# follow / unfollow（復旧）
+# follow / unfollow
 # ======================
 @app.post("/follow/{username}")
 def follow(username: str, user: str = Cookie(default=None)):
@@ -763,7 +752,7 @@ def logout():
     return res
 
 # ======================
-# likes（★元ページへ戻る安定版）
+# likes（元ページへ戻る）
 # ======================
 @app.post("/like/{post_id}")
 def like_post(request: Request, post_id: int, user: str = Cookie(default=None)):
@@ -794,7 +783,7 @@ def unlike_post(request: Request, post_id: int, user: str = Cookie(default=None)
     return redirect_back(request, fallback=f"/post/{post_id}")
 
 # ======================
-# likes API（リロード無し用：トグルしてJSON返す）
+# likes API（リロード無し）
 # ======================
 @app.post("/api/like/{post_id}")
 def api_like(post_id: int, request: Request, user: str = Cookie(default=None)):
@@ -804,23 +793,19 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None)):
     me = unquote(user)
 
     def _do(db, cur):
-        # 既にいいね済み？
         cur.execute("SELECT 1 FROM likes WHERE username=%s AND post_id=%s", (me, post_id))
         liked = cur.fetchone() is not None
 
         if liked:
-            # 取り消し
             cur.execute("DELETE FROM likes WHERE username=%s AND post_id=%s", (me, post_id))
             liked = False
         else:
-            # 追加
             cur.execute(
                 "INSERT INTO likes (username, post_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
                 (me, post_id)
             )
             liked = True
 
-        # 今のいいね数
         cur.execute("SELECT COUNT(*) FROM likes WHERE post_id=%s", (post_id,))
         likes_count = cur.fetchone()[0]
 
@@ -829,7 +814,7 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None)):
     return run_db(_do)
 
 # ======================
-# delete post（★元ページへ戻る安定版）
+# delete post（元ページへ戻る）
 # ======================
 @app.post("/delete/{post_id}")
 def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)):

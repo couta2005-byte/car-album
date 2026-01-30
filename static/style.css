@@ -647,3 +647,49 @@ textarea {
     width: 100%;
   }
 }
+/* =========================
+   Avatar（ユーザーアイコン）
+========================= */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #e5e7eb;
+  border: 1px solid rgba(15,20,25,0.06);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: 1px solid rgba(15,20,25,0.06);
+  display: inline-block;
+}
+
+/* 投稿ヘッダをアイコン対応に */
+.post-top {
+  align-items: center;
+}
+
+.post-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.post-title-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: baseline;
+}

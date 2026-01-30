@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=3000">
+  <link rel="stylesheet" href="/static/style.css?v=10">
 </head>
 <body>
 
@@ -30,12 +30,26 @@
 
         <div class="rank-badge">{{ loop.index }}</div>
 
-        <div class="ranking-title">
-          <a href="/user/{{ post.username | urlencode }}"
-             class="ranking-user"
-             onclick="event.stopPropagation();">{{ post.username }}</a>
-          <span>：</span>
-          <span class="ranking-car">{{ post.car }}</span>
+        <div class="ranking-title" style="gap:10px; align-items:center;">
+          {% if post.user_icon %}
+            <div class="avatar" onclick="event.stopPropagation();">
+              <a href="/user/{{ post.username | urlencode }}" onclick="event.stopPropagation();">
+                <img src="{{ post.user_icon }}" alt="icon">
+              </a>
+            </div>
+          {% else %}
+            <a href="/user/{{ post.username | urlencode }}" onclick="event.stopPropagation();">
+              <span class="avatar-fallback"></span>
+            </a>
+          {% endif %}
+
+          <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:baseline;">
+            <a href="/user/{{ post.username | urlencode }}"
+               class="ranking-user"
+               onclick="event.stopPropagation();">{{ post.username }}</a>
+            <span>：</span>
+            <span class="ranking-car">{{ post.car }}</span>
+          </div>
         </div>
 
         {% if post.comment %}
@@ -51,20 +65,20 @@
         <div class="ranking-meta">
           <span>{{ post.created_at | trim }}</span>
 
-          <!-- ✅ 統一：buttonだけ（submit事故ゼロ） -->
-          {% if user %}
-            <button type="button"
+          <form class="like-form"
+                method="post"
+                action="{% if post.id in liked_posts %}/unlike/{{ post.id }}{% else %}/like/{{ post.id }}{% endif %}"
+                onclick="event.stopPropagation();"
+                style="margin-left:auto;">
+            <button type="submit"
                     class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
                     data-post-id="{{ post.id }}"
-                    data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
-                    aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}"
-                    onclick="event.stopPropagation();">
+                    data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
               <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
               <span class="like-count">{{ post.likes }}</span>
             </button>
-          {% else %}
-            <span style="margin-left:auto;">🤍 {{ post.likes }}</span>
-          {% endif %}
+          </form>
+
         </div>
 
       </div>
