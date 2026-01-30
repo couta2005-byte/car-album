@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 import psycopg2, os, uuid
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Tuple
 
 # ★ password hash（bcrypt不具合回避：pbkdf2_sha256のみ使用）
 from passlib.context import CryptContext
@@ -267,6 +267,7 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", lim
             "comment_count": len(post_comments)
         })
     return posts
+
 # ======================
 # top
 # ======================
@@ -302,11 +303,35 @@ def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 # ======================
-# search（強化：q=1入力 OR検索 + 互換維持）
+# search（改良：絞り込みを主役にして「入力された項目だけ」WHEREに足す）
+# - maker/car/region がメイン（分かりやすい）
+# - q は互換維持（古いURLや将来用）。UIから消しても壊れない。
 # ======================
+def build_filter_where(maker: str, car: str, region: str) -> Tuple[str, Tuple[Any, ...]]:
+    clauses: List[str] = []
+    params: List[Any] = []
+
+    if maker:
+        clauses.append("p.maker ILIKE %s")
+        params.append(f"%{maker}%")
+
+    if car:
+        clauses.append("p.car ILIKE %s")
+        params.append(f"%{car}%")
+
+    if region:
+        clauses.append("p.region ILIKE %s")
+        params.append(f"%{region}%")
+
+    if not clauses:
+        return "", tuple()
+
+    return "WHERE " + " AND ".join(clauses), tuple(params)
+
 @app.get("/search", response_class=HTMLResponse)
 def search(
     request: Request,
+    # ★互換維持：古いリンク /search?q=トヨタ を壊さない
     q: str = Query(default=""),
     maker: str = Query(default=""),
     car: str = Query(default=""),
@@ -322,10 +347,21 @@ def search(
     db = get_db()
     try:
         liked_posts = get_liked_posts(db, me)
-        users = []
-        posts = []
+        users: List[str] = []
+        posts: List[Dict[str, Any]] = []
 
-        if q:
+        # 1) 絞り込み（maker/car/region）が入ってるなら、それを優先（←分かりやすい）
+        where_sql, params = build_filter_where(maker, car, region)
+        if where_sql:
+            posts = fetch_posts(
+                db,
+                where_sql,
+                params,
+                order_sql="ORDER BY p.id DESC"
+            )
+
+        # 2) 絞り込みが空で q だけ入ってる場合は、互換として「横断検索」を実行
+        elif q:
             like = f"%{q}%"
             posts = fetch_posts(
                 db,
@@ -352,14 +388,11 @@ def search(
                 users = [r[0] for r in cur.fetchall()]
             finally:
                 cur.close()
+
+        # 3) どっちも空なら、結果は空（※ここはテンプレ側で「条件入れてね」表示が自然）
         else:
-            if maker or car or region:
-                posts = fetch_posts(
-                    db,
-                    "WHERE p.maker ILIKE %s AND p.car ILIKE %s AND p.region ILIKE %s",
-                    (f"%{maker}%", f"%{car}%", f"%{region}%"),
-                    order_sql="ORDER BY p.id DESC"
-                )
+            posts = []
+            users = []
 
     finally:
         db.close()
@@ -369,8 +402,8 @@ def search(
         "posts": posts,
         "user": me,
         "liked_posts": liked_posts,
-        "q": q,
-        "users": users,
+        "q": q,            # 互換用（テンプレで使わないなら無視でOK）
+        "users": users,    # q のときだけ入る
         "maker": maker,
         "car": car,
         "region": region,
@@ -557,6 +590,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
         "liked_posts": liked_posts,
         "mode": "profile"
     })
+
 # ======================
 # profile edit
 # ======================
