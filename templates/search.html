@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>検索 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- ★全ページで同じvにする（キャッシュ更新） -->
   <link rel="stylesheet" href="/static/style.css?v=10">
 </head>
 <body>
@@ -56,15 +55,33 @@
 
             <div class="post-top">
               <div class="post-title">
-                <a href="/user/{{ post.username | urlencode }}"
-                   class="post-user"
-                   style="position:relative; z-index:2;"
-                   onclick="event.stopPropagation();">
-                  {{ post.username }}
-                </a>
-                <span class="post-sep">：</span>
-                <span class="post-car">{{ post.car }}</span>
+
+                {% if post.user_icon %}
+                  <div class="avatar" onclick="event.stopPropagation();" style="position:relative; z-index:2;">
+                    <a href="/user/{{ post.username | urlencode }}" onclick="event.stopPropagation();">
+                      <img src="{{ post.user_icon }}" alt="icon">
+                    </a>
+                  </div>
+                {% else %}
+                  <a href="/user/{{ post.username | urlencode }}"
+                     onclick="event.stopPropagation();"
+                     style="position:relative; z-index:2; display:inline-block;">
+                    <span class="avatar-fallback"></span>
+                  </a>
+                {% endif %}
+
+                <div class="post-title-main">
+                  <a href="/user/{{ post.username | urlencode }}"
+                     class="post-user"
+                     style="position:relative; z-index:2;"
+                     onclick="event.stopPropagation();">
+                    {{ post.username }}
+                  </a>
+                  <span class="post-sep">：</span>
+                  <span class="post-car">{{ post.car }}</span>
+                </div>
               </div>
+
               <span class="post-date">{{ post.created_at }}</span>
             </div>
 
@@ -78,7 +95,6 @@
               </div>
             {% endif %}
 
-            <!-- いいね：全ページ共通 like.js が拾う想定（js-like + data-post-id） -->
             <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
               {% if user %}
                 <button type="button"

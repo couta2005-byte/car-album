@@ -90,19 +90,25 @@ def run_db(fn):
 # ======================
 # Cloudinary
 # ======================
-cloudinary.config(
-    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
-    api_key=os.environ.get("CLOUDINARY_API_KEY"),
-    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
-    secure=True
-)
+CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME")
+CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY")
+CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET")
+
+CLOUDINARY_ENABLED = all([CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET])
+
+if CLOUDINARY_ENABLED:
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET,
+        secure=True
+    )
 
 # ======================
 # DB init（既存DBでも壊れないように追加カラムも保証）
 # ======================
 def init_db():
     def _do(db, cur):
-        # まずテーブル作成（従来のまま）
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
@@ -162,12 +168,10 @@ def startup():
 # common
 # ======================
 def redirect_back(request: Request, fallback: str = "/"):
-    # 1) next= があれば最優先（安全な相対パスのみ許可）
     next_url = request.query_params.get("next")
     if next_url and next_url.startswith("/"):
         return RedirectResponse(next_url, status_code=303)
 
-    # 2) referer があればそこへ
     referer = request.headers.get("referer")
     return RedirectResponse(referer or fallback, status_code=303)
 
@@ -258,7 +262,7 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", lim
             "image": r[6],
             "created_at": fmt_jst(r[7]),
             "likes": r[8],
-            "user_icon": r[9],  # ★追加
+            "user_icon": r[9],
             "comments": post_comments,
             "comment_count": len(post_comments)
         })
@@ -544,7 +548,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "profile": prof,  # (maker, car, region, bio, icon)
+        "profile": prof,
         "posts": posts,
         "me": me,
         "user": me,
@@ -558,6 +562,8 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
 # ======================
 # profile edit（★icon upload対応）
 # ======================
+MAX_ICON_BYTES = 5 * 1024 * 1024  # 5MB
+
 @app.post("/profile/edit")
 def profile_edit(
     request: Request,
@@ -565,7 +571,7 @@ def profile_edit(
     car: str = Form(""),
     region: str = Form(""),
     bio: str = Form(""),
-    icon: UploadFile = File(None),  # ★追加
+    icon: UploadFile = File(None),
     user: str = Cookie(default=None)
 ):
     if not user:
@@ -573,17 +579,29 @@ def profile_edit(
 
     me = unquote(user)
 
-    # ★ icon が来たら Cloudinary へ
     icon_url = None
     if icon and icon.filename:
+        # 画像かチェック（雑でも効果ある）
+        if not (icon.content_type or "").startswith("image/"):
+            return RedirectResponse(f"/user/{quote(me)}", status_code=303)
+
+        # Cloudinary未設定なら弾く（落ちるの防止）
+        if not CLOUDINARY_ENABLED:
+            return RedirectResponse(f"/user/{quote(me)}", status_code=303)
+
+        # サイズ上限（読み込みすぎ防止）
+        data = icon.file.read()
+        if len(data) > MAX_ICON_BYTES:
+            return RedirectResponse(f"/user/{quote(me)}", status_code=303)
+
         result = cloudinary.uploader.upload(
-            icon.file,
-            folder="carbum/icons"
+            data,
+            folder="carbum/icons",
+            resource_type="image",
         )
         icon_url = result.get("secure_url")
 
     def _do(db, cur):
-        # まず既存iconを保持したいので、iconが無い場合は上書きしない方針
         if icon_url:
             cur.execute("""
                 INSERT INTO profiles (username, maker, car, region, bio, icon)
@@ -671,6 +689,9 @@ def post(
     image_path = None
 
     if image and image.filename:
+        if not CLOUDINARY_ENABLED:
+            return redirect_back(request, "/")
+
         result = cloudinary.uploader.upload(
             image.file,
             folder="carbum/posts"
