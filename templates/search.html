@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>検索 | Car Album</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/static/style.css" />
+  <meta charset="UTF-8">
+  <title>検索 | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- ★全ページで同じvにする（キャッシュ更新） -->
+  <link rel="stylesheet" href="/static/style.css?v=9">
 </head>
 <body>
 
@@ -12,172 +13,126 @@
 
 <main class="container">
 
-  <h2 style="margin:12px 0 6px;">検索</h2>
+  <!-- ===== Search Header ===== -->
+  <section class="search-hero">
+    <h1 class="search-title">検索</h1>
 
-  <!-- 検索フォーム（探す専用） -->
-  <form action="/search" method="get" class="search-box">
-    <input
-      type="text"
-      name="q"
-      value="{{ q }}"
-      placeholder="メーカー・車名・地域・アカウント名で検索"
-    />
-    <button type="submit">検索</button>
-  </form>
+    <!-- ① メイン：q 検索（おすすめ） -->
+    <form action="/search" method="get" class="search-bar">
+      <input
+        class="search-input"
+        type="text"
+        name="q"
+        placeholder="メーカー / 車名 / 地域 / ユーザー をまとめて検索"
+        value="{{ q }}"
+        autocomplete="off"
+      >
+      <button class="search-btn" type="submit">検索</button>
+    </form>
 
-  {% if q %}
-    <div class="search-context">
-      「<strong>{{ q }}</strong>」の検索結果
-    </div>
+    <!-- ② 互換：maker / car / region 検索（必要なら使う） -->
+    <details class="search-advanced" {% if maker or car or region %}open{% endif %}>
+      <summary class="search-advanced-summary">詳細検索（メーカー・車名・地域）</summary>
+      <form action="/search" method="get" class="search-advanced-form">
+        <div class="search-grid">
+          <input class="search-input" type="text" name="maker" placeholder="メーカー" value="{{ maker }}">
+          <input class="search-input" type="text" name="car" placeholder="車名" value="{{ car }}">
+          <input class="search-input" type="text" name="region" placeholder="地域" value="{{ region }}">
+        </div>
+        <button class="search-btn" type="submit">詳細で検索</button>
+      </form>
+    </details>
 
-    <!-- ===== アカウント ===== -->
-    <div class="search-title">アカウント</div>
+    {% if q %}
+      <p class="search-meta">「{{ q }}」の検索結果</p>
+    {% elif maker or car or region %}
+      <p class="search-meta">詳細検索の結果</p>
+    {% else %}
+      <p class="search-meta">キーワードを入れて検索してね</p>
+    {% endif %}
+  </section>
+
+  <!-- ===== Accounts ===== -->
+  <section class="search-section">
+    <h2 class="section-title">アカウント</h2>
 
     {% if users and users|length > 0 %}
-      <div class="search-chips">
+      <div class="user-list">
         {% for u in users %}
-          <a href="/user/{{ u | urlencode }}" class="chip">
-            @{{ u }}
+          <a class="user-pill" href="/user/{{ u | urlencode }}">
+            <span class="user-at">@{{ u }}</span>
+            <span class="user-go">→</span>
           </a>
         {% endfor %}
       </div>
     {% else %}
-      <div class="search-empty">該当アカウントなし</div>
+      <p class="empty-note">該当アカウントなし</p>
     {% endif %}
+  </section>
 
-    <!-- ===== 投稿 ===== -->
-    <div class="search-title">
-      投稿（{{ posts|length }}件）
-    </div>
+  <!-- ===== Posts ===== -->
+  <section class="search-section">
+    <h2 class="section-title">投稿{% if posts %}（{{ posts|length }}件）{% endif %}</h2>
 
     {% if posts and posts|length > 0 %}
-      {% for p in posts %}
+      <div class="posts">
+      {% for post in posts %}
         <article class="post"
                  role="link"
                  tabindex="0"
-                 onclick="location.href='/post/{{ p.id }}';"
-                 onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ p.id }}'; }">
+                 onclick="location.href='/post/{{ post.id }}';"
+                 onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }"
+                 style="position:relative;">
 
           <div class="post-top">
-            <div>
-              <div class="post-car">
-                {{ p.car or "" }}
-                {% if p.maker %}<span>/ {{ p.maker }}</span>{% endif %}
-                {% if p.region %}<span>/ {{ p.region }}</span>{% endif %}
-              </div>
-
-              <div class="post-sub">
-                <a href="/user/{{ p.username | urlencode }}"
-                   onclick="event.stopPropagation();">
-                  @{{ p.username }}
-                </a>
-                <span>・</span>
-
-                {% if user %}
-                  <!-- ✅ リロード無しいいね（検索結果） -->
-                  <button type="button"
-                          class="like-btn js-like {% if p.id in liked_posts %}active{% endif %}"
-                          data-post-id="{{ p.id }}"
-                          data-liked="{% if p.id in liked_posts %}1{% else %}0{% endif %}"
-                          onclick="event.stopPropagation();">
-                    <span class="like-icon">{% if p.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
-                    <span class="like-count">{{ p.likes }}</span>
-                  </button>
-                {% else %}
-                  <span>🤍 {{ p.likes }}</span>
-                {% endif %}
-              </div>
+            <div class="post-title">
+              <a href="/user/{{ post.username | urlencode }}"
+                 class="post-user"
+                 style="position:relative; z-index:2;"
+                 onclick="event.stopPropagation();">
+                {{ post.username }}
+              </a>
+              <span class="post-sep">：</span>
+              <span class="post-car">{{ post.car }}</span>
             </div>
-
-            <div class="post-date">
-              {{ p.created_at }}
-            </div>
+            <span class="post-date">{{ post.created_at }}</span>
           </div>
 
-          {% if p.comment %}
-            <div class="post-comment">
-              {{ p.comment }}
+          {% if post.comment %}
+            <div class="post-comment">{{ post.comment }}</div>
+          {% endif %}
+
+          {% if post.image %}
+            <div class="post-image">
+              <img src="{{ post.image }}" alt="投稿画像">
             </div>
           {% endif %}
 
-          {% if p.image %}
-            <div class="post-image">
-              <img src="{{ p.image }}" alt="post image" />
-            </div>
-          {% endif %}
+          <!-- いいね：全ページ共通 like.js が拾う想定（js-like + data-post-id） -->
+          <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
+            {% if user %}
+              <button type="button"
+                      class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
+                      data-post-id="{{ post.id }}"
+                      data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
+                      aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}">
+                <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+                <span class="like-count">{{ post.likes }}</span>
+              </button>
+            {% else %}
+              <span>🤍 {{ post.likes }}</span>
+            {% endif %}
+          </div>
 
         </article>
       {% endfor %}
-    {% else %}
-      <div class="search-empty">
-        該当する投稿がありません
       </div>
+    {% else %}
+      <p class="empty-note">該当投稿なし</p>
     {% endif %}
-
-  {% else %}
-    <div class="search-guide">
-      上の入力欄にキーワードを入れて検索してね。
-    </div>
-  {% endif %}
+  </section>
 
 </main>
-
-<script>
-  // ✅ 検索：いいね即反映（/api/like/{post_id}）
-  // ※記事クリック遷移より先に止めるため capture=true
-  document.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".js-like");
-    if (!btn) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const postId = btn.dataset.postId;
-    if (!postId) return;
-
-    if (btn.dataset.loading === "1") return;
-    btn.dataset.loading = "1";
-
-    try {
-      const res = await fetch(`/api/like/${postId}`, {
-        method: "POST",
-        credentials: "same-origin"
-      });
-
-      if (res.status === 401) {
-        alert("ログインしてね");
-        return;
-      }
-      if (!res.ok) {
-        alert("いいね失敗（APIエラー）");
-        return;
-      }
-
-      const data = await res.json();
-      if (!data.ok) {
-        alert(data.error || "いいね失敗");
-        return;
-      }
-
-      // 数字更新
-      const countEl = btn.querySelector(".like-count");
-      if (countEl) countEl.textContent = String(data.likes);
-
-      // 状態更新
-      btn.dataset.liked = data.liked ? "1" : "0";
-      btn.classList.toggle("active", !!data.liked);
-
-      // アイコン更新
-      const iconEl = btn.querySelector(".like-icon");
-      if (iconEl) iconEl.textContent = data.liked ? "❤️" : "🤍";
-
-    } catch (err) {
-      alert("通信エラー");
-    } finally {
-      btn.dataset.loading = "0";
-    }
-  }, true);
-</script>
 
 </body>
 </html>

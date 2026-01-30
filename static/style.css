@@ -515,3 +515,135 @@ textarea {
 .post-actions .like-btn {
   margin-left: auto;
 }
+/* =========================
+   Search Page (Clean UI)
+========================= */
+.search-hero {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin: 8px 0 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.search-title {
+  font-size: 26px;
+  font-weight: 900;
+  margin: 2px 0 12px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  margin: 0;              /* 既存inputのmargin-bottomを打ち消す */
+}
+
+.search-btn {
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 900;
+  border-radius: 999px;
+  padding: 12px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-btn:hover { opacity: 0.92; }
+
+.search-meta {
+  margin: 10px 0 0;
+  color: #536471;
+  font-size: 14px;
+}
+
+.search-advanced {
+  margin-top: 12px;
+}
+
+.search-advanced-summary {
+  cursor: pointer;
+  font-weight: 900;
+  color: #0f1419;
+  user-select: none;
+}
+
+.search-advanced-form {
+  margin-top: 10px;
+}
+
+.search-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.search-section {
+  margin: 14px 0 22px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 900;
+  margin: 0 0 10px;
+  color: #0f1419;
+}
+
+.user-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #cfd9de;
+  background: #fff;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.user-pill:hover {
+  background: #f6f7f8;
+}
+
+.user-at {
+  font-weight: 900;
+  color: #0f1419;
+}
+
+.user-go {
+  color: #536471;
+  font-weight: 900;
+}
+
+.empty-note {
+  color: #8899a6;
+  margin: 0;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-btn {
+    width: 100%;
+  }
+}
