@@ -549,7 +549,7 @@ def ranking(
     })
 
 # ======================
-# post detail（★コメントを「いいね対応版」で上書き）
+# post detail（★コメント「いいね/削除」対応）
 # ======================
 @app.get("/post/{post_id}", response_class=HTMLResponse)
 def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)):
@@ -563,7 +563,7 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
 
         post = posts[0]
 
-        # ★ ここでコメントを「いいね対応版」に差し替える
+        # ★ コメントを「いいね対応版」に差し替える
         post_comments = fetch_comments_for_post_detail(db, post_id, me)
         post["comments"] = post_comments
         post["comment_count"] = len(post_comments)
@@ -607,6 +607,35 @@ def add_comment(
 
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
+
+# ======================
+# comment delete（★自分のコメントだけ）
+# ======================
+@app.post("/comment_delete/{comment_id}")
+def delete_comment(request: Request, comment_id: int, user: str = Cookie(default=None)):
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    me = unquote(user)
+
+    def _do(db, cur):
+        # 自分のコメントか確認 & post_id取る
+        cur.execute("SELECT post_id FROM comments WHERE id=%s AND username=%s", (comment_id, me))
+        row = cur.fetchone()
+        if not row:
+            return None
+        post_id = row[0]
+
+        # まずコメントいいね消す（外部キー無いので手動）
+        cur.execute("DELETE FROM comment_likes WHERE comment_id=%s", (comment_id,))
+        # コメント削除
+        cur.execute("DELETE FROM comments WHERE id=%s AND username=%s", (comment_id, me))
+
+        return post_id
+
+    post_id = run_db(_do)
+    fallback = f"/post/{post_id}" if post_id else "/"
+    return redirect_back(request, fallback=fallback)
 
 # ======================
 # comment like（★トグル）

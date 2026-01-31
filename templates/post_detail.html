@@ -107,6 +107,13 @@
               {% else %}
                 <span>🤍 {{ c.likes }}</span>
               {% endif %}
+
+              <!-- ★ 自分のコメントだけ削除 -->
+              {% if user and user == c.username %}
+                <form action="/comment_delete/{{ c.id }}" method="post" style="margin:0;">
+                  <button type="submit" class="delete-btn">🗑</button>
+                </form>
+              {% endif %}
             </div>
           </div>
 
