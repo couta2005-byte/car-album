@@ -160,6 +160,15 @@ def init_db():
         # ★ profiles に icon カラム（無ければ追加）
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
 
+        # ★ コメントいいね（トグル用）
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS comment_likes (
+            username TEXT,
+            comment_id INTEGER,
+            PRIMARY KEY (username, comment_id)
+        );
+        """)
+
     run_db(_do)
 
 @app.on_event("startup")
@@ -191,7 +200,7 @@ def get_liked_posts(db, me):
         cur.close()
 
 # ======================
-# comments fetch（★アイコンもJOINで取得）
+# comments fetch（一覧用：アイコンだけ付与）
 # ======================
 def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str, Any]]]:
     if not post_ids:
@@ -224,8 +233,85 @@ def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str
             "username": username,
             "comment": comment,
             "created_at": fmt_jst(created_at),
-            "user_icon": user_icon  # ★追加
+            "user_icon": user_icon
         })
+    return out
+
+# ======================
+# post_detail用：コメントに「いいね数」「自分が押したか」も付与
+# ======================
+def fetch_comments_for_post_detail(db, post_id: int, me: Optional[str]) -> List[Dict[str, Any]]:
+    cur = db.cursor()
+    try:
+        if me:
+            cur.execute("""
+                SELECT
+                    c.id,
+                    c.username,
+                    c.comment,
+                    c.created_at,
+                    pr.icon AS user_icon,
+                    COALESCE(clc.like_count, 0) AS likes,
+                    CASE WHEN mycl.username IS NULL THEN 0 ELSE 1 END AS liked
+                FROM comments c
+                LEFT JOIN profiles pr ON c.username = pr.username
+                LEFT JOIN (
+                    SELECT comment_id, COUNT(*) AS like_count
+                    FROM comment_likes
+                    GROUP BY comment_id
+                ) clc ON clc.comment_id = c.id
+                LEFT JOIN comment_likes mycl
+                    ON mycl.comment_id = c.id AND mycl.username = %s
+                WHERE c.post_id = %s
+                ORDER BY c.id ASC
+            """, (me, post_id))
+        else:
+            cur.execute("""
+                SELECT
+                    c.id,
+                    c.username,
+                    c.comment,
+                    c.created_at,
+                    pr.icon AS user_icon,
+                    COALESCE(clc.like_count, 0) AS likes
+                FROM comments c
+                LEFT JOIN profiles pr ON c.username = pr.username
+                LEFT JOIN (
+                    SELECT comment_id, COUNT(*) AS like_count
+                    FROM comment_likes
+                    GROUP BY comment_id
+                ) clc ON clc.comment_id = c.id
+                WHERE c.post_id = %s
+                ORDER BY c.id ASC
+            """, (post_id,))
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+
+    out: List[Dict[str, Any]] = []
+    for r in rows:
+        if me:
+            cid, username, comment, created_at, user_icon, likes, liked = r
+            out.append({
+                "id": cid,
+                "username": username,
+                "comment": comment,
+                "created_at": fmt_jst(created_at),
+                "user_icon": user_icon,
+                "likes": int(likes or 0),
+                "liked": bool(liked)
+            })
+        else:
+            cid, username, comment, created_at, user_icon, likes = r
+            out.append({
+                "id": cid,
+                "username": username,
+                "comment": comment,
+                "created_at": fmt_jst(created_at),
+                "user_icon": user_icon,
+                "likes": int(likes or 0),
+                "liked": False
+            })
     return out
 
 # ======================
@@ -463,7 +549,7 @@ def ranking(
     })
 
 # ======================
-# post detail
+# post detail（★コメントを「いいね対応版」で上書き）
 # ======================
 @app.get("/post/{post_id}", response_class=HTMLResponse)
 def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)):
@@ -474,7 +560,13 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
         posts = fetch_posts(db, "WHERE p.id=%s", (post_id,))
         if not posts:
             return RedirectResponse("/", status_code=303)
+
         post = posts[0]
+
+        # ★ ここでコメントを「いいね対応版」に差し替える
+        post_comments = fetch_comments_for_post_detail(db, post_id, me)
+        post["comments"] = post_comments
+        post["comment_count"] = len(post_comments)
     finally:
         db.close()
 
@@ -515,6 +607,42 @@ def add_comment(
 
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
+
+# ======================
+# comment like（★トグル）
+# ======================
+@app.post("/comment_like/{comment_id}")
+def toggle_comment_like(request: Request, comment_id: int, user: str = Cookie(default=None)):
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+
+    me = unquote(user)
+
+    def _do(db, cur):
+        # コメントが存在するか + どの投稿か取得（戻り先用）
+        cur.execute("SELECT post_id FROM comments WHERE id=%s", (comment_id,))
+        row = cur.fetchone()
+        if not row:
+            return None
+        post_id = row[0]
+
+        # すでに押してる？
+        cur.execute("SELECT 1 FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
+        liked = cur.fetchone() is not None
+
+        if liked:
+            cur.execute("DELETE FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
+        else:
+            cur.execute(
+                "INSERT INTO comment_likes (username, comment_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (me, comment_id)
+            )
+
+        return post_id
+
+    post_id = run_db(_do)
+    fallback = f"/post/{post_id}" if post_id else "/"
+    return redirect_back(request, fallback=fallback)
 
 # ======================
 # profile
