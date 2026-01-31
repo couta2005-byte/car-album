@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-import psycopg2, os
+import psycopg2, os, re
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
 from typing import Optional, Dict, List, Any
@@ -105,6 +105,40 @@ cloudinary.config(
 )
 
 # ======================
+# helpers: https, handle validation
+# ======================
+def is_https_request(request: Request) -> bool:
+    return request.url.scheme == "https"
+
+HANDLE_RE = re.compile(r"^[a-zA-Z0-9._]{3,20}$")
+
+def normalize_handle(s: str) -> Optional[str]:
+    s = (s or "").strip()
+    if not s:
+        return None
+    if not HANDLE_RE.match(s):
+        return None
+    return s
+
+def is_handle_available(db, handle: str, exclude_username: Optional[str] = None) -> bool:
+    cur = db.cursor()
+    try:
+        if exclude_username:
+            cur.execute("SELECT 1 FROM users WHERE handle=%s AND username<>%s LIMIT 1", (handle, exclude_username))
+        else:
+            cur.execute("SELECT 1 FROM users WHERE handle=%s LIMIT 1", (handle,))
+        return cur.fetchone() is None
+    finally:
+        cur.close()
+
+def suggest_handle(username: str) -> Optional[str]:
+    # username が handle として使えそうなら候補にする
+    u = (username or "").strip()
+    if HANDLE_RE.match(u):
+        return u
+    return None
+
+# ======================
 # DB init（既存DBでも壊れないように追加カラムも保証）
 # ======================
 def init_db():
@@ -158,6 +192,23 @@ def init_db():
         # ★ profiles に icon カラム（無ければ追加）
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
 
+        # ★ users に display_name / handle / created_at（無ければ追加）
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT;")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS handle TEXT;")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP;")
+
+        # ★ handle はユニーク（NULLは複数OK）
+        # Postgres: 部分ユニークindex
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS users_handle_unique
+            ON users(handle)
+            WHERE handle IS NOT NULL;
+        """)
+
+        # ★ 既存ユーザーの埋め（NULLを埋めておく）
+        cur.execute("UPDATE users SET display_name = username WHERE display_name IS NULL;")
+        cur.execute("UPDATE users SET created_at = NOW() WHERE created_at IS NULL;")
+
         # ★ コメントいいね
         cur.execute("""
         CREATE TABLE IF NOT EXISTS comment_likes (
@@ -183,9 +234,6 @@ def redirect_back(request: Request, fallback: str = "/"):
 
     referer = request.headers.get("referer")
     return RedirectResponse(referer or fallback, status_code=303)
-
-def is_https_request(request: Request) -> bool:
-    return request.url.scheme == "https"
 
 def get_liked_posts(db, me):
     if not me:
@@ -727,14 +775,17 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     db = get_db()
     cur = db.cursor()
     try:
+        # profiles
         cur.execute(
             "SELECT maker, car, region, bio, icon FROM profiles WHERE username=%s",
             (username,)
         )
         prof = cur.fetchone()
 
+        # posts
         posts = fetch_posts(db, me, "WHERE p.username=%s", (username,))
 
+        # follow counts
         cur.execute("SELECT COUNT(*) FROM follows WHERE follower=%s", (username,))
         follow_count = cur.fetchone()[0]
 
@@ -750,6 +801,12 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
             is_following = cur.fetchone() is not None
 
         liked_posts = get_liked_posts(db, me)
+
+        # ✅ display_name / handle
+        cur.execute("SELECT display_name, handle FROM users WHERE username=%s", (username,))
+        row = cur.fetchone()
+        display_name = row[0] if row else None
+        handle = row[1] if row else None
     finally:
         cur.close()
         db.close()
@@ -765,15 +822,19 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
         "follow_count": follow_count,
         "follower_count": follower_count,
         "liked_posts": liked_posts,
+        "display_name": display_name,
+        "handle": handle,
         "mode": "profile"
     })
 
 # ======================
-# profile edit（★icon upload）
+# profile edit（★icon upload + display_name/handle）
 # ======================
 @app.post("/profile/edit")
 def profile_edit(
     request: Request,
+    display_name: str = Form(""),
+    handle: str = Form(""),
     maker: str = Form(""),
     car: str = Form(""),
     region: str = Form(""),
@@ -786,15 +847,48 @@ def profile_edit(
 
     me = unquote(user)
 
+    # 表示名
+    display_name = (display_name or "").strip()
+    if not display_name:
+        display_name = me
+    if len(display_name) > 40:
+        display_name = display_name[:40]
+
+    # handle（@ID）
+    handle_norm = normalize_handle(handle)  # invalid => None
+    # invalid を入力してたら「保存しない」挙動の方がストレス少ないので None に落とす
+    # もし「無効ならエラー表示」したいならここで redirect してクエリに error 付ける
+
+    # icon upload（精度UP：正方形＋顔優先＋軽量）
     icon_url = None
     if icon and icon.filename:
         result = cloudinary.uploader.upload(
             icon.file,
-            folder="carbum/icons"
+            folder="carbum/icons",
+            transformation=[
+                {"width": 256, "height": 256, "crop": "fill", "gravity": "face"},
+                {"quality": "auto", "fetch_format": "auto"}
+            ]
         )
         icon_url = result.get("secure_url")
 
     def _do(db, cur):
+        # handle の重複チェック（自分以外が使ってたら保存しない）
+        final_handle = handle_norm
+        if final_handle is not None:
+            cur.execute("SELECT 1 FROM users WHERE handle=%s AND username<>%s LIMIT 1", (final_handle, me))
+            if cur.fetchone() is not None:
+                final_handle = None  # 被ってたら諦める（後で変えられる）
+
+        # users 更新（display_name / handle）
+        cur.execute("""
+            UPDATE users
+            SET display_name=%s,
+                handle=%s
+            WHERE username=%s
+        """, (display_name, final_handle, me))
+
+        # profiles 更新（maker/car/region/bio/icon）
         if icon_url:
             cur.execute("""
                 INSERT INTO profiles (username, maker, car, region, bio, icon)
@@ -884,7 +978,11 @@ def post(
     if image and image.filename:
         result = cloudinary.uploader.upload(
             image.file,
-            folder="carbum/posts"
+            folder="carbum/posts",
+            transformation=[
+                {"width": 1400, "crop": "limit"},
+                {"quality": "auto", "fetch_format": "auto"}
+            ]
         )
         image_path = result["secure_url"]
 
@@ -930,20 +1028,33 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
 
 @app.post("/register")
 def register(request: Request, username: str = Form(...), password: str = Form(...)):
+    username = (username or "").strip()
+    if not username:
+        return RedirectResponse("/register", status_code=303)
+
     if len(password) < 4 or len(password) > 256:
         return RedirectResponse("/register", status_code=303)
 
     hashed = pwd_context.hash(password)
 
     def _do(db, cur):
-        cur.execute(
-            "INSERT INTO users (username, password) VALUES (%s, %s)",
-            (username, hashed)
-        )
+        # display_name は初期 username
+        display_name = username
+
+        # handle は username が適合し、かつ空いてたら自動セット（被ったらNULL）
+        h = suggest_handle(username)
+        if h is not None and (not is_handle_available(db, h)):
+            h = None
+
+        cur.execute("""
+            INSERT INTO users (username, password, display_name, handle, created_at)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (username, hashed, display_name, h, utcnow_naive()))
 
     try:
         run_db(_do)
     except Exception:
+        # username重複など
         return RedirectResponse("/register", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
@@ -1022,7 +1133,7 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None)):
 
         return {"ok": True, "liked": liked, "likes": likes_count}
 
-    return run_db(_do)
+    return JSONResponse(run_db(_do))
 
 # ======================
 # delete post
@@ -1043,10 +1154,14 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
         if not row:
             return
 
-        cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
-        cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
+        # ✅ 先に comment_likes を消す（comments を消した後だと subselect が空になる）
+        cur.execute("""
+            DELETE FROM comment_likes
+            WHERE comment_id IN (SELECT id FROM comments WHERE post_id=%s)
+        """, (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
-        cur.execute("DELETE FROM comment_likes WHERE comment_id IN (SELECT id FROM comments WHERE post_id=%s)", (post_id,))
+        cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
+        cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
     run_db(_do)
     return redirect_back(request, fallback="/")
