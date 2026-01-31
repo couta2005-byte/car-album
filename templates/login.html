@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ログイン | Carbum</title>
+  <title>ログイン | Car Album</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -14,11 +14,25 @@
   <h2 class="auth-title">ログイン</h2>
 
   <form method="post" action="/login" class="auth-form">
-    <!-- username でも @ID(handle) でもOK（main.py修正込み） -->
-    <input type="text" name="username" placeholder="ログインID または @ID" required>
+    <!-- ✅ ログインIDは英数字 + . _ のみ（インスタ方式） -->
+    <input type="text"
+           name="username"
+           placeholder="ログインID（英数字と._のみ / 例：nozawa）"
+           pattern="[A-Za-z0-9._]{3,20}"
+           title="ログインIDは英数字と . _ のみ（3〜20文字）です。ひらがな/漢字/絵文字/スペースは使えません。"
+           required>
+
     <input type="password" name="password" placeholder="パスワード" required>
 
     <button type="submit" class="auth-btn">ログイン</button>
+
+    <!-- ✅ 説明（ひらがな使えないのが分かるやつ） -->
+    <div style="margin-top:12px; color:#536471; font-size:12px; line-height:1.6;">
+      <div style="font-weight:900; margin-bottom:6px;">ログインIDについて</div>
+      ・ログインIDは <b>英数字</b> と <b>「.（ドット）」「_（アンダーバー）」</b> のみ使えます（3〜20文字）<br>
+      ・<b>ひらがな / カタカナ / 漢字 / 絵文字 / スペース</b> は使えません<br>
+      ・表示名（プロフィールで見える名前）は、あとから自由に変更できます
+    </div>
   </form>
 
   <p class="auth-link">
