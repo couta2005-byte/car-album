@@ -31,35 +31,25 @@
 
 <div class="posts">
 {% for post in posts %}
-  <article class="post"
-           role="link"
-           tabindex="0"
-           onclick="location.href='/post/{{ post.id }}';"
-           onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }"
-           style="position:relative;">
+  <article class="post" style="position:relative;">
 
     <div class="post-top">
       <div class="post-title">
         {% if post.user_icon %}
-          <div class="avatar" onclick="event.stopPropagation();" style="position:relative; z-index:2;">
-            <a href="/user/{{ post.username | urlencode }}" onclick="event.stopPropagation();">
+          <div class="avatar">
+            <a href="/user/{{ post.username | urlencode }}">
               <img src="{{ post.user_icon }}" alt="icon">
             </a>
           </div>
         {% else %}
-          <a href="/user/{{ post.username | urlencode }}"
-             onclick="event.stopPropagation();"
-             style="position:relative; z-index:2; display:inline-block;">
+          <a href="/user/{{ post.username | urlencode }}">
             <span class="avatar-fallback"></span>
           </a>
         {% endif %}
 
         <div class="post-title-main">
-          <a href="/user/{{ post.username | urlencode }}"
-             class="post-user"
-             style="position:relative; z-index:2;"
-             onclick="event.stopPropagation();">
-            {{ post.username }}
+          <a href="/user/{{ post.username | urlencode }}" class="post-user" style="text-decoration:none; color:inherit;">
+            <strong>{{ post.username }}</strong>
           </a>
           <span class="post-sep">：</span>
           <span class="post-car">{{ post.car }}</span>
@@ -79,7 +69,8 @@
       </div>
     {% endif %}
 
-    <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
+    <div class="post-actions" style="position:relative; z-index:5; display:flex; align-items:center; gap:10px; margin-top:10px;">
+      <!-- ✅ post like（非リロード） -->
       {% if user %}
         <button type="button"
                 class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
@@ -93,71 +84,21 @@
         <span>🤍 {{ post.likes }}</span>
       {% endif %}
 
+      <!-- ✅ コメントは数だけ（詳細へ） -->
+      <a href="/post/{{ post.id }}" class="like-btn" style="text-decoration:none;">
+        <span style="margin-right:6px;">💬</span>
+        <span>{{ post.comment_count }}</span>
+      </a>
+
+      <a href="/post/{{ post.id }}" class="back-link" style="margin-left:auto; text-decoration:none;">
+        → 詳細
+      </a>
+
       {% if user == post.username %}
-        <form action="/delete/{{ post.id }}" method="post" onclick="event.stopPropagation();">
+        <form action="/delete/{{ post.id }}" method="post" style="margin:0;">
           <button class="delete-btn" type="submit">🗑 削除</button>
         </form>
       {% endif %}
-    </div>
-
-    <!-- ✅ コメント一覧（非リロードいいね対応） -->
-    <div style="margin-top:12px;" onclick="event.stopPropagation();">
-      <div style="font-weight:900; margin: 6px 0 10px;">
-        コメント（{{ post.comment_count }}）
-      </div>
-
-      {% if post.comments and post.comments|length > 0 %}
-        {% for c in post.comments %}
-          <div class="comment-item" style="margin-bottom:10px;">
-            <div class="comment-header" style="align-items:center;">
-              <div style="display:flex; align-items:center; gap:10px;">
-                {% if c.user_icon %}
-                  <div class="avatar">
-                    <a href="/user/{{ c.username | urlencode }}" onclick="event.stopPropagation();">
-                      <img src="{{ c.user_icon }}" alt="icon">
-                    </a>
-                  </div>
-                {% else %}
-                  <a href="/user/{{ c.username | urlencode }}" onclick="event.stopPropagation();">
-                    <span class="avatar-fallback"></span>
-                  </a>
-                {% endif %}
-
-                <strong>
-                  <a href="/user/{{ c.username | urlencode }}" style="text-decoration:none; color:inherit;" onclick="event.stopPropagation();">
-                    {{ c.username }}
-                  </a>
-                </strong>
-              </div>
-
-              <div style="display:flex; align-items:center; gap:10px;">
-                <span class="comment-time">{{ c.created_at }}</span>
-
-                {% if user %}
-                  <button type="button"
-                          class="like-btn js-comment-like {% if c.liked %}active{% endif %}"
-                          data-comment-id="{{ c.id }}"
-                          data-liked="{% if c.liked %}1{% else %}0{% endif %}"
-                          aria-pressed="{% if c.liked %}true{% else %}false{% endif %}">
-                    <span class="like-icon">{% if c.liked %}❤️{% else %}🤍{% endif %}</span>
-                    <span class="like-count">{{ c.likes }}</span>
-                  </button>
-                {% else %}
-                  <span>🤍 {{ c.likes }}</span>
-                {% endif %}
-              </div>
-            </div>
-
-            <div class="comment-body">{{ c.comment }}</div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <p class="no-comment">まだコメントはありません</p>
-      {% endif %}
-
-      <a href="/post/{{ post.id }}" class="back-link" style="margin-top:6px; display:inline-block;">
-        → この投稿の詳細へ
-      </a>
     </div>
 
   </article>
@@ -165,6 +106,55 @@
 </div>
 
 </main>
+
+<!-- ✅ いいね非リロードJS（index用） -->
+<script>
+(function(){
+  async function postJson(url){
+    const res = await fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" }
+    });
+    const data = await res.json().catch(()=>null);
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  function setBtn(btn, liked, likes){
+    btn.dataset.liked = liked ? "1" : "0";
+    btn.classList.toggle("active", liked);
+    btn.setAttribute("aria-pressed", liked ? "true" : "false");
+    const icon = btn.querySelector(".like-icon");
+    const count = btn.querySelector(".like-count");
+    if (icon) icon.textContent = liked ? "❤️" : "🤍";
+    if (count) count.textContent = String(likes);
+  }
+
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".js-like");
+    if(!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const postId = btn.dataset.postId;
+    if(!postId) return;
+
+    btn.disabled = true;
+    try{
+      const r = await postJson(`/api/like/${postId}`);
+      if(!r.ok || !r.data || r.data.ok !== true){
+        if(r.status === 401) { location.href = "/login"; return; }
+        alert("いいねに失敗しました");
+        return;
+      }
+      setBtn(btn, !!r.data.liked, r.data.likes);
+    } finally {
+      btn.disabled = false;
+    }
+  }, { passive:false });
+})();
+</script>
 
 </body>
 </html>

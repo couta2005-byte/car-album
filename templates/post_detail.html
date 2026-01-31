@@ -70,7 +70,7 @@
     {% if post.comments %}
       {% for c in post.comments %}
         <div class="comment-item">
-          <div class="comment-header" style="align-items:center;">
+          <div class="comment-header" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
             <div style="display:flex; align-items:center; gap:10px;">
               {% if c.user_icon %}
                 <div class="avatar">
@@ -83,36 +83,21 @@
                   <span class="avatar-fallback"></span>
                 </a>
               {% endif %}
-
-              <strong style="display:flex; align-items:center;">
-                <a href="/user/{{ c.username | urlencode }}" style="text-decoration:none; color:inherit;">
-                  {{ c.username }}
-                </a>
-              </strong>
+              <strong>{{ c.username }}</strong>
+              <span class="comment-time">{{ c.created_at }}</span>
             </div>
 
             <div style="display:flex; align-items:center; gap:10px;">
-              <span class="comment-time">{{ c.created_at }}</span>
-
-              <!-- ✅ コメントいいね：非リロード（js-comment-like） -->
               {% if user %}
                 <button type="button"
                         class="like-btn js-comment-like {% if c.liked %}active{% endif %}"
                         data-comment-id="{{ c.id }}"
-                        data-liked="{% if c.liked %}1{% else %}0{% endif %}"
-                        aria-pressed="{% if c.liked %}true{% else %}false{% endif %}">
+                        data-liked="{% if c.liked %}1{% else %}0{% endif %}">
                   <span class="like-icon">{% if c.liked %}❤️{% else %}🤍{% endif %}</span>
                   <span class="like-count">{{ c.likes }}</span>
                 </button>
               {% else %}
                 <span>🤍 {{ c.likes }}</span>
-              {% endif %}
-
-              <!-- 自分のコメントだけ削除 -->
-              {% if user and user == c.username %}
-                <form action="/comment_delete/{{ c.id }}" method="post" style="margin:0;">
-                  <button type="submit" class="delete-btn">🗑</button>
-                </form>
               {% endif %}
             </div>
           </div>
@@ -136,6 +121,74 @@
   {% endif %}
 
 </main>
+
+<script>
+(function(){
+  async function postJson(url){
+    const res = await fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" }
+    });
+    const data = await res.json().catch(()=>null);
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  function setBtn(btn, liked, likes){
+    btn.dataset.liked = liked ? "1" : "0";
+    btn.classList.toggle("active", liked);
+    const icon = btn.querySelector(".like-icon");
+    const count = btn.querySelector(".like-count");
+    if (icon) icon.textContent = liked ? "❤️" : "🤍";
+    if (count) count.textContent = String(likes);
+  }
+
+  document.addEventListener("click", async (e) => {
+    // post like
+    const postBtn = e.target.closest(".js-like");
+    if(postBtn){
+      e.preventDefault();
+      const postId = postBtn.dataset.postId;
+      if(!postId) return;
+
+      postBtn.disabled = true;
+      try{
+        const r = await postJson(`/api/like/${postId}`);
+        if(!r.ok || !r.data || r.data.ok !== true){
+          if(r.status === 401) { location.href = "/login"; return; }
+          alert("いいねに失敗しました");
+          return;
+        }
+        setBtn(postBtn, !!r.data.liked, r.data.likes);
+      } finally {
+        postBtn.disabled = false;
+      }
+      return;
+    }
+
+    // comment like
+    const cBtn = e.target.closest(".js-comment-like");
+    if(cBtn){
+      e.preventDefault();
+      const cid = cBtn.dataset.commentId;
+      if(!cid) return;
+
+      cBtn.disabled = true;
+      try{
+        const r = await postJson(`/api/comment_like/${cid}`);
+        if(!r.ok || !r.data || r.data.ok !== true){
+          if(r.status === 401) { location.href = "/login"; return; }
+          alert("コメントいいねに失敗しました");
+          return;
+        }
+        setBtn(cBtn, !!r.data.liked, r.data.likes);
+      } finally {
+        cBtn.disabled = false;
+      }
+    }
+  }, { passive:false });
+})();
+</script>
 
 </body>
 </html>
