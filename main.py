@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-import psycopg2, os, re, uuid
+import psycopg2, os, re
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
 from typing import Optional, Dict, List, Any, Tuple
@@ -105,41 +105,47 @@ cloudinary.config(
 )
 
 # ======================
-# helpers: https, handle validation
+# helpers: https（Render対策）, handle validation（インスタ方式）
 # ======================
 def is_https_request(request: Request) -> bool:
-    # Render等のリバースプロキシ対応
-    xf = (request.headers.get("x-forwarded-proto") or "").lower()
+    # Renderはリバプロなので forwarded を優先
+    xf = request.headers.get("x-forwarded-proto", "")
     if xf:
-        return xf == "https"
+        return xf.split(",")[0].strip() == "https"
     return request.url.scheme == "https"
 
-HANDLE_RE = re.compile(r"^[a-zA-Z0-9._]{3,20}$")
+# ✅ インスタ寄せ：ログインID(@ID)は「小文字 + 数字 + . _」のみ
+# 3〜20文字、先頭末尾が"."はNG、連続"..”もNG
+LOGIN_ID_RE = re.compile(r"^[a-z0-9._]{3,20}$")
 
-def normalize_handle(s: str) -> Optional[str]:
+def normalize_login_id(s: str) -> Optional[str]:
     s = (s or "").strip()
     if not s:
         return None
-    if not HANDLE_RE.match(s):
+    s = s.lower()
+
+    if not LOGIN_ID_RE.match(s):
+        return None
+    if s.startswith(".") or s.endswith("."):
+        return None
+    if ".." in s:
         return None
     return s
 
-def is_handle_available(db, handle: str, exclude_username: Optional[str] = None) -> bool:
+def is_handle_available(db, handle: str, exclude_user_id: Optional[str] = None) -> bool:
     cur = db.cursor()
     try:
-        if exclude_username:
-            cur.execute("SELECT 1 FROM users WHERE handle=%s AND username<>%s LIMIT 1", (handle, exclude_username))
+        if exclude_user_id:
+            cur.execute("SELECT 1 FROM users WHERE handle=%s AND id<>%s LIMIT 1", (handle, exclude_user_id))
         else:
             cur.execute("SELECT 1 FROM users WHERE handle=%s LIMIT 1", (handle,))
         return cur.fetchone() is None
     finally:
         cur.close()
 
-def suggest_handle(username: str) -> Optional[str]:
-    u = (username or "").strip()
-    if HANDLE_RE.match(u):
-        return u
-    return None
+def suggest_handle_from_login(login_id: str) -> Optional[str]:
+    # もう正規化済みのやつをそのまま候補にする
+    return normalize_login_id(login_id)
 
 # ======================
 # ✅ auth: uid cookie（UUID）を優先して自分を特定する
@@ -152,21 +158,16 @@ def get_me_from_cookies(db, user_cookie: Optional[str], uid_cookie: Optional[str
     """
     # 1) uid があれば users.id から username を引く
     if uid_cookie:
-        uid_str = (uid_cookie or "").strip()
-        if uid_str:
+        uid = (uid_cookie or "").strip()
+        if uid:
+            cur = db.cursor()
             try:
-                uuid.UUID(uid_str)
-            except Exception:
-                uid_str = ""
-            if uid_str:
-                cur = db.cursor()
-                try:
-                    cur.execute("SELECT username, id FROM users WHERE id=%s", (uid_str,))
-                    row = cur.fetchone()
-                    if row:
-                        return row[0], str(row[1])
-                finally:
-                    cur.close()
+                cur.execute("SELECT username, id FROM users WHERE id=%s", (uid,))
+                row = cur.fetchone()
+                if row:
+                    return row[0], str(row[1])
+            finally:
+                cur.close()
 
     # 2) 旧 user cookie（username）
     if user_cookie:
@@ -246,10 +247,11 @@ def init_db():
 
         # ---- ✅ users.id(UUID) 追加（固定IDの本体）----
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS id UUID;")
-        # 既存ユーザーにID埋め
         cur.execute("UPDATE users SET id = gen_random_uuid() WHERE id IS NULL;")
-        # default
         cur.execute("ALTER TABLE users ALTER COLUMN id SET DEFAULT gen_random_uuid();")
+
+        # ✅ 既存handleを小文字に正規化（今後の衝突を減らす）
+        cur.execute("UPDATE users SET handle = LOWER(handle) WHERE handle IS NOT NULL;")
 
         # handle unique（NULL複数OK）
         cur.execute("""
@@ -301,7 +303,7 @@ def init_db():
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS comments_user_id_idx ON comments(user_id);")
 
-        # likes.user_id（PKは温存、段階移行用にindex追加）
+        # likes.user_id
         cur.execute("ALTER TABLE likes ADD COLUMN IF NOT EXISTS user_id UUID;")
         cur.execute("""
             UPDATE likes l
@@ -350,7 +352,7 @@ def init_db():
             WHERE user_id IS NOT NULL;
         """)
 
-        # profiles.user_id（将来username変更に備える）
+        # profiles.user_id
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS user_id UUID;")
         cur.execute("""
             UPDATE profiles pr
@@ -944,26 +946,23 @@ def profile(request: Request, username: str, user: str = Cookie(default=None), u
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
 
-        # target user (id + display)
         cur.execute("SELECT id, display_name, handle FROM users WHERE username=%s", (username,))
         urow = cur.fetchone()
         if not urow:
             return RedirectResponse("/", status_code=303)
+
         target_user_id = str(urow[0])
         display_name = urow[1]
         handle = urow[2]
 
-        # profiles
         cur.execute(
             "SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s",
             (target_user_id,)
         )
         prof = cur.fetchone()
 
-        # posts (user_id で引く)
         posts = fetch_posts(db, me_user_id, "WHERE p.user_id=%s", (target_user_id,))
 
-        # follow counts（idで数える）
         cur.execute("SELECT COUNT(*) FROM follows WHERE follower_id=%s", (target_user_id,))
         follow_count = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM follows WHERE followee_id=%s", (target_user_id,))
@@ -985,10 +984,10 @@ def profile(request: Request, username: str, user: str = Cookie(default=None), u
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "profile": prof,  # (maker, car, region, bio, icon)
+        "profile": prof,
         "posts": posts,
-        "me": me_username,      # template互換（me==username）
-        "user": me_username,    # nav互換
+        "me": me_username,
+        "user": me_username,
         "is_following": is_following,
         "follow_count": follow_count,
         "follower_count": follower_count,
@@ -1022,17 +1021,15 @@ def profile_edit(
     finally:
         db.close()
 
-    # 表示名
     display_name = (display_name or "").strip()
     if not display_name:
         display_name = me_username
     if len(display_name) > 40:
         display_name = display_name[:40]
 
-    # handle（@ID）
-    handle_norm = normalize_handle(handle)
+    # ✅ handleはインスタルールで正規化（小文字固定）
+    handle_norm = normalize_login_id(handle)
 
-    # icon upload（精度UP：正方形＋顔優先＋軽量）
     icon_url = None
     if icon and icon.filename:
         result = cloudinary.uploader.upload(
@@ -1046,14 +1043,12 @@ def profile_edit(
         icon_url = result.get("secure_url")
 
     def _do(db, cur):
-        # handle 重複チェック（自分以外が使ってたら保存しない）
         final_handle = handle_norm
         if final_handle is not None:
             cur.execute("SELECT 1 FROM users WHERE handle=%s AND id<>%s LIMIT 1", (final_handle, me_user_id))
             if cur.fetchone() is not None:
                 final_handle = None
 
-        # users 更新（display_name / handle）
         cur.execute("""
             UPDATE users
             SET display_name=%s,
@@ -1061,7 +1056,6 @@ def profile_edit(
             WHERE id=%s
         """, (display_name, final_handle, me_user_id))
 
-        # profiles 更新（user_id をキーにする）
         if icon_url:
             cur.execute("""
                 INSERT INTO profiles (username, user_id, maker, car, region, bio, icon)
@@ -1207,16 +1201,31 @@ def post(
     return redirect_back(request, "/")
 
 # ======================
-# auth（pbkdf2） + ✅ uid cookie
+# ✅ auth（pbkdf2） + ✅ インスタ方式：handleでもログインOK
 # ======================
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
-    username = (username or "").strip()
+    # フォームのnameは username のままでOK（表示はログインID）
+    login_id_raw = (username or "").strip()
 
     db = get_db()
     cur = db.cursor()
     try:
-        cur.execute("SELECT password, id FROM users WHERE username=%s", (username,))
+        # 1) handleとして正規化できるなら handle で探す（インスタ方式）
+        h = normalize_login_id(login_id_raw)
+        if h:
+            cur.execute("SELECT password, id, username FROM users WHERE handle=%s", (h,))
+            row = cur.fetchone()
+            if row and pwd_context.verify(password, row[0]):
+                user_id = str(row[1])
+                real_username = row[2]
+                res = RedirectResponse("/", status_code=303)
+                res.set_cookie(key="user", value=quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
+                res.set_cookie(key="uid", value=user_id, httponly=True, secure=is_https_request(request), samesite="lax")
+                return res
+
+        # 2) fallback: 旧usernameログイン（既存の日本語ユーザー救済）
+        cur.execute("SELECT password, id, username FROM users WHERE username=%s", (login_id_raw,))
         row = cur.fetchone()
     finally:
         cur.close()
@@ -1226,30 +1235,18 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         return RedirectResponse("/login", status_code=303)
 
     user_id = str(row[1])
+    real_username = row[2]
 
     res = RedirectResponse("/", status_code=303)
-    # 互換: user(username) も残す
-    res.set_cookie(
-        key="user",
-        value=quote(username),
-        httponly=True,
-        secure=is_https_request(request),
-        samesite="lax"
-    )
-    # 本命: uid(UUID)
-    res.set_cookie(
-        key="uid",
-        value=user_id,
-        httponly=True,
-        secure=is_https_request(request),
-        samesite="lax"
-    )
+    res.set_cookie(key="user", value=quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
+    res.set_cookie(key="uid", value=user_id, httponly=True, secure=is_https_request(request), samesite="lax")
     return res
 
 @app.post("/register")
 def register(request: Request, username: str = Form(...), password: str = Form(...)):
-    username = (username or "").strip()
-    if not username:
+    # ✅ 新規登録の「ログインID」はインスタルール強制（日本語NG）
+    login_id = normalize_login_id(username)
+    if not login_id:
         return RedirectResponse("/register", status_code=303)
 
     if len(password) < 4 or len(password) > 256:
@@ -1258,19 +1255,22 @@ def register(request: Request, username: str = Form(...), password: str = Form(.
     hashed = pwd_context.hash(password)
 
     def _do(db, cur):
-        # display_name 初期username
-        display_name = username
+        display_name = login_id  # 初期はログインIDと同じ（後で日本語に変更OK）
+        h = suggest_handle_from_login(login_id)  # ほぼ login_id
 
-        # handle は username が適合し、かつ空いてたら自動セット（被ったらNULL）
-        h = suggest_handle(username)
-        if h is not None and (not is_handle_available(db, h)):
-            h = None
+        # handleが空いてなければ即NG（インスタ的にここは重要）
+        if h is None:
+            raise RuntimeError("bad_handle")
+        if not is_handle_available(db, h):
+            raise RuntimeError("handle_taken")
 
+        # username(PK)も login_id にしておく（既存テンプレ互換のため）
+        # ※ 将来usernameを廃止したいなら別カラム化するが、今はこれが安全
         cur.execute("""
             INSERT INTO users (username, password, display_name, handle, created_at)
             VALUES (%s, %s, %s, %s, %s)
             RETURNING id
-        """, (username, hashed, display_name, h, utcnow_naive()))
+        """, (login_id, hashed, display_name, h, utcnow_naive()))
         new_id = cur.fetchone()[0]
         return str(new_id)
 
@@ -1280,20 +1280,8 @@ def register(request: Request, username: str = Form(...), password: str = Form(.
         return RedirectResponse("/register", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
-    res.set_cookie(
-        key="user",
-        value=quote(username),
-        httponly=True,
-        secure=is_https_request(request),
-        samesite="lax"
-    )
-    res.set_cookie(
-        key="uid",
-        value=new_user_id,
-        httponly=True,
-        secure=is_https_request(request),
-        samesite="lax"
-    )
+    res.set_cookie(key="user", value=quote(login_id), httponly=True, secure=is_https_request(request), samesite="lax")
+    res.set_cookie(key="uid", value=new_user_id, httponly=True, secure=is_https_request(request), samesite="lax")
     return res
 
 @app.post("/logout")
@@ -1359,7 +1347,6 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
         if not row:
             return
 
-        # comment_likes → comments → likes → posts
         cur.execute("""
             DELETE FROM comment_likes
             WHERE comment_id IN (SELECT id FROM comments WHERE post_id=%s)
