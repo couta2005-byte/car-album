@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-import psycopg2, os, re, uuid
+import psycopg2, os, re
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
 from typing import Optional, Dict, List, Any, Tuple
@@ -116,7 +116,6 @@ def normalize_handle(s: str) -> Optional[str]:
     s = (s or "").strip()
     if not s:
         return None
-    s = s.lower()  # インスタ寄せ：基本は小文字運用
     if not HANDLE_RE.match(s):
         return None
     return s
@@ -135,60 +134,53 @@ def is_handle_available(db, handle: str, exclude_username: Optional[str] = None)
 def suggest_handle(username: str) -> Optional[str]:
     u = (username or "").strip()
     if HANDLE_RE.match(u):
-        return u.lower()
+        return u
     return None
 
-def get_me_handle(db, me_username: Optional[str]) -> Optional[str]:
-    if not me_username:
-        return None
-    cur = db.cursor()
-    try:
-        cur.execute("SELECT handle FROM users WHERE username=%s", (me_username,))
-        r = cur.fetchone()
-        return r[0] if r else None
-    finally:
-        cur.close()
-
-def resolve_userkey_to_username(db, userkey: str) -> Optional[str]:
+# ======================
+# ✅ auth: uid cookie（UUID）を優先して自分を特定する
+# ======================
+def get_me_from_cookies(db, user_cookie: Optional[str], uid_cookie: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
     """
-    /user/{userkey} の userkey は handle が基本。
-    互換のため、handleで見つからなければ username としても探す。
+    return (me_username, me_user_id)
+    - uid(cookie) があれば最優先
+    - 旧 user(cookie=username) は互換で残す
     """
-    key = (userkey or "").strip()
-    if not key:
-        return None
+    # 1) uid があれば users.id から username を引く
+    if uid_cookie:
+        uid = (uid_cookie or "").strip()
+        if uid:
+            cur = db.cursor()
+            try:
+                cur.execute("SELECT username, id FROM users WHERE id=%s", (uid,))
+                row = cur.fetchone()
+                if row:
+                    return row[0], str(row[1])
+            finally:
+                cur.close()
 
-    cur = db.cursor()
-    try:
-        # まず handle
-        cur.execute("SELECT username FROM users WHERE handle=%s LIMIT 1", (key.lower(),))
-        r = cur.fetchone()
-        if r:
-            return r[0]
+    # 2) 旧 user cookie（username）
+    if user_cookie:
+        u = unquote(user_cookie)
+        cur = db.cursor()
+        try:
+            cur.execute("SELECT username, id FROM users WHERE username=%s", (u,))
+            row = cur.fetchone()
+            if row:
+                return row[0], str(row[1])
+        finally:
+            cur.close()
 
-        # 次に username 互換
-        cur.execute("SELECT username FROM users WHERE username=%s LIMIT 1", (key,))
-        r = cur.fetchone()
-        return r[0] if r else None
-    finally:
-        cur.close()
-
-def get_display_and_handle(db, username: str) -> Tuple[Optional[str], Optional[str]]:
-    cur = db.cursor()
-    try:
-        cur.execute("SELECT display_name, handle FROM users WHERE username=%s", (username,))
-        r = cur.fetchone()
-        if not r:
-            return None, None
-        return r[0], r[1]
-    finally:
-        cur.close()
+    return None, None
 
 # ======================
-# DB init（既存DBでも壊れないように追加カラムも保証）
+# DB init（壊さない段階移行：UUID追加＋既存データ埋め）
 # ======================
 def init_db():
     def _do(db, cur):
+        # ✅ UUID生成関数（pgcrypto）
+        cur.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
+
         cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
@@ -235,44 +227,132 @@ def init_db():
         );
         """)
 
-        # ★ profiles に icon カラム（無ければ追加）
+        # ---- profiles icon ----
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
 
-        # ★ users に display_name / handle / created_at（無ければ追加）
+        # ---- users 拡張（display_name / handle / created_at）----
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS handle TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP;")
 
-        # ★ handle はユニーク（NULLは複数OK）
+        # ---- ✅ users.id(UUID) 追加（固定IDの本体）----
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS id UUID;")
+        # 既存ユーザーにID埋め
+        cur.execute("UPDATE users SET id = gen_random_uuid() WHERE id IS NULL;")
+        # default
+        cur.execute("ALTER TABLE users ALTER COLUMN id SET DEFAULT gen_random_uuid();")
+
+        # handle unique（NULL複数OK）
         cur.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS users_handle_unique
             ON users(handle)
             WHERE handle IS NOT NULL;
         """)
+        # id unique
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS users_id_unique
+            ON users(id)
+            WHERE id IS NOT NULL;
+        """)
 
-        # ★ 既存ユーザーの埋め（NULLを埋めておく）
+        # 既存ユーザーの埋め
         cur.execute("UPDATE users SET display_name = username WHERE display_name IS NULL;")
         cur.execute("UPDATE users SET created_at = NOW() WHERE created_at IS NULL;")
 
-        # ★ 既存ユーザー：username が handle として使えそうなら自動セット（空いてる時だけ）
-        # すでにhandleがある人は触らない
-        cur.execute("SELECT username FROM users WHERE handle IS NULL;")
-        olds = [r[0] for r in cur.fetchall()]
-        for u in olds:
-            h = suggest_handle(u)
-            if not h:
-                continue
-            cur.execute("SELECT 1 FROM users WHERE handle=%s LIMIT 1", (h,))
-            if cur.fetchone() is None:
-                cur.execute("UPDATE users SET handle=%s WHERE username=%s", (h, u))
-
-        # ★ コメントいいね
+        # ---- comment likes ----
         cur.execute("""
         CREATE TABLE IF NOT EXISTS comment_likes (
             username TEXT,
             comment_id INTEGER,
             PRIMARY KEY (username, comment_id)
         );
+        """)
+
+        # ======================
+        # ✅ 段階移行：各テーブルに user_id を追加して埋める
+        # ======================
+
+        # posts.user_id
+        cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS user_id UUID;")
+        cur.execute("""
+            UPDATE posts p
+            SET user_id = u.id
+            FROM users u
+            WHERE p.user_id IS NULL AND p.username = u.username;
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS posts_user_id_idx ON posts(user_id);")
+
+        # comments.user_id
+        cur.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS user_id UUID;")
+        cur.execute("""
+            UPDATE comments c
+            SET user_id = u.id
+            FROM users u
+            WHERE c.user_id IS NULL AND c.username = u.username;
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS comments_user_id_idx ON comments(user_id);")
+
+        # likes.user_id（PKは温存、段階移行用にindex追加）
+        cur.execute("ALTER TABLE likes ADD COLUMN IF NOT EXISTS user_id UUID;")
+        cur.execute("""
+            UPDATE likes l
+            SET user_id = u.id
+            FROM users u
+            WHERE l.user_id IS NULL AND l.username = u.username;
+        """)
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS likes_user_id_post_id_unique
+            ON likes(user_id, post_id)
+            WHERE user_id IS NOT NULL;
+        """)
+
+        # follows.follower_id / followee_id
+        cur.execute("ALTER TABLE follows ADD COLUMN IF NOT EXISTS follower_id UUID;")
+        cur.execute("ALTER TABLE follows ADD COLUMN IF NOT EXISTS followee_id UUID;")
+        cur.execute("""
+            UPDATE follows f
+            SET follower_id = uf.id
+            FROM users uf
+            WHERE f.follower_id IS NULL AND f.follower = uf.username;
+        """)
+        cur.execute("""
+            UPDATE follows f
+            SET followee_id = ut.id
+            FROM users ut
+            WHERE f.followee_id IS NULL AND f.followee = ut.username;
+        """)
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS follows_ids_unique
+            ON follows(follower_id, followee_id)
+            WHERE follower_id IS NOT NULL AND followee_id IS NOT NULL;
+        """)
+
+        # comment_likes.user_id
+        cur.execute("ALTER TABLE comment_likes ADD COLUMN IF NOT EXISTS user_id UUID;")
+        cur.execute("""
+            UPDATE comment_likes cl
+            SET user_id = u.id
+            FROM users u
+            WHERE cl.user_id IS NULL AND cl.username = u.username;
+        """)
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS comment_likes_ids_unique
+            ON comment_likes(user_id, comment_id)
+            WHERE user_id IS NOT NULL;
+        """)
+
+        # profiles.user_id（将来username変更に備える）
+        cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS user_id UUID;")
+        cur.execute("""
+            UPDATE profiles pr
+            SET user_id = u.id
+            FROM users u
+            WHERE pr.user_id IS NULL AND pr.username = u.username;
+        """)
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS profiles_user_id_unique
+            ON profiles(user_id)
+            WHERE user_id IS NOT NULL;
         """)
 
     run_db(_do)
@@ -292,20 +372,23 @@ def redirect_back(request: Request, fallback: str = "/"):
     referer = request.headers.get("referer")
     return RedirectResponse(referer or fallback, status_code=303)
 
-def get_liked_posts(db, me):
-    if not me:
+def get_liked_posts(db, me_user_id: Optional[str], me_username: Optional[str]) -> set:
+    if not me_user_id and not me_username:
         return set()
     cur = db.cursor()
     try:
-        cur.execute("SELECT post_id FROM likes WHERE username=%s", (me,))
+        if me_user_id:
+            cur.execute("SELECT post_id FROM likes WHERE user_id=%s", (me_user_id,))
+        else:
+            cur.execute("SELECT post_id FROM likes WHERE username=%s", (me_username,))
         return {r[0] for r in cur.fetchall()}
     finally:
         cur.close()
 
 # ======================
-# comments fetch（一覧・ランキング用：comment_id / likes / liked まで返す）
+# comments fetch（一覧・ランキング用）
 # ======================
-def fetch_comments_for_posts(db, post_ids: List[int], me: Optional[str]) -> Dict[int, List[Dict[str, Any]]]:
+def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str]) -> Dict[int, List[Dict[str, Any]]]:
     if not post_ids:
         return {}
 
@@ -313,42 +396,44 @@ def fetch_comments_for_posts(db, post_ids: List[int], me: Optional[str]) -> Dict
 
     cur = db.cursor()
     try:
-        if me:
+        if me_user_id:
             sql = f"""
                 SELECT
                     c.post_id,
                     c.id,
-                    c.username,
+                    COALESCE(u.username, c.username) AS username,
                     c.comment,
                     c.created_at,
                     pr.icon AS user_icon,
                     COALESCE(clc.like_count, 0) AS likes,
-                    CASE WHEN mycl.username IS NULL THEN 0 ELSE 1 END AS liked
+                    CASE WHEN mycl.user_id IS NULL THEN 0 ELSE 1 END AS liked
                 FROM comments c
-                LEFT JOIN profiles pr ON c.username = pr.username
+                LEFT JOIN users u ON c.user_id = u.id
+                LEFT JOIN profiles pr ON pr.user_id = COALESCE(u.id, c.user_id)
                 LEFT JOIN (
                     SELECT comment_id, COUNT(*) AS like_count
                     FROM comment_likes
                     GROUP BY comment_id
                 ) clc ON clc.comment_id = c.id
                 LEFT JOIN comment_likes mycl
-                    ON mycl.comment_id = c.id AND mycl.username = %s
+                    ON mycl.comment_id = c.id AND mycl.user_id = %s
                 WHERE c.post_id IN ({placeholders})
                 ORDER BY c.id ASC
             """
-            cur.execute(sql, (me, *post_ids))
+            cur.execute(sql, (me_user_id, *post_ids))
         else:
             sql = f"""
                 SELECT
                     c.post_id,
                     c.id,
-                    c.username,
+                    COALESCE(u.username, c.username) AS username,
                     c.comment,
                     c.created_at,
                     pr.icon AS user_icon,
                     COALESCE(clc.like_count, 0) AS likes
                 FROM comments c
-                LEFT JOIN profiles pr ON c.username = pr.username
+                LEFT JOIN users u ON c.user_id = u.id
+                LEFT JOIN profiles pr ON pr.user_id = COALESCE(u.id, c.user_id)
                 LEFT JOIN (
                     SELECT comment_id, COUNT(*) AS like_count
                     FROM comment_likes
@@ -365,7 +450,7 @@ def fetch_comments_for_posts(db, post_ids: List[int], me: Optional[str]) -> Dict
 
     out: Dict[int, List[Dict[str, Any]]] = {}
     for r in rows:
-        if me:
+        if me_user_id:
             post_id, cid, username, comment, created_at, user_icon, likes, liked = r
             out.setdefault(post_id, []).append({
                 "id": cid,
@@ -387,48 +472,49 @@ def fetch_comments_for_posts(db, post_ids: List[int], me: Optional[str]) -> Dict
                 "likes": int(likes or 0),
                 "liked": False
             })
-
     return out
 
 # ======================
-# post_detail用（単体で読む：likes/liked込み）
+# post_detail用（単体）
 # ======================
-def fetch_comments_for_post_detail(db, post_id: int, me: Optional[str]) -> List[Dict[str, Any]]:
+def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) -> List[Dict[str, Any]]:
     cur = db.cursor()
     try:
-        if me:
+        if me_user_id:
             cur.execute("""
                 SELECT
                     c.id,
-                    c.username,
+                    COALESCE(u.username, c.username) AS username,
                     c.comment,
                     c.created_at,
                     pr.icon AS user_icon,
                     COALESCE(clc.like_count, 0) AS likes,
-                    CASE WHEN mycl.username IS NULL THEN 0 ELSE 1 END AS liked
+                    CASE WHEN mycl.user_id IS NULL THEN 0 ELSE 1 END AS liked
                 FROM comments c
-                LEFT JOIN profiles pr ON c.username = pr.username
+                LEFT JOIN users u ON c.user_id = u.id
+                LEFT JOIN profiles pr ON pr.user_id = COALESCE(u.id, c.user_id)
                 LEFT JOIN (
                     SELECT comment_id, COUNT(*) AS like_count
                     FROM comment_likes
                     GROUP BY comment_id
                 ) clc ON clc.comment_id = c.id
                 LEFT JOIN comment_likes mycl
-                    ON mycl.comment_id = c.id AND mycl.username = %s
+                    ON mycl.comment_id = c.id AND mycl.user_id = %s
                 WHERE c.post_id = %s
                 ORDER BY c.id ASC
-            """, (me, post_id))
+            """, (me_user_id, post_id))
         else:
             cur.execute("""
                 SELECT
                     c.id,
-                    c.username,
+                    COALESCE(u.username, c.username) AS username,
                     c.comment,
                     c.created_at,
                     pr.icon AS user_icon,
                     COALESCE(clc.like_count, 0) AS likes
                 FROM comments c
-                LEFT JOIN profiles pr ON c.username = pr.username
+                LEFT JOIN users u ON c.user_id = u.id
+                LEFT JOIN profiles pr ON pr.user_id = COALESCE(u.id, c.user_id)
                 LEFT JOIN (
                     SELECT comment_id, COUNT(*) AS like_count
                     FROM comment_likes
@@ -443,7 +529,7 @@ def fetch_comments_for_post_detail(db, post_id: int, me: Optional[str]) -> List[
 
     out: List[Dict[str, Any]] = []
     for r in rows:
-        if me:
+        if me_user_id:
             cid, username, comment, created_at, user_icon, likes, liked = r
             out.append({
                 "id": cid,
@@ -468,23 +554,29 @@ def fetch_comments_for_post_detail(db, post_id: int, me: Optional[str]) -> List[
     return out
 
 # ======================
-# posts fetch（★user_icon含む + comments に id/likes/liked を入れる）
+# posts fetch（user_id優先でユーザー情報を引く）
 # ======================
-def fetch_posts(db, me: Optional[str], where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
+def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
     cur = db.cursor()
     try:
         cur.execute(f"""
             SELECT
-                p.id, p.username, p.maker, p.region, p.car,
+                p.id,
+                COALESCE(u.username, p.username) AS username,
+                p.maker, p.region, p.car,
                 p.comment, p.image, p.created_at,
                 COUNT(l.post_id) AS like_count,
                 pr.icon AS user_icon
             FROM posts p
+            LEFT JOIN users u
+                ON (p.user_id IS NOT NULL AND p.user_id = u.id)
+                OR (p.user_id IS NULL AND p.username = u.username)
             LEFT JOIN likes l ON p.id = l.post_id
-            LEFT JOIN profiles pr ON p.username = pr.username
+            LEFT JOIN profiles pr ON pr.user_id = COALESCE(u.id, p.user_id)
             {where_sql}
             GROUP BY
-                p.id, p.username, p.maker, p.region, p.car,
+                p.id, COALESCE(u.username, p.username),
+                p.maker, p.region, p.car,
                 p.comment, p.image, p.created_at, pr.icon
             {order_sql}
             {limit_sql}
@@ -494,7 +586,7 @@ def fetch_posts(db, me: Optional[str], where_sql="", params=(), order_sql="ORDER
         cur.close()
 
     post_ids = [r[0] for r in rows]
-    comments_map = fetch_comments_for_posts(db, post_ids, me)
+    comments_map = fetch_comments_for_posts(db, post_ids, me_user_id)
 
     posts = []
     for r in rows:
@@ -520,21 +612,19 @@ def fetch_posts(db, me: Optional[str], where_sql="", params=(), order_sql="ORDER
 # top
 # ======================
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request, user: str = Cookie(default=None)):
-    me = unquote(user) if user else None
+def index(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
     try:
-        posts = fetch_posts(db, me)
-        liked_posts = get_liked_posts(db, me)
-        me_handle = get_me_handle(db, me)
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        posts = fetch_posts(db, me_user_id)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
     finally:
         db.close()
 
     return templates.TemplateResponse("index.html", {
         "request": request,
         "posts": posts,
-        "user": me,               # 内部username（cookie）
-        "me_handle": me_handle,   # 表示用ID（@）
+        "user": me_username,
         "liked_posts": liked_posts,
         "mode": "home",
         "ranking_title": "",
@@ -545,24 +635,12 @@ def index(request: Request, user: str = Cookie(default=None)):
 # auth pages
 # ======================
 @app.get("/login", response_class=HTMLResponse)
-def login_page(request: Request, user: str = Cookie(default=None)):
-    me = unquote(user) if user else None
-    db = get_db()
-    try:
-        me_handle = get_me_handle(db, me)
-    finally:
-        db.close()
-    return templates.TemplateResponse("login.html", {"request": request, "user": me, "me_handle": me_handle})
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
 @app.get("/register", response_class=HTMLResponse)
-def register_page(request: Request, user: str = Cookie(default=None)):
-    me = unquote(user) if user else None
-    db = get_db()
-    try:
-        me_handle = get_me_handle(db, me)
-    finally:
-        db.close()
-    return templates.TemplateResponse("register.html", {"request": request, "user": me, "me_handle": me_handle})
+def register_page(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
 
 # ======================
 # search
@@ -574,9 +652,9 @@ def search(
     maker: str = Query(default=""),
     car: str = Query(default=""),
     region: str = Query(default=""),
-    user: str = Cookie(default=None)
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
 ):
-    me = unquote(user) if user else None
     q = (q or "").strip()
     maker = (maker or "").strip()
     car = (car or "").strip()
@@ -584,20 +662,21 @@ def search(
 
     db = get_db()
     try:
-        liked_posts = get_liked_posts(db, me)
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
         users = []
         posts = []
 
         if q:
             like = f"%{q}%"
             posts = fetch_posts(
-                db, me,
+                db, me_user_id,
                 """
                 WHERE
                     p.maker ILIKE %s
                     OR p.car ILIKE %s
                     OR p.region ILIKE %s
-                    OR p.username ILIKE %s
+                    OR COALESCE(u.username, p.username) ILIKE %s
                 """,
                 (like, like, like, like),
                 order_sql="ORDER BY p.id DESC"
@@ -605,35 +684,31 @@ def search(
 
             cur = db.cursor()
             try:
-                # 互換：username検索＋表示名/handle検索も一応
                 cur.execute("""
                     SELECT username
                     FROM users
-                    WHERE username ILIKE %s OR handle ILIKE %s OR display_name ILIKE %s
+                    WHERE username ILIKE %s
                     ORDER BY username
                     LIMIT 20
-                """, (like, like, like))
+                """, (like,))
                 users = [r[0] for r in cur.fetchall()]
             finally:
                 cur.close()
         else:
             if maker or car or region:
                 posts = fetch_posts(
-                    db, me,
+                    db, me_user_id,
                     "WHERE p.maker ILIKE %s AND p.car ILIKE %s AND p.region ILIKE %s",
                     (f"%{maker}%", f"%{car}%", f"%{region}%"),
                     order_sql="ORDER BY p.id DESC"
                 )
-
-        me_handle = get_me_handle(db, me)
     finally:
         db.close()
 
     return templates.TemplateResponse("search.html", {
         "request": request,
         "posts": posts,
-        "user": me,
-        "me_handle": me_handle,
+        "user": me_username,
         "liked_posts": liked_posts,
         "q": q,
         "users": users,
@@ -647,28 +722,26 @@ def search(
 # following TL
 # ======================
 @app.get("/following", response_class=HTMLResponse)
-def following(request: Request, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
+def following(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
     try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
         posts = fetch_posts(
-            db, me,
-            "JOIN follows f ON p.username = f.followee WHERE f.follower=%s",
-            (me,)
+            db, me_user_id,
+            "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
+            (me_user_id,)
         )
-        liked_posts = get_liked_posts(db, me)
-        me_handle = get_me_handle(db, me)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
     finally:
         db.close()
 
     return templates.TemplateResponse("index.html", {
         "request": request,
         "posts": posts,
-        "user": me,
-        "me_handle": me_handle,
+        "user": me_username,
         "liked_posts": liked_posts,
         "mode": "following",
         "ranking_title": "",
@@ -682,40 +755,39 @@ def following(request: Request, user: str = Cookie(default=None)):
 def ranking(
     request: Request,
     period: str = Query(default="day"),
-    user: str = Cookie(default=None)
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
 ):
-    me = unquote(user) if user else None
-    now_utc = datetime.utcnow()
-
-    if period == "week":
-        since_utc_naive = now_utc - timedelta(days=7)
-        title = "週間ランキング TOP10"
-    elif period == "month":
-        since_utc_naive = now_utc - timedelta(days=30)
-        title = "月間ランキング TOP10"
-    else:
-        since_utc_naive = now_utc - timedelta(hours=24)
-        title = "日間ランキング TOP10"
-
     db = get_db()
     try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+
+        now_utc = datetime.utcnow()
+        if period == "week":
+            since_utc_naive = now_utc - timedelta(days=7)
+            title = "週間ランキング TOP10"
+        elif period == "month":
+            since_utc_naive = now_utc - timedelta(days=30)
+            title = "月間ランキング TOP10"
+        else:
+            since_utc_naive = now_utc - timedelta(hours=24)
+            title = "日間ランキング TOP10"
+
         posts = fetch_posts(
-            db, me,
+            db, me_user_id,
             "WHERE p.created_at >= %s",
             (since_utc_naive,),
             order_sql="ORDER BY like_count DESC, p.id DESC",
             limit_sql="LIMIT 10"
         )
-        liked_posts = get_liked_posts(db, me)
-        me_handle = get_me_handle(db, me)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
     finally:
         db.close()
 
     return templates.TemplateResponse("ranking.html", {
         "request": request,
         "posts": posts,
-        "user": me,
-        "me_handle": me_handle,
+        "user": me_username,
         "liked_posts": liked_posts,
         "mode": f"ranking_{period}",
         "ranking_title": title,
@@ -726,29 +798,26 @@ def ranking(
 # post detail
 # ======================
 @app.get("/post/{post_id}", response_class=HTMLResponse)
-def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)):
-    me = unquote(user) if user else None
+def post_detail(request: Request, post_id: int, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
     try:
-        liked_posts = get_liked_posts(db, me)
-        posts = fetch_posts(db, me, "WHERE p.id=%s", (post_id,))
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
+        posts = fetch_posts(db, me_user_id, "WHERE p.id=%s", (post_id,))
         if not posts:
             return RedirectResponse("/", status_code=303)
 
         post = posts[0]
-        post_comments = fetch_comments_for_post_detail(db, post_id, me)
+        post_comments = fetch_comments_for_post_detail(db, post_id, me_user_id)
         post["comments"] = post_comments
         post["comment_count"] = len(post_comments)
-
-        me_handle = get_me_handle(db, me)
     finally:
         db.close()
 
     return templates.TemplateResponse("post_detail.html", {
         "request": request,
         "post": post,
-        "user": me,
-        "me_handle": me_handle,
+        "user": me_username,
         "liked_posts": liked_posts,
         "mode": "post_detail"
     })
@@ -761,12 +830,17 @@ def add_comment(
     request: Request,
     post_id: int,
     comment: str = Form(""),
-    user: str = Cookie(default=None)
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
 ):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+    finally:
+        db.close()
 
-    me = unquote(user)
     comment = (comment or "").strip()
     if not comment:
         return redirect_back(request, fallback=f"/post/{post_id}")
@@ -776,9 +850,9 @@ def add_comment(
         if cur.fetchone() is None:
             return
         cur.execute("""
-            INSERT INTO comments (post_id, username, comment, created_at)
-            VALUES (%s, %s, %s, %s)
-        """, (post_id, me, comment, utcnow_naive()))
+            INSERT INTO comments (post_id, username, user_id, comment, created_at)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (post_id, me_username, me_user_id, comment, utcnow_naive()))
 
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
@@ -787,22 +861,24 @@ def add_comment(
 # comment delete（自分のだけ）
 # ======================
 @app.post("/comment_delete/{comment_id}")
-def delete_comment(request: Request, comment_id: int, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
+def delete_comment(request: Request, comment_id: int, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+    finally:
+        db.close()
 
     def _do(db, cur):
-        cur.execute("SELECT post_id FROM comments WHERE id=%s AND username=%s", (comment_id, me))
+        cur.execute("SELECT post_id FROM comments WHERE id=%s AND user_id=%s", (comment_id, me_user_id))
         row = cur.fetchone()
         if not row:
             return None
         post_id = row[0]
 
         cur.execute("DELETE FROM comment_likes WHERE comment_id=%s", (comment_id,))
-        cur.execute("DELETE FROM comments WHERE id=%s AND username=%s", (comment_id, me))
-
+        cur.execute("DELETE FROM comments WHERE id=%s AND user_id=%s", (comment_id, me_user_id))
         return post_id
 
     post_id = run_db(_do)
@@ -813,27 +889,30 @@ def delete_comment(request: Request, comment_id: int, user: str = Cookie(default
 # ✅ comment like API（リロード無し）
 # ======================
 @app.post("/api/comment_like/{comment_id}")
-def api_comment_like(comment_id: int, request: Request, user: str = Cookie(default=None)):
-    if not user:
-        return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
-
-    me = unquote(user)
+def api_comment_like(comment_id: int, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
+    finally:
+        db.close()
 
     def _do(db, cur):
         cur.execute("SELECT 1 FROM comments WHERE id=%s", (comment_id,))
         if cur.fetchone() is None:
             return {"ok": False, "error": "not_found"}
 
-        cur.execute("SELECT 1 FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
+        cur.execute("SELECT 1 FROM comment_likes WHERE user_id=%s AND comment_id=%s", (me_user_id, comment_id))
         liked = cur.fetchone() is not None
 
         if liked:
-            cur.execute("DELETE FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
+            cur.execute("DELETE FROM comment_likes WHERE user_id=%s AND comment_id=%s", (me_user_id, comment_id))
             liked = False
         else:
             cur.execute(
-                "INSERT INTO comment_likes (username, comment_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                (me, comment_id)
+                "INSERT INTO comment_likes (username, user_id, comment_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                (me_username, me_user_id, comment_id)
             )
             liked = True
 
@@ -845,60 +924,62 @@ def api_comment_like(comment_id: int, request: Request, user: str = Cookie(defau
     return JSONResponse(run_db(_do))
 
 # ======================
-# profile（/user/{handle} が基本）
+# profile
 # ======================
-@app.get("/user/{userkey}", response_class=HTMLResponse)
-def profile(request: Request, userkey: str, user: str = Cookie(default=None)):
-    me = unquote(user) if user else None
+@app.get("/user/{username}", response_class=HTMLResponse)
+def profile(request: Request, username: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    username = unquote(username)
 
     db = get_db()
     cur = db.cursor()
     try:
-        target_username = resolve_userkey_to_username(db, unquote(userkey))
-        if not target_username:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+
+        # target user (id + display)
+        cur.execute("SELECT id, display_name, handle FROM users WHERE username=%s", (username,))
+        urow = cur.fetchone()
+        if not urow:
             return RedirectResponse("/", status_code=303)
+        target_user_id = str(urow[0])
+        display_name = urow[1]
+        handle = urow[2]
 
         # profiles
         cur.execute(
-            "SELECT maker, car, region, bio, icon FROM profiles WHERE username=%s",
-            (target_username,)
+            "SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s",
+            (target_user_id,)
         )
         prof = cur.fetchone()
 
-        # posts
-        posts = fetch_posts(db, me, "WHERE p.username=%s", (target_username,))
+        # posts (user_id で引く)
+        posts = fetch_posts(db, me_user_id, "WHERE p.user_id=%s", (target_user_id,))
 
-        # follow counts
-        cur.execute("SELECT COUNT(*) FROM follows WHERE follower=%s", (target_username,))
+        # follow counts（idで数える）
+        cur.execute("SELECT COUNT(*) FROM follows WHERE follower_id=%s", (target_user_id,))
         follow_count = cur.fetchone()[0]
-
-        cur.execute("SELECT COUNT(*) FROM follows WHERE followee=%s", (target_username,))
+        cur.execute("SELECT COUNT(*) FROM follows WHERE followee_id=%s", (target_user_id,))
         follower_count = cur.fetchone()[0]
 
         is_following = False
-        if me and me != target_username:
+        if me_user_id and me_user_id != target_user_id:
             cur.execute(
-                "SELECT 1 FROM follows WHERE follower=%s AND followee=%s",
-                (me, target_username)
+                "SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s",
+                (me_user_id, target_user_id)
             )
             is_following = cur.fetchone() is not None
 
-        liked_posts = get_liked_posts(db, me)
-
-        display_name, handle = get_display_and_handle(db, target_username)
-        me_handle = get_me_handle(db, me)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
     finally:
         cur.close()
         db.close()
 
     return templates.TemplateResponse("profile.html", {
         "request": request,
-        "username": target_username,  # 内部username
-        "profile": prof,
+        "username": username,
+        "profile": prof,  # (maker, car, region, bio, icon)
         "posts": posts,
-        "me": me,
-        "user": me,
-        "me_handle": me_handle,
+        "me": me_username,      # template互換（me==username）
+        "user": me_username,    # nav互換
         "is_following": is_following,
         "follow_count": follow_count,
         "follower_count": follower_count,
@@ -909,7 +990,7 @@ def profile(request: Request, userkey: str, user: str = Cookie(default=None)):
     })
 
 # ======================
-# profile edit（★icon upload + display_name/handle）
+# profile edit（icon + display_name/handle）
 # ======================
 @app.post("/profile/edit")
 def profile_edit(
@@ -921,22 +1002,26 @@ def profile_edit(
     region: str = Form(""),
     bio: str = Form(""),
     icon: UploadFile = File(None),
-    user: str = Cookie(default=None)
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
 ):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+    finally:
+        db.close()
 
     # 表示名
     display_name = (display_name or "").strip()
     if not display_name:
-        display_name = me
+        display_name = me_username
     if len(display_name) > 40:
         display_name = display_name[:40]
 
     # handle（@ID）
-    handle_norm = normalize_handle(handle)  # invalid => None
+    handle_norm = normalize_handle(handle)
 
     # icon upload（精度UP：正方形＋顔優先＋軽量）
     icon_url = None
@@ -952,103 +1037,121 @@ def profile_edit(
         icon_url = result.get("secure_url")
 
     def _do(db, cur):
+        # handle 重複チェック（自分以外が使ってたら保存しない）
         final_handle = handle_norm
         if final_handle is not None:
-            cur.execute("SELECT 1 FROM users WHERE handle=%s AND username<>%s LIMIT 1", (final_handle, me))
+            cur.execute("SELECT 1 FROM users WHERE handle=%s AND id<>%s LIMIT 1", (final_handle, me_user_id))
             if cur.fetchone() is not None:
-                final_handle = None  # 被りは保存しない
+                final_handle = None
 
+        # users 更新（display_name / handle）
         cur.execute("""
             UPDATE users
             SET display_name=%s,
                 handle=%s
-            WHERE username=%s
-        """, (display_name, final_handle, me))
+            WHERE id=%s
+        """, (display_name, final_handle, me_user_id))
 
+        # profiles 更新（user_id をキーにする）
         if icon_url:
             cur.execute("""
-                INSERT INTO profiles (username, maker, car, region, bio, icon)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO profiles (username, user_id, maker, car, region, bio, icon)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (username)
                 DO UPDATE SET
+                    user_id=EXCLUDED.user_id,
                     maker=EXCLUDED.maker,
                     car=EXCLUDED.car,
                     region=EXCLUDED.region,
                     bio=EXCLUDED.bio,
                     icon=EXCLUDED.icon
-            """, (me, maker, car, region, bio, icon_url))
+            """, (me_username, me_user_id, maker, car, region, bio, icon_url))
         else:
             cur.execute("""
-                INSERT INTO profiles (username, maker, car, region, bio)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO profiles (username, user_id, maker, car, region, bio)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 ON CONFLICT (username)
                 DO UPDATE SET
+                    user_id=EXCLUDED.user_id,
                     maker=EXCLUDED.maker,
                     car=EXCLUDED.car,
                     region=EXCLUDED.region,
                     bio=EXCLUDED.bio
-            """, (me, maker, car, region, bio))
+            """, (me_username, me_user_id, maker, car, region, bio))
 
     run_db(_do)
-
-    # ✅ リダイレクトは handle があれば handle、なければ username
-    db = get_db()
-    try:
-        h = get_me_handle(db, me)
-    finally:
-        db.close()
-    return RedirectResponse(f"/user/{quote(h if h else me)}", status_code=303)
+    return RedirectResponse(f"/user/{quote(me_username)}", status_code=303)
 
 # ======================
-# follow / unfollow（リンクは handle/username どっちでも来てOKにする）
+# follow / unfollow（user_idベース）
 # ======================
-@app.post("/follow/{userkey}")
-def follow(userkey: str, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
+@app.post("/follow/{username}")
+def follow(username: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    target_username = unquote(username)
 
-    me = unquote(user)
     db = get_db()
     try:
-        target = resolve_userkey_to_username(db, unquote(userkey)) or unquote(userkey)
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        cur = db.cursor()
+        try:
+            cur.execute("SELECT id FROM users WHERE username=%s", (target_username,))
+            row = cur.fetchone()
+            if not row:
+                return RedirectResponse("/", status_code=303)
+            target_user_id = str(row[0])
+        finally:
+            cur.close()
     finally:
         db.close()
 
-    if me == target:
-        return RedirectResponse(f"/user/{quote(userkey)}", status_code=303)
+    if me_user_id == target_user_id:
+        return RedirectResponse(f"/user/{quote(target_username)}", status_code=303)
 
     def _do(db, cur):
         cur.execute(
-            "INSERT INTO follows (follower, followee) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-            (me, target)
+            "INSERT INTO follows (follower, followee, follower_id, followee_id) VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",
+            (me_username, target_username, me_user_id, target_user_id)
         )
 
     run_db(_do)
-    return RedirectResponse(f"/user/{quote(userkey)}", status_code=303)
+    return RedirectResponse(f"/user/{quote(target_username)}", status_code=303)
 
-@app.post("/unfollow/{userkey}")
-def unfollow(userkey: str, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
+@app.post("/unfollow/{username}")
+def unfollow(username: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    target_username = unquote(username)
 
-    me = unquote(user)
     db = get_db()
     try:
-        target = resolve_userkey_to_username(db, unquote(userkey)) or unquote(userkey)
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        cur = db.cursor()
+        try:
+            cur.execute("SELECT id FROM users WHERE username=%s", (target_username,))
+            row = cur.fetchone()
+            if not row:
+                return RedirectResponse("/", status_code=303)
+            target_user_id = str(row[0])
+        finally:
+            cur.close()
     finally:
         db.close()
 
     def _do(db, cur):
         cur.execute(
-            "DELETE FROM follows WHERE follower=%s AND followee=%s",
-            (me, target)
+            "DELETE FROM follows WHERE follower_id=%s AND followee_id=%s",
+            (me_user_id, target_user_id)
         )
 
     run_db(_do)
-    return RedirectResponse(f"/user/{quote(userkey)}", status_code=303)
+    return RedirectResponse(f"/user/{quote(target_username)}", status_code=303)
 
 # ======================
-# post（UTC保存で統一）
+# post（user_idで保存）
 # ======================
 @app.post("/post")
 def post(
@@ -1058,14 +1161,18 @@ def post(
     car: str = Form(""),
     comment: str = Form(""),
     image: UploadFile = File(None),
-    user: str = Cookie(default=None)
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
 ):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+    finally:
+        db.close()
 
-    me = unquote(user)
     image_path = None
-
     if image and image.filename:
         result = cloudinary.uploader.upload(
             image.file,
@@ -1079,10 +1186,10 @@ def post(
 
     def _do(db, cur):
         cur.execute("""
-            INSERT INTO posts (username, maker, region, car, comment, image, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO posts (username, user_id, maker, region, car, comment, image, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, (
-            me, maker, region, car, comment,
+            me_username, me_user_id, maker, region, car, comment,
             image_path,
             utcnow_naive()
         ))
@@ -1091,31 +1198,28 @@ def post(
     return redirect_back(request, "/")
 
 # ======================
-# auth（pbkdf2）
+# auth（pbkdf2） + ✅ uid cookie
 # ======================
 @app.post("/login")
-def login(request: Request, login: str = Form(...), password: str = Form(...)):
-    login = (login or "").strip()
+def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    username = (username or "").strip()
+
     db = get_db()
     cur = db.cursor()
     try:
-        # ✅ handle or username でログイン可（handleは小文字運用）
-        cur.execute("""
-            SELECT username, password
-            FROM users
-            WHERE username=%s OR handle=%s
-            LIMIT 1
-        """, (login, login.lower()))
+        cur.execute("SELECT password, id FROM users WHERE username=%s", (username,))
         row = cur.fetchone()
     finally:
         cur.close()
         db.close()
 
-    if not row or not pwd_context.verify(password, row[1]):
+    if not row or not pwd_context.verify(password, row[0]):
         return RedirectResponse("/login", status_code=303)
 
-    username = row[0]
+    user_id = str(row[1])
+
     res = RedirectResponse("/", status_code=303)
+    # 互換: user(username) も残す
     res.set_cookie(
         key="user",
         value=quote(username),
@@ -1123,12 +1227,20 @@ def login(request: Request, login: str = Form(...), password: str = Form(...)):
         secure=is_https_request(request),
         samesite="lax"
     )
+    # 本命: uid(UUID)
+    res.set_cookie(
+        key="uid",
+        value=user_id,
+        httponly=True,
+        secure=is_https_request(request),
+        samesite="lax"
+    )
     return res
 
 @app.post("/register")
-def register(request: Request, handle: str = Form(...), password: str = Form(...)):
-    handle_norm = normalize_handle(handle)
-    if not handle_norm:
+def register(request: Request, username: str = Form(...), password: str = Form(...)):
+    username = (username or "").strip()
+    if not username:
         return RedirectResponse("/register", status_code=303)
 
     if len(password) < 4 or len(password) > 256:
@@ -1137,25 +1249,24 @@ def register(request: Request, handle: str = Form(...), password: str = Form(...
     hashed = pwd_context.hash(password)
 
     def _do(db, cur):
-        # handle 空き確認
-        if not is_handle_available(db, handle_norm):
-            raise RuntimeError("handle_taken")
+        # display_name 初期username
+        display_name = username
 
-        # 内部usernameは固定ID（変更しない）
-        username = "u_" + uuid.uuid4().hex[:16]
-
-        # display_name は初期 handle
-        display_name = handle_norm
+        # handle は username が適合し、かつ空いてたら自動セット（被ったらNULL）
+        h = suggest_handle(username)
+        if h is not None and (not is_handle_available(db, h)):
+            h = None
 
         cur.execute("""
             INSERT INTO users (username, password, display_name, handle, created_at)
             VALUES (%s, %s, %s, %s, %s)
-        """, (username, hashed, display_name, handle_norm, utcnow_naive()))
-
-        return username
+            RETURNING id
+        """, (username, hashed, display_name, h, utcnow_naive()))
+        new_id = cur.fetchone()[0]
+        return str(new_id)
 
     try:
-        username = run_db(_do)
+        new_user_id = run_db(_do)
     except Exception:
         return RedirectResponse("/register", status_code=303)
 
@@ -1167,66 +1278,46 @@ def register(request: Request, handle: str = Form(...), password: str = Form(...
         secure=is_https_request(request),
         samesite="lax"
     )
+    res.set_cookie(
+        key="uid",
+        value=new_user_id,
+        httponly=True,
+        secure=is_https_request(request),
+        samesite="lax"
+    )
     return res
 
 @app.post("/logout")
 def logout():
     res = RedirectResponse("/", status_code=303)
     res.delete_cookie("user")
+    res.delete_cookie("uid")
     return res
 
 # ======================
-# likes（元ページへ戻る）
-# ======================
-@app.post("/like/{post_id}")
-def like_post(request: Request, post_id: int, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    def _do(db, cur):
-        cur.execute(
-            "INSERT INTO likes (username, post_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-            (unquote(user), post_id)
-        )
-
-    run_db(_do)
-    return redirect_back(request, fallback=f"/post/{post_id}")
-
-@app.post("/unlike/{post_id}")
-def unlike_post(request: Request, post_id: int, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    def _do(db, cur):
-        cur.execute(
-            "DELETE FROM likes WHERE username=%s AND post_id=%s",
-            (unquote(user), post_id)
-        )
-
-    run_db(_do)
-    return redirect_back(request, fallback=f"/post/{post_id}")
-
-# ======================
-# likes API（リロード無し）
+# likes API（リロード無し）: user_idベース
 # ======================
 @app.post("/api/like/{post_id}")
-def api_like(post_id: int, request: Request, user: str = Cookie(default=None)):
-    if not user:
-        return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
-
-    me = unquote(user)
+def api_like(post_id: int, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
+    finally:
+        db.close()
 
     def _do(db, cur):
-        cur.execute("SELECT 1 FROM likes WHERE username=%s AND post_id=%s", (me, post_id))
+        cur.execute("SELECT 1 FROM likes WHERE user_id=%s AND post_id=%s", (me_user_id, post_id))
         liked = cur.fetchone() is not None
 
         if liked:
-            cur.execute("DELETE FROM likes WHERE username=%s AND post_id=%s", (me, post_id))
+            cur.execute("DELETE FROM likes WHERE user_id=%s AND post_id=%s", (me_user_id, post_id))
             liked = False
         else:
             cur.execute(
-                "INSERT INTO likes (username, post_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                (me, post_id)
+                "INSERT INTO likes (username, user_id, post_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
+                (me_username, me_user_id, post_id)
             )
             liked = True
 
@@ -1241,21 +1332,25 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None)):
 # delete post
 # ======================
 @app.post("/delete/{post_id}")
-def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
+def delete_post(request: Request, post_id: int, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+    finally:
+        db.close()
 
     def _do(db, cur):
         cur.execute(
-            "SELECT image FROM posts WHERE id=%s AND username=%s",
-            (post_id, me)
+            "SELECT 1 FROM posts WHERE id=%s AND user_id=%s",
+            (post_id, me_user_id)
         )
         row = cur.fetchone()
         if not row:
             return
 
+        # comment_likes → comments → likes → posts
         cur.execute("""
             DELETE FROM comment_likes
             WHERE comment_id IN (SELECT id FROM comments WHERE post_id=%s)
