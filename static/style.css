@@ -141,9 +141,39 @@ textarea {
 .primary-btn:hover { opacity: 0.92; }
 
 /* =========================
+   Avatar（ユーザーアイコン）
+========================= */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #e5e7eb;
+  border: 1px solid rgba(15,20,25,0.06);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: 1px solid rgba(15,20,25,0.06);
+  display: inline-block;
+}
+
+/* =========================
    Post Card（共通）
 ========================= */
 .post, .post-card {
+  position: relative; /* ←重なり対策の土台 */
   background: #fff;
   border-radius: 18px;
   padding: 14px;
@@ -155,10 +185,16 @@ textarea {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  align-items: baseline;
+  align-items: center; /* アイコン時に揃える */
 }
 
 .post-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.post-title-main {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
@@ -196,9 +232,11 @@ textarea {
 }
 
 /* =========================
-   Image
+   Image（重なり対策）
 ========================= */
 .post-image {
+  position: relative;
+  z-index: 1; /* ←アクションより後ろ */
   margin-top: 10px;
   width: 100%;
   border-radius: 16px;
@@ -215,20 +253,136 @@ textarea {
 }
 
 /* =========================
-   Actions
+   Actions（統一）
 ========================= */
-.post-actions {
+.post-actions,
+.ranking-actions {
+  position: relative;
+  z-index: 5; /* ←画像より前に固定して「押せない」を防ぐ */
   display: flex;
+  align-items: center;
   gap: 10px;
   margin-top: 10px;
   flex-wrap: wrap;
 }
 
-.delete-btn, .follow-btn {
+/* formが並ぶとズレるの防止 */
+.post-actions form { margin: 0; }
+
+/* =========================
+   Buttons（統一デザイン）
+========================= */
+/* 共通：ピルボタン（リンク用） */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  height: 38px;
+  padding: 0 14px;
+
   border-radius: 999px;
-  padding: 7px 14px;
-  font-size: 13px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+
+  color: #111827;
+  font-size: 14px;
   font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
+}
+
+.action-btn:hover { background: #f7f7f8; }
+.action-btn:active { transform: scale(0.985); }
+
+.action-btn .count {
+  font-weight: 900;
+  min-width: 10px;
+  text-align: center;
+}
+
+/* いいねボタン（JS対象） */
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  height: 38px;
+  padding: 0 14px;
+
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+
+  color: #111827;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
+}
+
+.like-btn:hover { background:#f7f7f8; }
+.like-btn:active { transform: scale(0.985); }
+
+.like-btn.active{
+  background: #ffe7ef;
+  border-color: #ffb3cc;
+  color: #be123c;
+}
+
+.like-btn:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.like-btn .like-icon {
+  display: inline-block;
+  width: 1.2em;
+  text-align: center;
+}
+
+.like-btn .like-count {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+}
+
+/* 詳細リンク（右端で上品に） */
+.detail-link{
+  margin-left: auto;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 900;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 10px;
+}
+
+.detail-link:hover{
+  background: #eef2ff;
+}
+
+/* delete / follow */
+.delete-btn, .follow-btn {
+  height: 38px;
+  border-radius: 999px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 900;
   cursor: pointer;
   border: 1px solid #cfd9de;
   background: #fff;
@@ -292,9 +446,8 @@ textarea {
   margin-bottom: 22px;
   background: #fff;
   box-shadow: 0 6px 18px rgba(0,0,0,0.10);
-  cursor: pointer;
-  transition: transform 0.08s ease, box-shadow 0.12s ease;
   text-align: left;
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
 }
 
 .ranking-card:hover { box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
@@ -336,15 +489,17 @@ textarea {
 .ranking-title {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
   font-size: 16px;
-  align-items: baseline;
+  align-items: center;
 }
 
 .ranking-user { font-weight: 900; }
 .ranking-car  { font-weight: 900; }
 
 .ranking-meta {
+  position: relative;
+  z-index: 5; /* ←画像より前 */
   margin-top: 10px;
   display: flex;
   align-items: center;
@@ -450,72 +605,6 @@ textarea {
 .comment-form button:hover { opacity: 0.92; }
 
 /* =========================
-   Like Button（スクショ統一）
-========================= */
-.like-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  min-height: 40px;
-  padding: 8px 18px;
-
-  border-radius: 999px;
-  border: 1px solid #cfd9de;
-  background: #fff;
-
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1;
-  color: #536471;
-
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-
-  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
-}
-
-.like-btn:hover { background: #f6f7f8; }
-.like-btn:active { transform: scale(0.985); }
-
-.like-btn.active {
-  border-color: rgba(224,36,94,0.35);
-  background: rgba(224,36,94,0.08);
-  color: #e0245e;
-}
-
-.like-btn .like-icon {
-  display: inline-block;
-  width: 1.2em;
-  text-align: center;
-}
-
-.like-btn .like-count {
-  font-weight: 900;
-  letter-spacing: 0.2px;
-}
-
-/* ランキングの右端 */
-.ranking-meta .like-btn { margin-left: auto; }
-
-/* 押せない錯覚防止：ロード中は薄く */
-.like-btn.is-loading { opacity: 0.6; }
-
-/* =========================
-   Mobile
-========================= */
-@media (max-width: 600px) {
-  .logo { font-size: 20px; }
-  .header-inner { padding: 12px 12px; }
-  .container { padding: 12px 12px 30px; }
-}
-/* Like button position unified: always right */
-.post-actions .like-btn {
-  margin-left: auto;
-}
-/* =========================
    Search Page (Clean UI)
 ========================= */
 .search-hero {
@@ -540,7 +629,7 @@ textarea {
 
 .search-input {
   width: 100%;
-  margin: 0;              /* 既存inputのmargin-bottomを打ち消す */
+  margin: 0;
 }
 
 .search-btn {
@@ -562,9 +651,7 @@ textarea {
   font-size: 14px;
 }
 
-.search-advanced {
-  margin-top: 12px;
-}
+.search-advanced { margin-top: 12px; }
 
 .search-advanced-summary {
   cursor: pointer;
@@ -573,9 +660,7 @@ textarea {
   user-select: none;
 }
 
-.search-advanced-form {
-  margin-top: 10px;
-}
+.search-advanced-form { margin-top: 10px; }
 
 .search-grid {
   display: grid;
@@ -584,9 +669,7 @@ textarea {
   margin-bottom: 10px;
 }
 
-.search-section {
-  margin: 14px 0 22px;
-}
+.search-section { margin: 14px 0 22px; }
 
 .section-title {
   font-size: 16px;
@@ -613,83 +696,27 @@ textarea {
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
 }
 
-.user-pill:hover {
-  background: #f6f7f8;
-}
+.user-pill:hover { background: #f6f7f8; }
 
-.user-at {
-  font-weight: 900;
-  color: #0f1419;
-}
+.user-at { font-weight: 900; color: #0f1419; }
+.user-go { color: #536471; font-weight: 900; }
 
-.user-go {
-  color: #536471;
-  font-weight: 900;
-}
+.empty-note { color: #8899a6; margin: 0; font-size: 14px; }
 
-.empty-note {
-  color: #8899a6;
-  margin: 0;
-  font-size: 14px;
-}
-
+/* =========================
+   Mobile
+========================= */
 @media (max-width: 600px) {
+  .logo { font-size: 20px; }
+  .header-inner { padding: 12px 12px; }
+  .container { padding: 12px 12px 30px; }
+
   .search-bar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .search-grid {
-    grid-template-columns: 1fr;
-  }
+  .search-grid { grid-template-columns: 1fr; }
 
-  .search-btn {
-    width: 100%;
-  }
-}
-/* =========================
-   Avatar（ユーザーアイコン）
-========================= */
-.avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex: 0 0 auto;
-  background: #e5e7eb;
-  border: 1px solid rgba(15,20,25,0.06);
-}
-
-.avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.avatar-fallback {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  border: 1px solid rgba(15,20,25,0.06);
-  display: inline-block;
-}
-
-/* 投稿ヘッダをアイコン対応に */
-.post-top {
-  align-items: center;
-}
-
-.post-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.post-title-main {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  align-items: baseline;
+  .search-btn { width: 100%; }
 }
