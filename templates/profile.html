@@ -71,7 +71,7 @@
 
       <form action="/profile/edit" method="post" enctype="multipart/form-data">
         <!-- ✅ 表示名（ユーザーネーム変更：見た目用） -->
-        <input name="display_name" placeholder="表示名（例：ちりつも）" value="{{ display_name if display_name else username }}">
+        <input name="display_name" placeholder="表示名（例：タコ）" value="{{ display_name if display_name else username }}">
 
         <!-- ✅ アカウントID（@ID） -->
         <input name="handle" placeholder="アカウントID（英数字/._ 3〜20文字）" value="{{ handle if handle else '' }}">
