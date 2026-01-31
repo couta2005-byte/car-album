@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>新規登録 | Car Album</title>
+  <title>新規登録 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -14,10 +14,15 @@
   <h2 class="auth-title">新規登録</h2>
 
   <form method="post" action="/register" class="auth-form">
-    <input type="text" name="username" placeholder="ユーザー名" required>
+    <input type="text" name="handle" placeholder="ID（英数字/._ 3〜20文字）" required>
     <input type="password" name="password" placeholder="パスワード" required>
 
     <button type="submit" class="auth-btn">登録</button>
+
+    <div style="color:#536471; font-size:12px; line-height:1.5; margin-top:10px;">
+      ※ IDは「英数字 / . / _」のみ（3〜20文字）<br>
+      ※ 登録後にプロフィールで「表示名」は自由に変更できます
+    </div>
   </form>
 
   <p class="auth-link">

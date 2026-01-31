@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>ログイン | Car Album</title>
+  <title>ログイン | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -14,10 +14,14 @@
   <h2 class="auth-title">ログイン</h2>
 
   <form method="post" action="/login" class="auth-form">
-    <input type="text" name="username" placeholder="ユーザー名" required>
+    <input type="text" name="login" placeholder="ID（または旧ユーザー名）" required>
     <input type="password" name="password" placeholder="パスワード" required>
 
     <button type="submit" class="auth-btn">ログイン</button>
+
+    <div style="color:#536471; font-size:12px; margin-top:10px;">
+      ※ 基本はIDでログイン（互換で旧ユーザー名でもOK）
+    </div>
   </form>
 
   <p class="auth-link">
