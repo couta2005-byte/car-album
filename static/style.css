@@ -728,3 +728,75 @@ textarea {
 
   .search-btn { width: 100%; }
 }
+/* =========================
+   Unified cards for Search / Profile
+========================= */
+
+/* 検索の上の箱（search-hero）を投稿カードと同じ質感に寄せる */
+.search-hero {
+  border-radius: 18px;                 /* postと合わせる */
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: #fff;
+}
+
+/* 検索結果のユーザーpillを “カードっぽいピル” に統一 */
+.user-pill {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  padding: 10px 14px;
+}
+
+.user-pill:hover {
+  background: #f7f7f8;
+}
+
+/* プロフィール：名前見出し（もし既に使ってるなら上書きで統一） */
+.profile-name {
+  font-size: 22px;
+  font-weight: 900;
+  margin: 10px 0 12px;
+}
+
+/* プロフィール：情報ボックスを投稿カードと同じ “白カード” に */
+.profile-box {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin: 12px 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* プロフィール：ボックス内の項目を見やすく */
+.profile-box strong {
+  display: inline-block;
+  min-width: 5em;
+  color: #111827;
+}
+
+.profile-box .muted,
+.profile-box small {
+  color: #536471;
+}
+
+/* プロフィール上部（アイコン＋名前＋ボタンの並びを作りたい時用） */
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 12px;
+}
+
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* プロフィールの投稿一覧も、postsと同じ間隔 */
+.profile-posts .post {
+  margin-bottom: 16px;
+}
