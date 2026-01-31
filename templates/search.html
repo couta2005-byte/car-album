@@ -146,3 +146,55 @@
 
 </body>
 </html>
+<script>
+(function(){
+  async function postJson(url){
+    const res = await fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" }
+    });
+    const data = await res.json().catch(()=>null);
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  function setBtn(btn, liked, likes){
+    btn.dataset.liked = liked ? "1" : "0";
+    btn.classList.toggle("active", liked);
+    btn.setAttribute("aria-pressed", liked ? "true" : "false");
+    const icon = btn.querySelector(".like-icon");
+    const count = btn.querySelector(".like-count");
+    if (icon) icon.textContent = liked ? "❤️" : "🤍";
+    if (count) count.textContent = String(likes);
+  }
+
+  // ✅ capture=true で「記事onclick」より先に拾う（これが重要）
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".js-like");
+    if(!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const postId = btn.dataset.postId;
+    if(!postId) return;
+
+    if (btn.classList.contains("is-loading")) return;
+    btn.classList.add("is-loading");
+    btn.disabled = true;
+
+    try{
+      const r = await postJson(`/api/like/${postId}`);
+      if(!r.ok || !r.data || r.data.ok !== true){
+        if(r.status === 401) { location.href = "/login"; return; }
+        alert("いいねに失敗しました");
+        return;
+      }
+      setBtn(btn, !!r.data.liked, r.data.likes);
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove("is-loading");
+    }
+  }, { capture: true, passive: false });
+})();
+</script>
