@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-import psycopg2, os, re
+import psycopg2, os, re, uuid
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
 from typing import Optional, Dict, List, Any, Tuple
@@ -108,6 +108,10 @@ cloudinary.config(
 # helpers: https, handle validation
 # ======================
 def is_https_request(request: Request) -> bool:
+    # Render等のリバースプロキシ対応
+    xf = (request.headers.get("x-forwarded-proto") or "").lower()
+    if xf:
+        return xf == "https"
     return request.url.scheme == "https"
 
 HANDLE_RE = re.compile(r"^[a-zA-Z0-9._]{3,20}$")
@@ -146,20 +150,25 @@ def get_me_from_cookies(db, user_cookie: Optional[str], uid_cookie: Optional[str
     - uid(cookie) があれば最優先
     - 旧 user(cookie=username) は互換で残す
     """
-    # 1) uid
+    # 1) uid があれば users.id から username を引く
     if uid_cookie:
-        uid = (uid_cookie or "").strip()
-        if uid:
-            cur = db.cursor()
+        uid_str = (uid_cookie or "").strip()
+        if uid_str:
             try:
-                cur.execute("SELECT username, id FROM users WHERE id=%s", (uid,))
-                row = cur.fetchone()
-                if row:
-                    return row[0], str(row[1])
-            finally:
-                cur.close()
+                uuid.UUID(uid_str)
+            except Exception:
+                uid_str = ""
+            if uid_str:
+                cur = db.cursor()
+                try:
+                    cur.execute("SELECT username, id FROM users WHERE id=%s", (uid_str,))
+                    row = cur.fetchone()
+                    if row:
+                        return row[0], str(row[1])
+                finally:
+                    cur.close()
 
-    # 2) 旧 user cookie
+    # 2) 旧 user cookie（username）
     if user_cookie:
         u = unquote(user_cookie)
         cur = db.cursor()
@@ -178,7 +187,7 @@ def get_me_from_cookies(db, user_cookie: Optional[str], uid_cookie: Optional[str
 # ======================
 def init_db():
     def _do(db, cur):
-        # UUID生成関数（pgcrypto）
+        # ✅ UUID生成関数（pgcrypto）
         cur.execute("CREATE EXTENSION IF NOT EXISTS pgcrypto;")
 
         cur.execute("""
@@ -227,17 +236,19 @@ def init_db():
         );
         """)
 
-        # profiles icon
+        # ---- profiles icon ----
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
 
-        # users 拡張
+        # ---- users 拡張（display_name / handle / created_at）----
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS handle TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP;")
 
-        # users.id(UUID)
+        # ---- ✅ users.id(UUID) 追加（固定IDの本体）----
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS id UUID;")
+        # 既存ユーザーにID埋め
         cur.execute("UPDATE users SET id = gen_random_uuid() WHERE id IS NULL;")
+        # default
         cur.execute("ALTER TABLE users ALTER COLUMN id SET DEFAULT gen_random_uuid();")
 
         # handle unique（NULL複数OK）
@@ -246,7 +257,6 @@ def init_db():
             ON users(handle)
             WHERE handle IS NOT NULL;
         """)
-
         # id unique
         cur.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS users_id_unique
@@ -254,11 +264,11 @@ def init_db():
             WHERE id IS NOT NULL;
         """)
 
-        # 既存ユーザー埋め
+        # 既存ユーザーの埋め
         cur.execute("UPDATE users SET display_name = username WHERE display_name IS NULL;")
         cur.execute("UPDATE users SET created_at = NOW() WHERE created_at IS NULL;")
 
-        # comment likes
+        # ---- comment likes ----
         cur.execute("""
         CREATE TABLE IF NOT EXISTS comment_likes (
             username TEXT,
@@ -266,7 +276,10 @@ def init_db():
             PRIMARY KEY (username, comment_id)
         );
         """)
-        cur.execute("ALTER TABLE comment_likes ADD COLUMN IF NOT EXISTS user_id UUID;")
+
+        # ======================
+        # ✅ 段階移行：各テーブルに user_id を追加して埋める
+        # ======================
 
         # posts.user_id
         cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS user_id UUID;")
@@ -288,7 +301,7 @@ def init_db():
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS comments_user_id_idx ON comments(user_id);")
 
-        # likes.user_id
+        # likes.user_id（PKは温存、段階移行用にindex追加）
         cur.execute("ALTER TABLE likes ADD COLUMN IF NOT EXISTS user_id UUID;")
         cur.execute("""
             UPDATE likes l
@@ -302,7 +315,7 @@ def init_db():
             WHERE user_id IS NOT NULL;
         """)
 
-        # follows ids
+        # follows.follower_id / followee_id
         cur.execute("ALTER TABLE follows ADD COLUMN IF NOT EXISTS follower_id UUID;")
         cur.execute("ALTER TABLE follows ADD COLUMN IF NOT EXISTS followee_id UUID;")
         cur.execute("""
@@ -323,7 +336,8 @@ def init_db():
             WHERE follower_id IS NOT NULL AND followee_id IS NOT NULL;
         """)
 
-        # comment_likes.user_id 埋め
+        # comment_likes.user_id
+        cur.execute("ALTER TABLE comment_likes ADD COLUMN IF NOT EXISTS user_id UUID;")
         cur.execute("""
             UPDATE comment_likes cl
             SET user_id = u.id
@@ -336,7 +350,7 @@ def init_db():
             WHERE user_id IS NOT NULL;
         """)
 
-        # profiles.user_id
+        # profiles.user_id（将来username変更に備える）
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS user_id UUID;")
         cur.execute("""
             UPDATE profiles pr
@@ -930,7 +944,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None), u
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
 
-        # target user
+        # target user (id + display)
         cur.execute("SELECT id, display_name, handle FROM users WHERE username=%s", (username,))
         urow = cur.fetchone()
         if not urow:
@@ -940,13 +954,16 @@ def profile(request: Request, username: str, user: str = Cookie(default=None), u
         handle = urow[2]
 
         # profiles
-        cur.execute("SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s", (target_user_id,))
+        cur.execute(
+            "SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s",
+            (target_user_id,)
+        )
         prof = cur.fetchone()
 
-        # posts (user_id)
+        # posts (user_id で引く)
         posts = fetch_posts(db, me_user_id, "WHERE p.user_id=%s", (target_user_id,))
 
-        # follow counts
+        # follow counts（idで数える）
         cur.execute("SELECT COUNT(*) FROM follows WHERE follower_id=%s", (target_user_id,))
         follow_count = cur.fetchone()[0]
         cur.execute("SELECT COUNT(*) FROM follows WHERE followee_id=%s", (target_user_id,))
@@ -954,7 +971,10 @@ def profile(request: Request, username: str, user: str = Cookie(default=None), u
 
         is_following = False
         if me_user_id and me_user_id != target_user_id:
-            cur.execute("SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s", (me_user_id, target_user_id))
+            cur.execute(
+                "SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s",
+                (me_user_id, target_user_id)
+            )
             is_following = cur.fetchone() is not None
 
         liked_posts = get_liked_posts(db, me_user_id, me_username)
@@ -965,10 +985,10 @@ def profile(request: Request, username: str, user: str = Cookie(default=None), u
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "profile": prof,
+        "profile": prof,  # (maker, car, region, bio, icon)
         "posts": posts,
-        "me": me_username,
-        "user": me_username,
+        "me": me_username,      # template互換（me==username）
+        "user": me_username,    # nav互換
         "is_following": is_following,
         "follow_count": follow_count,
         "follower_count": follower_count,
@@ -1002,14 +1022,17 @@ def profile_edit(
     finally:
         db.close()
 
+    # 表示名
     display_name = (display_name or "").strip()
     if not display_name:
         display_name = me_username
     if len(display_name) > 40:
         display_name = display_name[:40]
 
+    # handle（@ID）
     handle_norm = normalize_handle(handle)
 
+    # icon upload（精度UP：正方形＋顔優先＋軽量）
     icon_url = None
     if icon and icon.filename:
         result = cloudinary.uploader.upload(
@@ -1023,12 +1046,14 @@ def profile_edit(
         icon_url = result.get("secure_url")
 
     def _do(db, cur):
+        # handle 重複チェック（自分以外が使ってたら保存しない）
         final_handle = handle_norm
         if final_handle is not None:
             cur.execute("SELECT 1 FROM users WHERE handle=%s AND id<>%s LIMIT 1", (final_handle, me_user_id))
             if cur.fetchone() is not None:
                 final_handle = None
 
+        # users 更新（display_name / handle）
         cur.execute("""
             UPDATE users
             SET display_name=%s,
@@ -1036,6 +1061,7 @@ def profile_edit(
             WHERE id=%s
         """, (display_name, final_handle, me_user_id))
 
+        # profiles 更新（user_id をキーにする）
         if icon_url:
             cur.execute("""
                 INSERT INTO profiles (username, user_id, maker, car, region, bio, icon)
@@ -1171,53 +1197,38 @@ def post(
         cur.execute("""
             INSERT INTO posts (username, user_id, maker, region, car, comment, image, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (me_username, me_user_id, maker, region, car, comment, image_path, utcnow_naive()))
+        """, (
+            me_username, me_user_id, maker, region, car, comment,
+            image_path,
+            utcnow_naive()
+        ))
 
     run_db(_do)
     return redirect_back(request, "/")
 
 # ======================
-# ✅ auth（pbkdf2） + ✅ uid cookie
-# ✅ 422回避：Form必須をやめて request.form() で拾う
-# ✅ usernameでもhandleでもログインOK
+# auth（pbkdf2） + ✅ uid cookie
 # ======================
 @app.post("/login")
-async def login(request: Request):
-    form = await request.form()
-    login_id = (form.get("username") or form.get("handle") or form.get("user_id") or "").strip()
-    password = (form.get("password") or "").strip()
-
-    if not login_id or not password:
-        return RedirectResponse("/login", status_code=303)
+def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    username = (username or "").strip()
 
     db = get_db()
     cur = db.cursor()
     try:
-        # 1) usernameで探す
-        cur.execute("SELECT username, password, id FROM users WHERE username=%s", (login_id,))
+        cur.execute("SELECT password, id FROM users WHERE username=%s", (username,))
         row = cur.fetchone()
-
-        # 2) なければ handle で探す
-        if not row:
-            cur.execute("SELECT username, password, id FROM users WHERE handle=%s", (login_id,))
-            row = cur.fetchone()
     finally:
         cur.close()
         db.close()
 
-    if not row:
+    if not row or not pwd_context.verify(password, row[0]):
         return RedirectResponse("/login", status_code=303)
 
-    username = row[0]
-    hashed = row[1]
-    user_id = str(row[2])
-
-    if not pwd_context.verify(password, hashed):
-        return RedirectResponse("/login", status_code=303)
+    user_id = str(row[1])
 
     res = RedirectResponse("/", status_code=303)
-
-    # 互換: user(username)
+    # 互換: user(username) も残す
     res.set_cookie(
         key="user",
         value=quote(username),
@@ -1236,13 +1247,8 @@ async def login(request: Request):
     return res
 
 @app.post("/register")
-async def register(request: Request):
-    form = await request.form()
-
-    # register.html が username でも、将来 handle に変えても動くように拾う
-    username = (form.get("username") or form.get("handle") or form.get("user_id") or "").strip()
-    password = (form.get("password") or "").strip()
-
+def register(request: Request, username: str = Form(...), password: str = Form(...)):
+    username = (username or "").strip()
     if not username:
         return RedirectResponse("/register", status_code=303)
 
@@ -1252,8 +1258,10 @@ async def register(request: Request):
     hashed = pwd_context.hash(password)
 
     def _do(db, cur):
+        # display_name 初期username
         display_name = username
 
+        # handle は username が適合し、かつ空いてたら自動セット（被ったらNULL）
         h = suggest_handle(username)
         if h is not None and (not is_handle_available(db, h)):
             h = None
@@ -1269,7 +1277,6 @@ async def register(request: Request):
     try:
         new_user_id = run_db(_do)
     except Exception:
-        # username重複など
         return RedirectResponse("/register", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
@@ -1344,11 +1351,15 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
         db.close()
 
     def _do(db, cur):
-        cur.execute("SELECT 1 FROM posts WHERE id=%s AND user_id=%s", (post_id, me_user_id))
+        cur.execute(
+            "SELECT 1 FROM posts WHERE id=%s AND user_id=%s",
+            (post_id, me_user_id)
+        )
         row = cur.fetchone()
         if not row:
             return
 
+        # comment_likes → comments → likes → posts
         cur.execute("""
             DELETE FROM comment_likes
             WHERE comment_id IN (SELECT id FROM comments WHERE post_id=%s)
