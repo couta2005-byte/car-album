@@ -94,21 +94,21 @@
             <div style="display:flex; align-items:center; gap:10px;">
               <span class="comment-time">{{ c.created_at }}</span>
 
-              <!-- ★ コメントいいね（トグル） -->
+              <!-- ✅ コメントいいね：非リロード（js-comment-like） -->
               {% if user %}
-                <form action="/comment_like/{{ c.id }}" method="post" style="margin:0;">
-                  <button type="submit"
-                          class="like-btn {% if c.liked %}active{% endif %}"
-                          aria-pressed="{% if c.liked %}true{% else %}false{% endif %}">
-                    <span class="like-icon">{% if c.liked %}❤️{% else %}🤍{% endif %}</span>
-                    <span class="like-count">{{ c.likes }}</span>
-                  </button>
-                </form>
+                <button type="button"
+                        class="like-btn js-comment-like {% if c.liked %}active{% endif %}"
+                        data-comment-id="{{ c.id }}"
+                        data-liked="{% if c.liked %}1{% else %}0{% endif %}"
+                        aria-pressed="{% if c.liked %}true{% else %}false{% endif %}">
+                  <span class="like-icon">{% if c.liked %}❤️{% else %}🤍{% endif %}</span>
+                  <span class="like-count">{{ c.likes }}</span>
+                </button>
               {% else %}
                 <span>🤍 {{ c.likes }}</span>
               {% endif %}
 
-              <!-- ★ 自分のコメントだけ削除 -->
+              <!-- 自分のコメントだけ削除 -->
               {% if user and user == c.username %}
                 <form action="/comment_delete/{{ c.id }}" method="post" style="margin:0;">
                   <button type="submit" class="delete-btn">🗑</button>

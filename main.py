@@ -23,11 +23,9 @@ app = FastAPI()
 JST = timezone(timedelta(hours=9))
 
 def utcnow_naive() -> datetime:
-    # DB保存/比較は常にUTCのnaiveで統一（TIMESTAMPと相性が良い）
     return datetime.utcnow()
 
 def fmt_jst(dt: Optional[datetime]) -> str:
-    # 表示は常に JST（UTC+9）で統一
     return ((dt + timedelta(hours=9)).strftime("%Y-%m-%d %H:%M") if dt else "")
 
 # ======================
@@ -47,7 +45,6 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 templates = Jinja2Templates(directory="templates")
 
-# Jinja2 filter: urlencode
 def jinja_urlencode(s: str) -> str:
     try:
         return quote(s)
@@ -107,7 +104,7 @@ cloudinary.config(
 )
 
 # ======================
-# DB init（既存DBでも壊れないように追加カラムも保証）
+# DB init
 # ======================
 def init_db():
     def _do(db, cur):
@@ -157,7 +154,6 @@ def init_db():
         );
         """)
 
-        # ★ profiles に icon カラム（無ければ追加）
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
 
         # ★ コメントいいね（トグル用）
@@ -200,7 +196,7 @@ def get_liked_posts(db, me):
         cur.close()
 
 # ======================
-# comments fetch（一覧用：アイコンだけ付与）
+# comments fetch（一覧用）
 # ======================
 def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str, Any]]]:
     if not post_ids:
@@ -238,7 +234,7 @@ def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str
     return out
 
 # ======================
-# post_detail用：コメントに「いいね数」「自分が押したか」も付与
+# post_detail用（コメントいいね情報つき）
 # ======================
 def fetch_comments_for_post_detail(db, post_id: int, me: Optional[str]) -> List[Dict[str, Any]]:
     cur = db.cursor()
@@ -549,7 +545,7 @@ def ranking(
     })
 
 # ======================
-# post detail（★コメント「いいね/削除」対応）
+# post detail（コメントいいね情報つき）
 # ======================
 @app.get("/post/{post_id}", response_class=HTMLResponse)
 def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)):
@@ -562,8 +558,6 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
             return RedirectResponse("/", status_code=303)
 
         post = posts[0]
-
-        # ★ コメントを「いいね対応版」に差し替える
         post_comments = fetch_comments_for_post_detail(db, post_id, me)
         post["comments"] = post_comments
         post["comment_count"] = len(post_comments)
@@ -609,7 +603,7 @@ def add_comment(
     return redirect_back(request, fallback=f"/post/{post_id}")
 
 # ======================
-# comment delete（★自分のコメントだけ）
+# comment delete（自分のだけ）
 # ======================
 @app.post("/comment_delete/{comment_id}")
 def delete_comment(request: Request, comment_id: int, user: str = Cookie(default=None)):
@@ -619,16 +613,13 @@ def delete_comment(request: Request, comment_id: int, user: str = Cookie(default
     me = unquote(user)
 
     def _do(db, cur):
-        # 自分のコメントか確認 & post_id取る
         cur.execute("SELECT post_id FROM comments WHERE id=%s AND username=%s", (comment_id, me))
         row = cur.fetchone()
         if not row:
             return None
         post_id = row[0]
 
-        # まずコメントいいね消す（外部キー無いので手動）
         cur.execute("DELETE FROM comment_likes WHERE comment_id=%s", (comment_id,))
-        # コメント削除
         cur.execute("DELETE FROM comments WHERE id=%s AND username=%s", (comment_id, me))
 
         return post_id
@@ -638,7 +629,7 @@ def delete_comment(request: Request, comment_id: int, user: str = Cookie(default
     return redirect_back(request, fallback=fallback)
 
 # ======================
-# comment like（★トグル）
+# comment like（リロードあり：残す）
 # ======================
 @app.post("/comment_like/{comment_id}")
 def toggle_comment_like(request: Request, comment_id: int, user: str = Cookie(default=None)):
@@ -648,14 +639,12 @@ def toggle_comment_like(request: Request, comment_id: int, user: str = Cookie(de
     me = unquote(user)
 
     def _do(db, cur):
-        # コメントが存在するか + どの投稿か取得（戻り先用）
         cur.execute("SELECT post_id FROM comments WHERE id=%s", (comment_id,))
         row = cur.fetchone()
         if not row:
             return None
         post_id = row[0]
 
-        # すでに押してる？
         cur.execute("SELECT 1 FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
         liked = cur.fetchone() is not None
 
@@ -672,6 +661,43 @@ def toggle_comment_like(request: Request, comment_id: int, user: str = Cookie(de
     post_id = run_db(_do)
     fallback = f"/post/{post_id}" if post_id else "/"
     return redirect_back(request, fallback=fallback)
+
+# ======================
+# ✅ comment like API（リロード無し）
+# ======================
+@app.post("/api/comment_like/{comment_id}")
+def api_comment_like(comment_id: int, request: Request, user: str = Cookie(default=None)):
+    if not user:
+        return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
+
+    me = unquote(user)
+
+    def _do(db, cur):
+        # コメント存在確認
+        cur.execute("SELECT 1 FROM comments WHERE id=%s", (comment_id,))
+        if cur.fetchone() is None:
+            return {"ok": False, "error": "not_found"}
+
+        # 既に押してる？
+        cur.execute("SELECT 1 FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
+        liked = cur.fetchone() is not None
+
+        if liked:
+            cur.execute("DELETE FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
+            liked = False
+        else:
+            cur.execute(
+                "INSERT INTO comment_likes (username, comment_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
+                (me, comment_id)
+            )
+            liked = True
+
+        cur.execute("SELECT COUNT(*) FROM comment_likes WHERE comment_id=%s", (comment_id,))
+        likes_count = cur.fetchone()[0]
+
+        return {"ok": True, "liked": liked, "likes": likes_count}
+
+    return JSONResponse(run_db(_do))
 
 # ======================
 # profile
@@ -714,7 +740,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "profile": prof,  # (maker, car, region, bio, icon)
+        "profile": prof,
         "posts": posts,
         "me": me,
         "user": me,
@@ -726,7 +752,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     })
 
 # ======================
-# profile edit（★icon upload）
+# profile edit（icon upload）
 # ======================
 @app.post("/profile/edit")
 def profile_edit(
