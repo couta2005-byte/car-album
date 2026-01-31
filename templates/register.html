@@ -14,20 +14,21 @@
   <h2 class="auth-title">新規登録</h2>
 
   <form method="post" action="/register" class="auth-form">
-    <input type="text" name="handle" placeholder="ID（英数字/._ 3〜20文字）" required>
+    <!-- インスタ風：ここを「ログインID」扱いにする -->
+    <input type="text" name="username" placeholder="ログインID（例：nozawa）" required>
     <input type="password" name="password" placeholder="パスワード" required>
 
     <button type="submit" class="auth-btn">登録</button>
-
-    <div style="color:#536471; font-size:12px; line-height:1.5; margin-top:10px;">
-      ※ IDは「英数字 / . / _」のみ（3〜20文字）<br>
-      ※ 登録後にプロフィールで「表示名」は自由に変更できます
-    </div>
   </form>
 
   <p class="auth-link">
     <a href="/login">ログインはこちら</a>
   </p>
+
+  <div style="color:#536471; font-size:12px; margin-top:12px; line-height:1.6;">
+    ※ 表示名（プロフィールで変えられる名前）とログインIDは別物にできます。<br>
+    ※ @ID（handle）はプロフィール編集で設定できます（あとでログインも可能）。
+  </div>
 </main>
 
 </body>

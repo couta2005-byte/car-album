@@ -14,14 +14,11 @@
   <h2 class="auth-title">ログイン</h2>
 
   <form method="post" action="/login" class="auth-form">
-    <input type="text" name="login" placeholder="ID（または旧ユーザー名）" required>
+    <!-- username でも @ID(handle) でもOK（main.py修正込み） -->
+    <input type="text" name="username" placeholder="ログインID または @ID" required>
     <input type="password" name="password" placeholder="パスワード" required>
 
     <button type="submit" class="auth-btn">ログイン</button>
-
-    <div style="color:#536471; font-size:12px; margin-top:10px;">
-      ※ 基本はIDでログイン（互換で旧ユーザー名でもOK）
-    </div>
   </form>
 
   <p class="auth-link">
