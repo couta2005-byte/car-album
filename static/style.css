@@ -269,6 +269,14 @@ textarea {
 /* formが並ぶとズレるの防止 */
 .post-actions form { margin: 0; }
 
+/* ✅ 追加：右寄せグループ（削除→コメント→いいね をまとめる） */
+.post-actions-right{
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* =========================
    Buttons（統一デザイン）
 ========================= */
@@ -359,7 +367,7 @@ textarea {
   letter-spacing: 0.2px;
 }
 
-/* 詳細リンク（右端で上品に） */
+/* （今回使わないけど残してOK：detail-link） */
 .detail-link{
   margin-left: auto;
   color: #2563eb;

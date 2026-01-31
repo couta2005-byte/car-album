@@ -58,17 +58,22 @@
           </div>
         {% endif %}
 
-        <!-- ✅ 下段：詳細(左) / 右側に コメント→いいね -->
+        <!-- ✅ 下段：削除 → コメント → いいね（右寄せ） -->
         <div class="post-actions" style="display:flex; align-items:center; gap:10px; margin-top:12px;">
-          <!-- 左：詳細 -->
-          <a href="/post/{{ post.id }}" class="detail-link" style="text-decoration:none;">
-            → 詳細
-          </a>
+          <div class="post-actions-right" style="margin-left:auto; display:flex; align-items:center; gap:10px;">
 
-          <!-- 右側（右寄せグループ） -->
-          <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
-            <!-- コメント（右） -->
-            <a href="/post/{{ post.id }}" class="action-btn" style="text-decoration:none;">
+            <!-- 削除（自分だけ） -->
+            {% if user and user == post.username %}
+              <form action="/delete/{{ post.id }}" method="post" style="margin:0;" onsubmit="event.stopPropagation();">
+                <button class="delete-btn" type="submit" onclick="event.stopPropagation();">🗑 削除</button>
+              </form>
+            {% endif %}
+
+            <!-- コメント（詳細へ） -->
+            <a href="/post/{{ post.id }}#comments"
+               class="action-btn"
+               style="text-decoration:none;"
+               onclick="event.stopPropagation();">
               <span>💬</span>
               <span class="count">{{ post.comment_count }}</span>
             </a>
@@ -86,6 +91,7 @@
             {% else %}
               <span>🤍 {{ post.likes }}</span>
             {% endif %}
+
           </div>
         </div>
 
