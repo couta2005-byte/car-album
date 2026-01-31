@@ -95,19 +95,40 @@
               </div>
             {% endif %}
 
+            <!-- ✅ アクション：削除 → コメント → いいね（右寄せ） -->
             <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
-              {% if user %}
-                <button type="button"
-                        class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
-                        data-post-id="{{ post.id }}"
-                        data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
-                        aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}">
-                  <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
-                  <span class="like-count">{{ post.likes }}</span>
-                </button>
-              {% else %}
-                <span>🤍 {{ post.likes }}</span>
-              {% endif %}
+              <div class="post-actions-right">
+
+                <!-- 削除（自分だけ） -->
+                {% if user and user == post.username %}
+                  <form action="/delete/{{ post.id }}" method="post" onsubmit="event.stopPropagation();">
+                    <button class="delete-btn" type="submit" onclick="event.stopPropagation();">🗑 削除</button>
+                  </form>
+                {% endif %}
+
+                <!-- コメント（詳細へ） -->
+                <a href="/post/{{ post.id }}#comments"
+                   class="action-btn"
+                   onclick="event.stopPropagation();">
+                  <span>💬</span>
+                  <span class="count">{{ post.comment_count }}</span>
+                </a>
+
+                <!-- いいね -->
+                {% if user %}
+                  <button type="button"
+                          class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
+                          data-post-id="{{ post.id }}"
+                          data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
+                          aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}">
+                    <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+                    <span class="like-count">{{ post.likes }}</span>
+                  </button>
+                {% else %}
+                  <span>🤍 {{ post.likes }}</span>
+                {% endif %}
+
+              </div>
             </div>
 
           </article>
