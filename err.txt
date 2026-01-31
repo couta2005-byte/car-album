@@ -1,0 +1,38 @@
+D:\Dcar_album\main.py:163: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+        
+  @app.on_event("startup")
+[32mINFO[0m:     Started server process [[36m18092[0m]
+[32mINFO[0m:     Waiting for application startup.
+[31mERROR[0m:    Traceback (most recent call last):
+  File "D:\Dcar_album\.venv\Lib\site-packages\starlette\routing.py", line 694, in lifespan
+    async with self.lifespan_context(app) as maybe_state:
+               ~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "D:\Dcar_album\.venv\Lib\site-packages\starlette\routing.py", line 571, in __aenter__
+    await self._router.startup()
+  File "D:\Dcar_album\.venv\Lib\site-packages\starlette\routing.py", line 673, in startup
+    handler()
+    ~~~~~~~^^
+  File "D:\Dcar_album\main.py", line 165, in startup
+    init_db()
+    ~~~~~~~^^
+  File "D:\Dcar_album\main.py", line 161, in init_db
+    run_db(_do)
+    ~~~~~~^^^^^
+  File "D:\Dcar_album\main.py", line 71, in run_db
+    db = get_db()
+  File "D:\Dcar_album\main.py", line 58, in get_db
+    conn = psycopg2.connect(
+        DATABASE_URL,
+    ...<5 lines>...
+        keepalives_count=5,
+    )
+  File "D:\Dcar_album\.venv\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "dpg-d5nol6re5dus73f94lt0-a" to address: Name or service not known
+
+
+[31mERROR[0m:    Application startup failed. Exiting.

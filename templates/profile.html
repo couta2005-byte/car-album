@@ -44,7 +44,6 @@
     <section class="profile-edit" style="margin: 18px 0 22px;">
       <h3 style="margin:0 0 10px;">プロフィール編集</h3>
 
-      <!-- ★ここが重要：enctype + icon file -->
       <form action="/profile/edit" method="post" enctype="multipart/form-data">
         <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
         <input name="car" placeholder="車名" value="{{ profile[1] if profile else '' }}">

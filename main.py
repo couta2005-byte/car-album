@@ -47,6 +47,15 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 templates = Jinja2Templates(directory="templates")
 
+# Jinja2 filter: urlencode
+def jinja_urlencode(s: str) -> str:
+    try:
+        return quote(s)
+    except Exception:
+        return s
+
+templates.env.filters["urlencode"] = jinja_urlencode
+
 # ======================
 # PostgreSQL
 # ======================
@@ -90,19 +99,12 @@ def run_db(fn):
 # ======================
 # Cloudinary
 # ======================
-CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME")
-CLOUDINARY_API_KEY = os.environ.get("CLOUDINARY_API_KEY")
-CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET")
-
-CLOUDINARY_ENABLED = all([CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET])
-
-if CLOUDINARY_ENABLED:
-    cloudinary.config(
-        cloud_name=CLOUDINARY_CLOUD_NAME,
-        api_key=CLOUDINARY_API_KEY,
-        api_secret=CLOUDINARY_API_SECRET,
-        secure=True
-    )
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    secure=True
+)
 
 # ======================
 # DB init（既存DBでも壊れないように追加カラムも保証）
@@ -155,7 +157,7 @@ def init_db():
         );
         """)
 
-        # ★ profiles に icon カラムを追加（既存DBでもOK）
+        # ★ profiles に icon カラム（無ければ追加）
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
 
     run_db(_do)
@@ -189,7 +191,7 @@ def get_liked_posts(db, me):
         cur.close()
 
 # ======================
-# comments fetch（必要なpost_idだけ取る）
+# comments fetch
 # ======================
 def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str, Any]]]:
     if not post_ids:
@@ -220,7 +222,7 @@ def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str
     return out
 
 # ======================
-# posts fetch（JST表示 + comment_count + ★user_icon）
+# posts fetch（★user_icon含む）
 # ======================
 def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
     cur = db.cursor()
@@ -303,7 +305,7 @@ def register_page(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 # ======================
-# search（q OR / 詳細）
+# search
 # ======================
 @app.get("/search", response_class=HTMLResponse)
 def search(
@@ -478,7 +480,7 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
     })
 
 # ======================
-# comment（post_detail用）
+# comment
 # ======================
 @app.post("/comment/{post_id}")
 def add_comment(
@@ -548,7 +550,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "profile": prof,
+        "profile": prof,  # (maker, car, region, bio, icon)
         "posts": posts,
         "me": me,
         "user": me,
@@ -560,10 +562,8 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     })
 
 # ======================
-# profile edit（★icon upload対応）
+# profile edit（★icon upload）
 # ======================
-MAX_ICON_BYTES = 5 * 1024 * 1024  # 5MB
-
 @app.post("/profile/edit")
 def profile_edit(
     request: Request,
@@ -581,23 +581,9 @@ def profile_edit(
 
     icon_url = None
     if icon and icon.filename:
-        # 画像かチェック（雑でも効果ある）
-        if not (icon.content_type or "").startswith("image/"):
-            return RedirectResponse(f"/user/{quote(me)}", status_code=303)
-
-        # Cloudinary未設定なら弾く（落ちるの防止）
-        if not CLOUDINARY_ENABLED:
-            return RedirectResponse(f"/user/{quote(me)}", status_code=303)
-
-        # サイズ上限（読み込みすぎ防止）
-        data = icon.file.read()
-        if len(data) > MAX_ICON_BYTES:
-            return RedirectResponse(f"/user/{quote(me)}", status_code=303)
-
         result = cloudinary.uploader.upload(
-            data,
-            folder="carbum/icons",
-            resource_type="image",
+            icon.file,
+            folder="carbum/icons"
         )
         icon_url = result.get("secure_url")
 
@@ -670,7 +656,7 @@ def unfollow(username: str, user: str = Cookie(default=None)):
     return RedirectResponse(f"/user/{quote(target)}", status_code=303)
 
 # ======================
-# post（UTC保存で統一）
+# post
 # ======================
 @app.post("/post")
 def post(
@@ -689,9 +675,6 @@ def post(
     image_path = None
 
     if image and image.filename:
-        if not CLOUDINARY_ENABLED:
-            return redirect_back(request, "/")
-
         result = cloudinary.uploader.upload(
             image.file,
             folder="carbum/posts"
@@ -773,7 +756,7 @@ def logout():
     return res
 
 # ======================
-# likes（元ページへ戻る）
+# likes（ページ戻り）
 # ======================
 @app.post("/like/{post_id}")
 def like_post(request: Request, post_id: int, user: str = Cookie(default=None)):
@@ -835,7 +818,7 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None)):
     return run_db(_do)
 
 # ======================
-# delete post（元ページへ戻る）
+# delete post
 # ======================
 @app.post("/delete/{post_id}")
 def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)):
