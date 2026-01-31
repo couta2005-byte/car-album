@@ -69,37 +69,42 @@
       </div>
     {% endif %}
 
+    <!-- ✅ アクション：詳細(左) / 右側に コメント→削除→いいね -->
     <div class="post-actions" style="position:relative; z-index:5; display:flex; align-items:center; gap:10px; margin-top:10px;">
 
-      <!-- ✅ post like（非リロード） -->
-      {% if user %}
-        <button type="button"
-                class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
-                data-post-id="{{ post.id }}"
-                data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
-                aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}">
-          <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
-          <span class="like-count">{{ post.likes }}</span>
-        </button>
-      {% else %}
-        <span class="like-btn" style="cursor:default;">🤍 <span class="like-count">{{ post.likes }}</span></span>
-      {% endif %}
-
-      <!-- ✅ コメントは数だけ（詳細へ） -->
-      <a href="/post/{{ post.id }}" class="like-btn" style="text-decoration:none;">
-        <span style="margin-right:6px;">💬</span>
-        <span class="count">{{ post.comment_count }}</span>
+      <!-- 左：詳細 -->
+      <a href="/post/{{ post.id }}" class="detail-link" style="text-decoration:none;">
+        → 詳細
       </a>
 
-      <!-- ✅ 右側（削除→詳細 の順で表示） -->
+      <!-- 右側グループ（ここが右寄せ） -->
       <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+        <!-- コメント（右） -->
+        <a href="/post/{{ post.id }}" class="action-btn" style="text-decoration:none;">
+          <span>💬</span>
+          <span class="count">{{ post.comment_count }}</span>
+        </a>
+
+        <!-- 削除（自分だけ） -->
         {% if user == post.username %}
           <form action="/delete/{{ post.id }}" method="post" style="margin:0;">
             <button class="delete-btn" type="submit">🗑 削除</button>
           </form>
         {% endif %}
 
-        <a href="/post/{{ post.id }}" class="detail-link">→ 詳細</a>
+        <!-- いいね（最右） -->
+        {% if user %}
+          <button type="button"
+                  class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
+                  data-post-id="{{ post.id }}"
+                  data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
+                  aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}">
+            <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+            <span class="like-count">{{ post.likes }}</span>
+          </button>
+        {% else %}
+          <span>🤍 {{ post.likes }}</span>
+        {% endif %}
       </div>
 
     </div>
@@ -110,32 +115,17 @@
 
 </main>
 
-<!-- ✅ いいね非リロードJS（index用：押せない/反応しない対策強化） -->
+<!-- ✅ いいね非リロードJS（index用） -->
 <script>
 (function(){
-  // 二重バインド防止
-  if (window.__carbumLikeBoundIndex) return;
-  window.__carbumLikeBoundIndex = true;
-
-  function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
-
-  async function postJson(url, timeoutMs=10000){
-    const ctrl = new AbortController();
-    const t = setTimeout(()=>ctrl.abort(), timeoutMs);
-
-    try{
-      const res = await fetch(url, {
-        method: "POST",
-        credentials: "same-origin",
-        cache: "no-store",
-        headers: { "Content-Type": "application/json" },
-        signal: ctrl.signal
-      });
-      const data = await res.json().catch(()=>null);
-      return { ok: res.ok, status: res.status, data };
-    } finally {
-      clearTimeout(t);
-    }
+  async function postJson(url){
+    const res = await fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" }
+    });
+    const data = await res.json().catch(()=>null);
+    return { ok: res.ok, status: res.status, data };
   }
 
   function setBtn(btn, liked, likes){
@@ -148,48 +138,34 @@
     if (count) count.textContent = String(likes);
   }
 
-  async function handleLike(btn){
+  document.addEventListener("click", async (e) => {
+    const btn = e.target.closest(".js-like");
+    if(!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
     const postId = btn.dataset.postId;
     if(!postId) return;
 
-    if (btn.dataset.loading === "1") return;
-    btn.dataset.loading = "1";
+    // ✅「押せない時がある」対策：連打/二重送信を確実に防ぐ
+    if (btn.classList.contains("is-loading")) return;
     btn.classList.add("is-loading");
     btn.disabled = true;
 
     try{
-      // 1回目
-      let r;
-      try{
-        r = await postJson(`/api/like/${postId}`);
-      } catch(e){
-        // ネットワーク/一瞬の失敗に強くする（1回だけ再試行）
-        await sleep(250);
-        r = await postJson(`/api/like/${postId}`);
-      }
-
+      const r = await postJson(`/api/like/${postId}`);
       if(!r.ok || !r.data || r.data.ok !== true){
         if(r.status === 401) { location.href = "/login"; return; }
-        alert("いいねに失敗しました（通信/サーバー）");
+        alert("いいねに失敗しました");
         return;
       }
       setBtn(btn, !!r.data.liked, r.data.likes);
     } finally {
       btn.disabled = false;
       btn.classList.remove("is-loading");
-      btn.dataset.loading = "0";
     }
-  }
-
-  // click より pointerup の方が「押せない」を潰しやすい（モバイル含む）
-  document.addEventListener("pointerup", (e) => {
-    const btn = e.target.closest(".js-like");
-    if(!btn) return;
-    e.preventDefault();
-    e.stopPropagation();
-    handleLike(btn);
-  }, { capture:true });
-
+  }, { passive:false });
 })();
 </script>
 
