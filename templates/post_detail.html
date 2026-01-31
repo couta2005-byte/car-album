@@ -70,10 +70,30 @@
     {% if post.comments %}
       {% for c in post.comments %}
         <div class="comment-item">
-          <div class="comment-header">
-            <strong>{{ c.username }}</strong>
+          <div class="comment-header" style="align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              {% if c.user_icon %}
+                <div class="avatar">
+                  <a href="/user/{{ c.username | urlencode }}">
+                    <img src="{{ c.user_icon }}" alt="icon">
+                  </a>
+                </div>
+              {% else %}
+                <a href="/user/{{ c.username | urlencode }}">
+                  <span class="avatar-fallback"></span>
+                </a>
+              {% endif %}
+
+              <strong style="display:flex; align-items:center;">
+                <a href="/user/{{ c.username | urlencode }}" style="text-decoration:none; color:inherit;">
+                  {{ c.username }}
+                </a>
+              </strong>
+            </div>
+
             <span class="comment-time">{{ c.created_at }}</span>
           </div>
+
           <div class="comment-body">{{ c.comment }}</div>
         </div>
       {% endfor %}

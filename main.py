@@ -191,7 +191,7 @@ def get_liked_posts(db, me):
         cur.close()
 
 # ======================
-# comments fetch
+# comments fetch（★アイコンもJOINで取得）
 # ======================
 def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str, Any]]]:
     if not post_ids:
@@ -199,10 +199,16 @@ def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str
 
     placeholders = ",".join(["%s"] * len(post_ids))
     sql = f"""
-        SELECT post_id, username, comment, created_at
-        FROM comments
-        WHERE post_id IN ({placeholders})
-        ORDER BY id ASC
+        SELECT
+            c.post_id,
+            c.username,
+            c.comment,
+            c.created_at,
+            pr.icon AS user_icon
+        FROM comments c
+        LEFT JOIN profiles pr ON c.username = pr.username
+        WHERE c.post_id IN ({placeholders})
+        ORDER BY c.id ASC
     """
 
     cur = db.cursor()
@@ -213,11 +219,12 @@ def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str
         cur.close()
 
     out: Dict[int, List[Dict[str, Any]]] = {}
-    for post_id, username, comment, created_at in rows:
+    for post_id, username, comment, created_at, user_icon in rows:
         out.setdefault(post_id, []).append({
             "username": username,
             "comment": comment,
-            "created_at": fmt_jst(created_at)
+            "created_at": fmt_jst(created_at),
+            "user_icon": user_icon  # ★追加
         })
     return out
 
