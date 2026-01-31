@@ -12,8 +12,9 @@
 
 <main class="container">
 
-  <div class="profile-header">
-    <div class="profile-header-left">
+  <!-- ===== Profile Header ===== -->
+  <div class="profile-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin: 8px 0 10px;">
+    <div style="display:flex; align-items:center; gap:12px;">
       {% if profile and profile[4] %}
         <div class="avatar" style="width:54px; height:54px;">
           <img src="{{ profile[4] }}" alt="icon">
@@ -23,13 +24,17 @@
       {% endif %}
 
       <div>
-        <h2 class="profile-name" style="margin:0;">{{ username }}</h2>
-        <div style="color:#536471; font-size:13px;">@{{ username }}</div>
+        <h2 class="profile-name" style="margin:0;">
+          {{ display_name if display_name else username }}
+        </h2>
+        <div style="color:#536471; font-size:13px;">
+          @{{ handle if handle else username }}
+        </div>
       </div>
     </div>
 
-    <!-- 右側：フォローボタン（自分以外） -->
-    {% if me != username and me %}
+    <!-- Follow Button (other user) -->
+    {% if me and me != username %}
       {% if is_following %}
         <form action="/unfollow/{{ username | urlencode }}" method="post" style="margin:0;">
           <button class="follow-btn" type="submit">フォロー解除</button>
@@ -42,7 +47,8 @@
     {% endif %}
   </div>
 
-  <div class="profile-box">
+  <!-- ===== Profile Info Box ===== -->
+  <div class="profile-box" style="margin: 12px 0; background:#fff; border-radius:18px; padding:14px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
     <div style="display:flex; gap:16px; flex-wrap:wrap;">
       <div><strong>メーカー：</strong>{{ profile[0] if profile else "" }}</div>
       <div><strong>車名：</strong>{{ profile[1] if profile else "" }}</div>
@@ -50,6 +56,7 @@
       <div><strong>フォロー：</strong>{{ follow_count }}</div>
       <div><strong>フォロワー：</strong>{{ follower_count }}</div>
     </div>
+
     {% if profile and profile[3] %}
       <div style="margin-top:10px; color:#0f1419; white-space:pre-wrap; word-break:break-word;">
         {{ profile[3] }}
@@ -57,12 +64,18 @@
     {% endif %}
   </div>
 
+  <!-- ===== Edit (me) ===== -->
   {% if me == username %}
-    <!-- ✅ 編集も profile-box に寄せて統一 -->
-    <section class="profile-box" style="margin-top: 14px;">
+    <section class="profile-edit" style="margin: 18px 0 22px;">
       <h3 style="margin:0 0 10px;">プロフィール編集</h3>
 
       <form action="/profile/edit" method="post" enctype="multipart/form-data">
+        <!-- ✅ 表示名（ユーザーネーム変更：見た目用） -->
+        <input name="display_name" placeholder="表示名（例：ちりつも）" value="{{ display_name if display_name else username }}">
+
+        <!-- ✅ アカウントID（@ID） -->
+        <input name="handle" placeholder="アカウントID（英数字/._ 3〜20文字）" value="{{ handle if handle else '' }}">
+
         <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
         <input name="car" placeholder="車名" value="{{ profile[1] if profile else '' }}">
         <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
@@ -77,13 +90,19 @@
         </div>
 
         <button class="primary-btn" type="submit">保存</button>
+
+        <div style="color:#536471; font-size:12px; margin-top:10px; line-height:1.5;">
+          ※ アカウントIDは「英数字/._」のみ（3〜20文字）。空でもOK。<br>
+          ※ ログインID（username）はまだ変更しない設計（壊れやすいのでUUID導入後に対応）。
+        </div>
       </form>
     </section>
   {% endif %}
 
+  <!-- ===== Posts ===== -->
   <h3 style="margin: 16px 0 10px;">投稿</h3>
 
-  <div class="posts profile-posts">
+  <div class="posts">
     {% for post in posts %}
       <article class="post"
                role="link"
@@ -133,18 +152,19 @@
           </div>
         {% endif %}
 
-        <!-- ✅ アクション：削除 → コメント → いいね（右寄せ） -->
+        <!-- ✅ Actions：削除 → コメント → いいね（右寄せ） -->
         <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
-          <div class="post-actions-right">
+          <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
 
             {% if me and me == post.username %}
-              <form action="/delete/{{ post.id }}" method="post" onsubmit="event.stopPropagation();">
+              <form action="/delete/{{ post.id }}" method="post" style="margin:0;" onsubmit="event.stopPropagation();">
                 <button class="delete-btn" type="submit" onclick="event.stopPropagation();">🗑 削除</button>
               </form>
             {% endif %}
 
             <a href="/post/{{ post.id }}#comments"
                class="action-btn"
+               style="text-decoration:none;"
                onclick="event.stopPropagation();">
               <span>💬</span>
               <span class="count">{{ post.comment_count }}</span>
@@ -174,55 +194,3 @@
 
 </body>
 </html>
-<script>
-(function(){
-  async function postJson(url){
-    const res = await fetch(url, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await res.json().catch(()=>null);
-    return { ok: res.ok, status: res.status, data };
-  }
-
-  function setBtn(btn, liked, likes){
-    btn.dataset.liked = liked ? "1" : "0";
-    btn.classList.toggle("active", liked);
-    btn.setAttribute("aria-pressed", liked ? "true" : "false");
-    const icon = btn.querySelector(".like-icon");
-    const count = btn.querySelector(".like-count");
-    if (icon) icon.textContent = liked ? "❤️" : "🤍";
-    if (count) count.textContent = String(likes);
-  }
-
-  // ✅ capture=true で「記事onclick」より先に拾う（これが重要）
-  document.addEventListener("click", async (e) => {
-    const btn = e.target.closest(".js-like");
-    if(!btn) return;
-
-    e.preventDefault();
-    e.stopPropagation();
-
-    const postId = btn.dataset.postId;
-    if(!postId) return;
-
-    if (btn.classList.contains("is-loading")) return;
-    btn.classList.add("is-loading");
-    btn.disabled = true;
-
-    try{
-      const r = await postJson(`/api/like/${postId}`);
-      if(!r.ok || !r.data || r.data.ok !== true){
-        if(r.status === 401) { location.href = "/login"; return; }
-        alert("いいねに失敗しました");
-        return;
-      }
-      setBtn(btn, !!r.data.liked, r.data.likes);
-    } finally {
-      btn.disabled = false;
-      btn.classList.remove("is-loading");
-    }
-  }, { capture: true, passive: false });
-})();
-</script>
