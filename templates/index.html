@@ -100,6 +100,66 @@
       {% endif %}
     </div>
 
+    <!-- ✅ コメント一覧（非リロードいいね対応） -->
+    <div style="margin-top:12px;" onclick="event.stopPropagation();">
+      <div style="font-weight:900; margin: 6px 0 10px;">
+        コメント（{{ post.comment_count }}）
+      </div>
+
+      {% if post.comments and post.comments|length > 0 %}
+        {% for c in post.comments %}
+          <div class="comment-item" style="margin-bottom:10px;">
+            <div class="comment-header" style="align-items:center;">
+              <div style="display:flex; align-items:center; gap:10px;">
+                {% if c.user_icon %}
+                  <div class="avatar">
+                    <a href="/user/{{ c.username | urlencode }}" onclick="event.stopPropagation();">
+                      <img src="{{ c.user_icon }}" alt="icon">
+                    </a>
+                  </div>
+                {% else %}
+                  <a href="/user/{{ c.username | urlencode }}" onclick="event.stopPropagation();">
+                    <span class="avatar-fallback"></span>
+                  </a>
+                {% endif %}
+
+                <strong>
+                  <a href="/user/{{ c.username | urlencode }}" style="text-decoration:none; color:inherit;" onclick="event.stopPropagation();">
+                    {{ c.username }}
+                  </a>
+                </strong>
+              </div>
+
+              <div style="display:flex; align-items:center; gap:10px;">
+                <span class="comment-time">{{ c.created_at }}</span>
+
+                {% if user %}
+                  <button type="button"
+                          class="like-btn js-comment-like {% if c.liked %}active{% endif %}"
+                          data-comment-id="{{ c.id }}"
+                          data-liked="{% if c.liked %}1{% else %}0{% endif %}"
+                          aria-pressed="{% if c.liked %}true{% else %}false{% endif %}">
+                    <span class="like-icon">{% if c.liked %}❤️{% else %}🤍{% endif %}</span>
+                    <span class="like-count">{{ c.likes }}</span>
+                  </button>
+                {% else %}
+                  <span>🤍 {{ c.likes }}</span>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="comment-body">{{ c.comment }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="no-comment">まだコメントはありません</p>
+      {% endif %}
+
+      <a href="/post/{{ post.id }}" class="back-link" style="margin-top:6px; display:inline-block;">
+        → この投稿の詳細へ
+      </a>
+    </div>
+
   </article>
 {% endfor %}
 </div>

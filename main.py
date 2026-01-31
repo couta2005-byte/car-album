@@ -45,6 +45,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 templates = Jinja2Templates(directory="templates")
 
+# Jinja2 filter: urlencode
 def jinja_urlencode(s: str) -> str:
     try:
         return quote(s)
@@ -104,7 +105,7 @@ cloudinary.config(
 )
 
 # ======================
-# DB init
+# DB init（既存DBでも壊れないように追加カラムも保証）
 # ======================
 def init_db():
     def _do(db, cur):
@@ -154,9 +155,10 @@ def init_db():
         );
         """)
 
+        # ★ profiles に icon カラム（無ければ追加）
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
 
-        # ★ コメントいいね（トグル用）
+        # ★ コメントいいね
         cur.execute("""
         CREATE TABLE IF NOT EXISTS comment_likes (
             username TEXT,
@@ -196,45 +198,95 @@ def get_liked_posts(db, me):
         cur.close()
 
 # ======================
-# comments fetch（一覧用）
+# comments fetch（一覧・ランキング用：comment_id / likes / liked まで返す）
 # ======================
-def fetch_comments_for_posts(db, post_ids: List[int]) -> Dict[int, List[Dict[str, Any]]]:
+def fetch_comments_for_posts(db, post_ids: List[int], me: Optional[str]) -> Dict[int, List[Dict[str, Any]]]:
     if not post_ids:
         return {}
 
     placeholders = ",".join(["%s"] * len(post_ids))
-    sql = f"""
-        SELECT
-            c.post_id,
-            c.username,
-            c.comment,
-            c.created_at,
-            pr.icon AS user_icon
-        FROM comments c
-        LEFT JOIN profiles pr ON c.username = pr.username
-        WHERE c.post_id IN ({placeholders})
-        ORDER BY c.id ASC
-    """
 
     cur = db.cursor()
     try:
-        cur.execute(sql, tuple(post_ids))
+        if me:
+            sql = f"""
+                SELECT
+                    c.post_id,
+                    c.id,
+                    c.username,
+                    c.comment,
+                    c.created_at,
+                    pr.icon AS user_icon,
+                    COALESCE(clc.like_count, 0) AS likes,
+                    CASE WHEN mycl.username IS NULL THEN 0 ELSE 1 END AS liked
+                FROM comments c
+                LEFT JOIN profiles pr ON c.username = pr.username
+                LEFT JOIN (
+                    SELECT comment_id, COUNT(*) AS like_count
+                    FROM comment_likes
+                    GROUP BY comment_id
+                ) clc ON clc.comment_id = c.id
+                LEFT JOIN comment_likes mycl
+                    ON mycl.comment_id = c.id AND mycl.username = %s
+                WHERE c.post_id IN ({placeholders})
+                ORDER BY c.id ASC
+            """
+            cur.execute(sql, (me, *post_ids))
+        else:
+            sql = f"""
+                SELECT
+                    c.post_id,
+                    c.id,
+                    c.username,
+                    c.comment,
+                    c.created_at,
+                    pr.icon AS user_icon,
+                    COALESCE(clc.like_count, 0) AS likes
+                FROM comments c
+                LEFT JOIN profiles pr ON c.username = pr.username
+                LEFT JOIN (
+                    SELECT comment_id, COUNT(*) AS like_count
+                    FROM comment_likes
+                    GROUP BY comment_id
+                ) clc ON clc.comment_id = c.id
+                WHERE c.post_id IN ({placeholders})
+                ORDER BY c.id ASC
+            """
+            cur.execute(sql, tuple(post_ids))
+
         rows = cur.fetchall()
     finally:
         cur.close()
 
     out: Dict[int, List[Dict[str, Any]]] = {}
-    for post_id, username, comment, created_at, user_icon in rows:
-        out.setdefault(post_id, []).append({
-            "username": username,
-            "comment": comment,
-            "created_at": fmt_jst(created_at),
-            "user_icon": user_icon
-        })
+    for r in rows:
+        if me:
+            post_id, cid, username, comment, created_at, user_icon, likes, liked = r
+            out.setdefault(post_id, []).append({
+                "id": cid,
+                "username": username,
+                "comment": comment,
+                "created_at": fmt_jst(created_at),
+                "user_icon": user_icon,
+                "likes": int(likes or 0),
+                "liked": bool(liked)
+            })
+        else:
+            post_id, cid, username, comment, created_at, user_icon, likes = r
+            out.setdefault(post_id, []).append({
+                "id": cid,
+                "username": username,
+                "comment": comment,
+                "created_at": fmt_jst(created_at),
+                "user_icon": user_icon,
+                "likes": int(likes or 0),
+                "liked": False
+            })
+
     return out
 
 # ======================
-# post_detail用（コメントいいね情報つき）
+# post_detail用（単体で読む：likes/liked込み）
 # ======================
 def fetch_comments_for_post_detail(db, post_id: int, me: Optional[str]) -> List[Dict[str, Any]]:
     cur = db.cursor()
@@ -311,9 +363,9 @@ def fetch_comments_for_post_detail(db, post_id: int, me: Optional[str]) -> List[
     return out
 
 # ======================
-# posts fetch（★user_icon含む）
+# posts fetch（★user_icon含む + comments に id/likes/liked を入れる）
 # ======================
-def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
+def fetch_posts(db, me: Optional[str], where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
     cur = db.cursor()
     try:
         cur.execute(f"""
@@ -337,7 +389,7 @@ def fetch_posts(db, where_sql="", params=(), order_sql="ORDER BY p.id DESC", lim
         cur.close()
 
     post_ids = [r[0] for r in rows]
-    comments_map = fetch_comments_for_posts(db, post_ids)
+    comments_map = fetch_comments_for_posts(db, post_ids, me)
 
     posts = []
     for r in rows:
@@ -367,7 +419,7 @@ def index(request: Request, user: str = Cookie(default=None)):
     me = unquote(user) if user else None
     db = get_db()
     try:
-        posts = fetch_posts(db)
+        posts = fetch_posts(db, me)
         liked_posts = get_liked_posts(db, me)
     finally:
         db.close()
@@ -420,7 +472,7 @@ def search(
         if q:
             like = f"%{q}%"
             posts = fetch_posts(
-                db,
+                db, me,
                 """
                 WHERE
                     p.maker ILIKE %s
@@ -447,7 +499,7 @@ def search(
         else:
             if maker or car or region:
                 posts = fetch_posts(
-                    db,
+                    db, me,
                     "WHERE p.maker ILIKE %s AND p.car ILIKE %s AND p.region ILIKE %s",
                     (f"%{maker}%", f"%{car}%", f"%{region}%"),
                     order_sql="ORDER BY p.id DESC"
@@ -481,7 +533,7 @@ def following(request: Request, user: str = Cookie(default=None)):
     db = get_db()
     try:
         posts = fetch_posts(
-            db,
+            db, me,
             "JOIN follows f ON p.username = f.followee WHERE f.follower=%s",
             (me,)
         )
@@ -524,7 +576,7 @@ def ranking(
     db = get_db()
     try:
         posts = fetch_posts(
-            db,
+            db, me,
             "WHERE p.created_at >= %s",
             (since_utc_naive,),
             order_sql="ORDER BY like_count DESC, p.id DESC",
@@ -545,7 +597,7 @@ def ranking(
     })
 
 # ======================
-# post detail（コメントいいね情報つき）
+# post detail
 # ======================
 @app.get("/post/{post_id}", response_class=HTMLResponse)
 def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)):
@@ -553,11 +605,12 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
     db = get_db()
     try:
         liked_posts = get_liked_posts(db, me)
-        posts = fetch_posts(db, "WHERE p.id=%s", (post_id,))
+        posts = fetch_posts(db, me, "WHERE p.id=%s", (post_id,))
         if not posts:
             return RedirectResponse("/", status_code=303)
 
         post = posts[0]
+        # detailは確実にlikes/liked付きで再取得
         post_comments = fetch_comments_for_post_detail(db, post_id, me)
         post["comments"] = post_comments
         post["comment_count"] = len(post_comments)
@@ -629,40 +682,6 @@ def delete_comment(request: Request, comment_id: int, user: str = Cookie(default
     return redirect_back(request, fallback=fallback)
 
 # ======================
-# comment like（リロードあり：残す）
-# ======================
-@app.post("/comment_like/{comment_id}")
-def toggle_comment_like(request: Request, comment_id: int, user: str = Cookie(default=None)):
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-
-    me = unquote(user)
-
-    def _do(db, cur):
-        cur.execute("SELECT post_id FROM comments WHERE id=%s", (comment_id,))
-        row = cur.fetchone()
-        if not row:
-            return None
-        post_id = row[0]
-
-        cur.execute("SELECT 1 FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
-        liked = cur.fetchone() is not None
-
-        if liked:
-            cur.execute("DELETE FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
-        else:
-            cur.execute(
-                "INSERT INTO comment_likes (username, comment_id) VALUES (%s, %s) ON CONFLICT DO NOTHING",
-                (me, comment_id)
-            )
-
-        return post_id
-
-    post_id = run_db(_do)
-    fallback = f"/post/{post_id}" if post_id else "/"
-    return redirect_back(request, fallback=fallback)
-
-# ======================
 # ✅ comment like API（リロード無し）
 # ======================
 @app.post("/api/comment_like/{comment_id}")
@@ -673,12 +692,10 @@ def api_comment_like(comment_id: int, request: Request, user: str = Cookie(defau
     me = unquote(user)
 
     def _do(db, cur):
-        # コメント存在確認
         cur.execute("SELECT 1 FROM comments WHERE id=%s", (comment_id,))
         if cur.fetchone() is None:
             return {"ok": False, "error": "not_found"}
 
-        # 既に押してる？
         cur.execute("SELECT 1 FROM comment_likes WHERE username=%s AND comment_id=%s", (me, comment_id))
         liked = cur.fetchone() is not None
 
@@ -716,7 +733,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
         )
         prof = cur.fetchone()
 
-        posts = fetch_posts(db, "WHERE p.username=%s", (username,))
+        posts = fetch_posts(db, me, "WHERE p.username=%s", (username,))
 
         cur.execute("SELECT COUNT(*) FROM follows WHERE follower=%s", (username,))
         follow_count = cur.fetchone()[0]
@@ -740,7 +757,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "profile": prof,
+        "profile": prof,  # (maker, car, region, bio, icon)
         "posts": posts,
         "me": me,
         "user": me,
@@ -752,7 +769,7 @@ def profile(request: Request, username: str, user: str = Cookie(default=None)):
     })
 
 # ======================
-# profile edit（icon upload）
+# profile edit（★icon upload）
 # ======================
 @app.post("/profile/edit")
 def profile_edit(
@@ -846,7 +863,7 @@ def unfollow(username: str, user: str = Cookie(default=None)):
     return RedirectResponse(f"/user/{quote(target)}", status_code=303)
 
 # ======================
-# post
+# post（UTC保存で統一）
 # ======================
 @app.post("/post")
 def post(
@@ -946,7 +963,7 @@ def logout():
     return res
 
 # ======================
-# likes（ページ戻り）
+# likes（元ページへ戻る）
 # ======================
 @app.post("/like/{post_id}")
 def like_post(request: Request, post_id: int, user: str = Cookie(default=None)):
@@ -1029,6 +1046,7 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
+        cur.execute("DELETE FROM comment_likes WHERE comment_id IN (SELECT id FROM comments WHERE post_id=%s)", (post_id,))
 
     run_db(_do)
     return redirect_back(request, fallback="/")
