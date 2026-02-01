@@ -14,8 +14,8 @@
           ランキング
         </a>
 
-        <!-- ✅ プロフィール：handleがあるなら /user/handle を使う -->
-        <a href="/user/{{ (me_handle if me_handle else user) | urlencode }}"
+        <!-- ✅ strong版main.py：プロフィールは /user/<username> -->
+        <a href="/user/{{ user | urlencode }}"
            class="nav-link {% if mode=='profile' %}active{% endif %}">
           プロフィール
         </a>
