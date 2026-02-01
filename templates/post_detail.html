@@ -19,25 +19,25 @@
       <div class="post-title">
         {% if post.user_icon %}
           <div class="avatar">
-            <a href="/user/{{ post.username | urlencode }}">
+            <a href="/user/{{ post.profile_key | urlencode }}">
               <img src="{{ post.user_icon }}" alt="icon">
             </a>
           </div>
         {% else %}
-          <a href="/user/{{ post.username | urlencode }}">
+          <a href="/user/{{ post.profile_key | urlencode }}">
             <span class="avatar-fallback"></span>
           </a>
         {% endif %}
 
         <div class="post-title-main">
-          <strong class="post-user">{{ post.username }}</strong>
+          <strong class="post-user">{{ post.display_name }}</strong>
+          <span class="post-sep">：</span>
+          <span class="post-car">{{ post.car }}</span>
         </div>
       </div>
 
       <span class="post-date">{{ post.created_at }}</span>
     </div>
-
-    <div class="post-car">{{ post.car }}</div>
 
     {% if post.comment %}
       <div class="post-text">{{ post.comment }}</div>

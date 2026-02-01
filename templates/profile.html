@@ -34,13 +34,13 @@
     </div>
 
     <!-- Follow Button (other user) -->
-    {% if me and me != username %}
+    {% if me_user_id and target_user_id and me_user_id != target_user_id %}
       {% if is_following %}
-        <form action="/unfollow/{{ username | urlencode }}" method="post" style="margin:0;">
+        <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post" style="margin:0;">
           <button class="follow-btn" type="submit">フォロー解除</button>
         </form>
       {% else %}
-        <form action="/follow/{{ username | urlencode }}" method="post" style="margin:0;">
+        <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post" style="margin:0;">
           <button class="follow-btn" type="submit">フォローする</button>
         </form>
       {% endif %}
@@ -65,12 +65,12 @@
   </div>
 
   <!-- ===== Edit (me) ===== -->
-  {% if me == username %}
+  {% if me_user_id and target_user_id and me_user_id == target_user_id %}
     <section class="profile-edit" style="margin: 18px 0 22px;">
       <h3 style="margin:0 0 10px;">プロフィール編集</h3>
 
       <form action="/profile/edit" method="post" enctype="multipart/form-data">
-        <!-- ✅ 表示名（ユーザーネーム変更：見た目用） -->
+        <!-- ✅ 表示名（見た目用） -->
         <input name="display_name" placeholder="表示名（例：タコ）" value="{{ display_name if display_name else username }}">
 
         <!-- ✅ アカウントID（@ID） -->
@@ -93,7 +93,7 @@
 
         <div style="color:#536471; font-size:12px; margin-top:10px; line-height:1.5;">
           ※ アカウントIDは「英数字/._」のみ（3〜20文字）。空でもOK。<br>
-          ※ ログインID（username）はまだ変更しない設計（壊れやすいのでUUID導入後に対応）。
+          ※ ログインID（username）は変更しない設計（UUIDで識別してるので将来対応可）。
         </div>
       </form>
     </section>
@@ -115,12 +115,12 @@
           <div class="post-title">
             {% if post.user_icon %}
               <div class="avatar" onclick="event.stopPropagation();" style="position:relative; z-index:2;">
-                <a href="/user/{{ post.username | urlencode }}" onclick="event.stopPropagation();">
+                <a href="/user/{{ post.profile_key | urlencode }}" onclick="event.stopPropagation();">
                   <img src="{{ post.user_icon }}" alt="icon">
                 </a>
               </div>
             {% else %}
-              <a href="/user/{{ post.username | urlencode }}"
+              <a href="/user/{{ post.profile_key | urlencode }}"
                  onclick="event.stopPropagation();"
                  style="position:relative; z-index:2;">
                 <span class="avatar-fallback"></span>
@@ -128,11 +128,11 @@
             {% endif %}
 
             <div class="post-title-main">
-              <a href="/user/{{ post.username | urlencode }}"
+              <a href="/user/{{ post.profile_key | urlencode }}"
                  class="post-user"
                  style="position:relative; z-index:2;"
                  onclick="event.stopPropagation();">
-                {{ post.username }}
+                {{ post.display_name }}
               </a>
               <span class="post-sep">：</span>
               <span class="post-car">{{ post.car }}</span>
@@ -156,7 +156,7 @@
         <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
           <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
 
-            {% if me and me == post.username %}
+            {% if me_user_id and post.user_id and me_user_id == post.user_id %}
               <form action="/delete/{{ post.id }}" method="post" style="margin:0;" onsubmit="event.stopPropagation();">
                 <button class="delete-btn" type="submit" onclick="event.stopPropagation();">🗑 削除</button>
               </form>
@@ -170,7 +170,7 @@
               <span class="count">{{ post.comment_count }}</span>
             </a>
 
-            {% if me %}
+            {% if me_user_id %}
               <button type="button"
                       class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
                       data-post-id="{{ post.id }}"

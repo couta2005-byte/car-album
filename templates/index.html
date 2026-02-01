@@ -37,19 +37,19 @@
       <div class="post-title">
         {% if post.user_icon %}
           <div class="avatar">
-            <a href="/user/{{ post.username | urlencode }}">
+            <a href="/user/{{ post.profile_key | urlencode }}">
               <img src="{{ post.user_icon }}" alt="icon">
             </a>
           </div>
         {% else %}
-          <a href="/user/{{ post.username | urlencode }}">
+          <a href="/user/{{ post.profile_key | urlencode }}">
             <span class="avatar-fallback"></span>
           </a>
         {% endif %}
 
         <div class="post-title-main">
-          <a href="/user/{{ post.username | urlencode }}" class="post-user" style="text-decoration:none; color:inherit;">
-            <strong>{{ post.username }}</strong>
+          <a href="/user/{{ post.profile_key | urlencode }}" class="post-user" style="text-decoration:none; color:inherit;">
+            <strong>{{ post.display_name }}</strong>
           </a>
           <span class="post-sep">：</span>
           <span class="post-car">{{ post.car }}</span>
@@ -73,8 +73,8 @@
     <div class="post-actions" style="position:relative; z-index:5; display:flex; align-items:center; gap:10px; margin-top:10px;">
       <div class="post-actions-right" style="margin-left:auto; display:flex; align-items:center; gap:10px;">
 
-        <!-- 削除（自分だけ） -->
-        {% if user == post.username %}
+        <!-- 削除（自分だけ：user_id一致） -->
+        {% if me_user_id and post.user_id and me_user_id == post.user_id %}
           <form action="/delete/{{ post.id }}" method="post" style="margin:0;" onsubmit="event.stopPropagation();">
             <button class="delete-btn" type="submit" onclick="event.stopPropagation();">🗑 削除</button>
           </form>

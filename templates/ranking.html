@@ -29,19 +29,19 @@
         <div class="ranking-title" style="gap:10px; align-items:center;">
           {% if post.user_icon %}
             <div class="avatar">
-              <a href="/user/{{ post.username | urlencode }}">
+              <a href="/user/{{ post.profile_key | urlencode }}">
                 <img src="{{ post.user_icon }}" alt="icon">
               </a>
             </div>
           {% else %}
-            <a href="/user/{{ post.username | urlencode }}">
+            <a href="/user/{{ post.profile_key | urlencode }}">
               <span class="avatar-fallback"></span>
             </a>
           {% endif %}
 
           <div style="display:flex; flex-wrap:wrap; gap:4px; align-items:baseline;">
-            <a href="/user/{{ post.username | urlencode }}" class="ranking-user" style="text-decoration:none;">
-              {{ post.username }}
+            <a href="/user/{{ post.profile_key | urlencode }}" class="ranking-user" style="text-decoration:none;">
+              {{ post.display_name }}
             </a>
             <span>：</span>
             <span class="ranking-car">{{ post.car }}</span>
@@ -63,7 +63,7 @@
           <div class="post-actions-right" style="margin-left:auto; display:flex; align-items:center; gap:10px;">
 
             <!-- 削除（自分だけ） -->
-            {% if user and user == post.username %}
+            {% if me_user_id and post.user_id and me_user_id == post.user_id %}
               <form action="/delete/{{ post.id }}" method="post" style="margin:0;" onsubmit="event.stopPropagation();">
                 <button class="delete-btn" type="submit" onclick="event.stopPropagation();">🗑 削除</button>
               </form>
