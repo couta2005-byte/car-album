@@ -19,25 +19,25 @@
       <div class="post-title">
         {% if post.user_icon %}
           <div class="avatar">
-            <a href="/user/{{ post.profile_key | urlencode }}">
+            <a href="/user/{{ post.username | urlencode }}">
               <img src="{{ post.user_icon }}" alt="icon">
             </a>
           </div>
         {% else %}
-          <a href="/user/{{ post.profile_key | urlencode }}">
+          <a href="/user/{{ post.username | urlencode }}">
             <span class="avatar-fallback"></span>
           </a>
         {% endif %}
 
         <div class="post-title-main">
-          <strong class="post-user">{{ post.display_name }}</strong>
-          <span class="post-sep">：</span>
-          <span class="post-car">{{ post.car }}</span>
+          <strong class="post-user">{{ post.username }}</strong>
         </div>
       </div>
 
       <span class="post-date">{{ post.created_at }}</span>
     </div>
+
+    <div class="post-car">{{ post.car }}</div>
 
     {% if post.comment %}
       <div class="post-text">{{ post.comment }}</div>
@@ -71,9 +71,10 @@
       {% for c in post.comments %}
         <div class="comment-item">
           <div class="comment-header" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-            <div style="display:flex; align-items:center; gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px; min-width:0;">
               {% if c.user_icon %}
                 <div class="avatar">
+                  <!-- ✅ リンクは今まで通り username（互換維持） -->
                   <a href="/user/{{ c.username | urlencode }}">
                     <img src="{{ c.user_icon }}" alt="icon">
                   </a>
@@ -83,8 +84,18 @@
                   <span class="avatar-fallback"></span>
                 </a>
               {% endif %}
-              <strong>{{ c.username }}</strong>
-              <span class="comment-time">{{ c.created_at }}</span>
+
+              <!-- ✅ 表示名 + @handle -->
+              <div style="display:flex; flex-direction:column; line-height:1.15; min-width:0;">
+                <strong style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  {{ c.display_name if c.display_name else c.username }}
+                </strong>
+                <span style="color:#536471; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                  @{{ c.handle if c.handle else c.username }}
+                </span>
+              </div>
+
+              <span class="comment-time" style="margin-left:6px; white-space:nowrap;">{{ c.created_at }}</span>
             </div>
 
             <div style="display:flex; align-items:center; gap:10px;">
