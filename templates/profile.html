@@ -13,7 +13,9 @@
 <main class="container">
 
   <!-- ===== Profile Header ===== -->
-  <div class="profile-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin: 8px 0 10px;">
+  <div class="profile-header"
+       style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin: 8px 0 10px;">
+
     <div style="display:flex; align-items:center; gap:12px;">
       {% if profile and profile[4] %}
         <div class="avatar" style="width:54px; height:54px;">
@@ -33,17 +35,38 @@
       </div>
     </div>
 
-    <!-- Follow Button (other user) -->
+    <!-- ===== Follow / DM Buttons (other user) ===== -->
     {% if me_user_id and target_user_id and me_user_id != target_user_id %}
-      {% if is_following %}
-        <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post" style="margin:0;">
-          <button class="follow-btn" type="submit">フォロー解除</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+
+        {% if is_following %}
+          <form action="/unfollow/{{ (handle if handle else username) | urlencode }}"
+                method="post"
+                style="margin:0;">
+            <button class="follow-btn" type="submit">
+              フォロー解除
+            </button>
+          </form>
+        {% else %}
+          <form action="/follow/{{ (handle if handle else username) | urlencode }}"
+                method="post"
+                style="margin:0;">
+            <button class="follow-btn" type="submit">
+              フォローする
+            </button>
+          </form>
+        {% endif %}
+
+        <!-- ✅ DM Button -->
+        <form action="/dm/start/{{ (handle if handle else username) | urlencode }}"
+              method="post"
+              style="margin:0;">
+          <button class="follow-btn" type="submit">
+            DMする
+          </button>
         </form>
-      {% else %}
-        <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post" style="margin:0;">
-          <button class="follow-btn" type="submit">フォローする</button>
-        </form>
-      {% endif %}
+
+      </div>
     {% endif %}
   </div>
 
@@ -70,11 +93,16 @@
       <h3 style="margin:0 0 10px;">プロフィール編集</h3>
 
       <form action="/profile/edit" method="post" enctype="multipart/form-data">
-        <input name="display_name" placeholder="表示名（例：タコ）" value="{{ display_name if display_name else username }}">
-        <input name="handle" placeholder="アカウントID（英数字/._ 3〜20文字）" value="{{ handle if handle else '' }}">
-        <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
-        <input name="car" placeholder="車名" value="{{ profile[1] if profile else '' }}">
-        <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
+        <input name="display_name" placeholder="表示名（例：タコ）"
+               value="{{ display_name if display_name else username }}">
+        <input name="handle" placeholder="アカウントID（英数字/._ 3〜20文字）"
+               value="{{ handle if handle else '' }}">
+        <input name="maker" placeholder="メーカー"
+               value="{{ profile[0] if profile else '' }}">
+        <input name="car" placeholder="車名"
+               value="{{ profile[1] if profile else '' }}">
+        <input name="region" placeholder="地域"
+               value="{{ profile[2] if profile else '' }}">
         <textarea name="bio" placeholder="ひとこと">{{ profile[3] if profile else '' }}</textarea>
 
         <div style="margin: 8px 0 12px;">
@@ -112,7 +140,8 @@
             <div class="post-title">
               {% if post.user_icon %}
                 <div class="avatar" onclick="event.stopPropagation();" style="position:relative; z-index:2;">
-                  <a href="/user/{{ post.profile_key | urlencode }}" onclick="event.stopPropagation();">
+                  <a href="/user/{{ post.profile_key | urlencode }}"
+                     onclick="event.stopPropagation();">
                     <img src="{{ post.user_icon }}" alt="icon">
                   </a>
                 </div>
@@ -168,7 +197,9 @@
                         data-post-id="{{ post.id }}"
                         data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
                         aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}">
-                  <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+                  <span class="like-icon">
+                    {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
+                  </span>
                   <span class="like-count">{{ post.likes }}</span>
                 </button>
               {% else %}
