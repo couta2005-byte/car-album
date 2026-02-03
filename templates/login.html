@@ -4,41 +4,79 @@
   <meta charset="UTF-8">
   <title>ログイン | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 <body>
 
 {% include "_nav.html" %}
 
-<main class="container auth-container">
-  <h2 class="auth-title">ログイン</h2>
+<main class="container auth-container" style="max-width:420px;">
 
-  <form method="post" action="/login" class="auth-form">
-    <!-- ✅ ログインIDは英数字 + . _ のみ（インスタ方式） -->
-    <input type="text"
-           name="username"
-           placeholder="ログインID（英数字と._のみ / 例：nozawa）"
-           pattern="[A-Za-z0-9._]{3,20}"
-           title="ログインIDは英数字と . _ のみ（3〜20文字）です。ひらがな/漢字/絵文字/スペースは使えません。"
-           required>
+  <h1 class="auth-title" style="text-align:center; margin:12px 0 16px;">
+    ログイン
+  </h1>
 
-    <input type="password" name="password" placeholder="パスワード" required>
-
-    <button type="submit" class="auth-btn">ログイン</button>
-
-    <!-- ✅ 説明（ひらがな使えないのが分かるやつ） -->
-    <div style="margin-top:12px; color:#536471; font-size:12px; line-height:1.6;">
-      <div style="font-weight:900; margin-bottom:6px;">ログインIDについて</div>
-      ・ログインIDは <b>英数字</b> と <b>「.（ドット）」「_（アンダーバー）」</b> のみ使えます（3〜20文字）<br>
-      ・<b>ひらがな / カタカナ / 漢字 / 絵文字 / スペース</b> は使えません<br>
-      ・入力した英字は <b>自動で小文字扱い</b> になります<br>
-      ・表示名（プロフィールで見える名前）は、あとから自由に変更できます
+  <!-- ===== エラーメッセージ ===== -->
+  {% if error %}
+    <div class="form-error">
+      {% if error == "invalid" %}
+        ログインIDまたはパスワードが正しくありません。
+      {% elif error == "invalid_id" %}
+        ログインIDの形式が正しくありません。<br>
+        英小文字・数字・「.」「_」のみ、3〜20文字で入力してください。
+      {% else %}
+        ログインに失敗しました。時間をおいて再度お試しください。
+      {% endif %}
     </div>
+  {% endif %}
+
+  <!-- ===== Login Form ===== -->
+  <form method="post" action="/login" class="auth-form">
+
+    <!-- ✅ ログインID（インスタ方式） -->
+    <label class="form-label">
+      ログインID
+      <input
+        type="text"
+        name="username"
+        placeholder="例：nozawa"
+        pattern="[A-Za-z0-9._]{3,20}"
+        title="ログインIDは英数字と . _ のみ（3〜20文字）です。ひらがな/漢字/絵文字/スペースは使えません。"
+        required
+      >
+    </label>
+
+    <label class="form-label">
+      パスワード
+      <input
+        type="password"
+        name="password"
+        placeholder="パスワード"
+        required
+      >
+    </label>
+
+    <button type="submit" class="auth-btn" style="width:100%; margin-top:16px;">
+      ログイン
+    </button>
+
+    <!-- ===== 説明 ===== -->
+    <div class="form-help" style="margin-top:14px; line-height:1.6;">
+      <div style="font-weight:900; margin-bottom:6px;">
+        ログインIDについて
+      </div>
+      ・ログインIDは <b>英小文字</b>・<b>数字</b>・<b>「.」「_」</b> のみ使用可（3〜20文字）<br>
+      ・<b>ひらがな / カタカナ / 漢字 / 絵文字 / スペース</b> は使えません<br>
+      ・英字は <b>自動で小文字扱い</b> になります<br>
+      ・プロフィールで表示される名前は、あとから変更できます
+    </div>
+
   </form>
 
-  <p class="auth-link">
+  <div class="auth-link" style="margin-top:18px; text-align:center;">
     <a href="/register">新規登録はこちら</a>
-  </p>
+  </div>
+
 </main>
 
 </body>

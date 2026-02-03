@@ -4,41 +4,76 @@
   <meta charset="UTF-8">
   <title>新規登録 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 <body>
 
 {% include "_nav.html" %}
 
-<main class="container auth-container">
-  <h2 class="auth-title">新規登録</h2>
+<main class="container" style="max-width:420px;">
 
-  <form method="post" action="/register" class="auth-form">
-    <!-- ✅ ログインIDは英数字 + . _ のみ（インスタ方式） -->
-    <input type="text"
-           name="username"
-           placeholder="ログインID（英数字と._のみ / 例：nozawa）"
-           pattern="[A-Za-z0-9._]{3,20}"
-           title="ログインIDは英数字と . _ のみ（3〜20文字）です。ひらがな/漢字/絵文字/スペースは使えません。"
-           required>
+  <h1 style="margin:12px 0 16px; text-align:center;">新規登録</h1>
 
-    <input type="password" name="password" placeholder="パスワード" required>
-
-    <button type="submit" class="auth-btn">登録</button>
-
-    <!-- ✅ 説明（ひらがな使えないのが分かるやつ） -->
-    <div style="margin-top:12px; color:#536471; font-size:12px; line-height:1.6;">
-      <div style="font-weight:900; margin-bottom:6px;">ログインIDについて</div>
-      ・ログインIDは <b>英数字</b> と <b>「.（ドット）」「_（アンダーバー）」</b> のみ使えます（3〜20文字）<br>
-      ・<b>ひらがな / カタカナ / 漢字 / 絵文字 / スペース</b> は使えません<br>
-      ・入力した英字は <b>自動で小文字扱い</b> になります<br>
-      ・表示名（プロフィールで見える名前）は、あとから自由に変更できます
+  <!-- ===== エラーメッセージ ===== -->
+  {% if error %}
+    <div class="form-error">
+      {% if error == "invalid_id" %}
+        ログインIDが不正です。<br>
+        英小文字・数字・「.」「_」のみ、3〜20文字で入力してください。
+      {% elif error == "invalid_pw" %}
+        パスワードは4文字以上で入力してください。
+      {% elif error == "handle_taken" %}
+        このIDはすでに使われています。
+      {% elif error == "failed" %}
+        登録に失敗しました。時間をおいて再度お試しください。
+      {% else %}
+        登録エラーが発生しました。
+      {% endif %}
     </div>
+  {% endif %}
+
+  <!-- ===== Register Form ===== -->
+  <form action="/register" method="post" class="auth-form">
+
+    <label class="form-label">
+      ログインID
+      <input
+        type="text"
+        name="username"
+        placeholder="例：carbum_user"
+        required
+      >
+    </label>
+
+    <div class="form-help">
+      ※ 英小文字・数字・「.」「_」のみ使用可（3〜20文字）<br>
+      ※ 日本語・大文字は使えません
+    </div>
+
+    <label class="form-label">
+      パスワード
+      <input
+        type="password"
+        name="password"
+        placeholder="パスワード"
+        required
+      >
+    </label>
+
+    <div class="form-help">
+      ※ 4文字以上
+    </div>
+
+    <button type="submit" class="primary-btn" style="width:100%; margin-top:16px;">
+      登録する
+    </button>
   </form>
 
-  <p class="auth-link">
+  <div style="margin-top:18px; text-align:center; font-size:14px;">
+    すでにアカウントをお持ちですか？<br>
     <a href="/login">ログインはこちら</a>
-  </p>
+  </div>
+
 </main>
 
 </body>
