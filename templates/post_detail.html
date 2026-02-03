@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>投稿詳細 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=10">
+  <link rel="stylesheet" href="/static/style.css?v=14">
 </head>
 <body>
 
@@ -14,6 +14,7 @@
 
   <a href="/" class="back-link">← 戻る</a>
 
+  <!-- ===== Post ===== -->
   <div class="post">
     <div class="post-top">
       <div class="post-title">
@@ -30,7 +31,7 @@
         {% endif %}
 
         <div class="post-title-main">
-          <a href="/user/{{ post.profile_key | urlencode }}" class="post-user" style="text-decoration:none; color:inherit;">
+          <a href="/user/{{ post.profile_key | urlencode }}" class="post-user" style="text-decoration:none;">
             <strong>{{ post.display_name }}</strong>
           </a>
         </div>
@@ -51,7 +52,7 @@
       </div>
     {% endif %}
 
-    <div class="post-actions" style="position:relative; z-index:2; margin-top:10px;">
+    <div class="post-actions" style="margin-top:10px;">
       {% if user %}
         <button type="button"
                 class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
@@ -66,10 +67,11 @@
     </div>
   </div>
 
+  <!-- ===== Comments ===== -->
   <section class="comment-section" id="comments">
     <h3>コメント（{{ post.comments | length }}）</h3>
 
-    {% if post.comments %}
+    {% if post.comments and post.comments|length > 0 %}
       {% for c in post.comments %}
         <div class="comment-item">
           <div class="comment-header" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
@@ -93,7 +95,7 @@
 
             <div style="display:flex; align-items:center; gap:10px;">
 
-              <!-- ✅ ⑧ 自分のコメントだけ「削除」 -->
+              <!-- 自分のコメントのみ削除 -->
               {% if user and (
                     (me_user_id and c.user_id and me_user_id == c.user_id)
                     or (c.user_id is none and c.username == user)
@@ -121,10 +123,14 @@
         </div>
       {% endfor %}
     {% else %}
-      <p class="no-comment">まだコメントはありません</p>
+      <p class="no-comment">
+        まだコメントはありません。<br>
+        最初のコメントをしてみよう 💬
+      </p>
     {% endif %}
   </section>
 
+  <!-- ===== Comment Form ===== -->
   {% if user %}
     <section class="comment-form">
       <h4>この投稿にコメントする</h4>
@@ -137,7 +143,7 @@
 
 </main>
 
-<!-- ✅ ⑩ 画像拡大モーダル（post_detail） -->
+<!-- ===== Image Modal ===== -->
 <div id="imgModal" class="img-modal" aria-hidden="true">
   <div class="img-modal-inner">
     <img id="imgModalImg" alt="">
@@ -165,7 +171,6 @@
     if (count) count.textContent = String(likes);
   }
 
-  // いいね（投稿＆コメント）
   document.addEventListener("click", async (e) => {
     const postBtn = e.target.closest(".js-like");
     if(postBtn){
@@ -209,7 +214,7 @@
     }
   }, { passive:false });
 
-  // ✅ ⑩ 画像拡大（モーダル）
+  // Image modal
   const modal = document.getElementById("imgModal");
   const modalImg = document.getElementById("imgModalImg");
 
@@ -219,10 +224,7 @@
     modalImg.src = "";
   }
 
-  modal.addEventListener("click", (e)=>{
-    e.preventDefault();
-    closeModal();
-  });
+  modal.addEventListener("click", closeModal);
 
   document.addEventListener("keydown", (e)=>{
     if(e.key === "Escape" && modal.classList.contains("open")){
@@ -239,7 +241,6 @@
     modal.classList.add("open");
     modal.setAttribute("aria-hidden", "false");
   });
-
 })();
 </script>
 
