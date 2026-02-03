@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-import psycopg2, os, re
+import psycopg2, os, re, uuid
 from datetime import datetime, timedelta, timezone
 from urllib.parse import quote, unquote
 from typing import Optional, Dict, List, Any, Tuple
@@ -192,8 +192,32 @@ def get_me_handle(db, me_user_id: Optional[str]) -> Optional[str]:
         return row[0] if row else None
     finally:
         cur.close()
+
 # ======================
-# DB init（壊さない段階移行：UUID追加＋既存データ埋め）
+# ✅ DM helpers（ルーム作成/取得）
+# ======================
+def get_or_create_dm_room_id(db, me_user_id: str, other_user_id: str) -> str:
+    """
+    dm_rooms は (user1_id, user2_id) を昇順で固定して一意化
+    """
+    u1, u2 = sorted([me_user_id, other_user_id])
+    cur = db.cursor()
+    try:
+        cur.execute("SELECT id FROM dm_rooms WHERE user1_id=%s AND user2_id=%s", (u1, u2))
+        row = cur.fetchone()
+        if row:
+            return str(row[0])
+
+        rid = str(uuid.uuid4())
+        cur.execute("""
+            INSERT INTO dm_rooms (id, user1_id, user2_id, created_at)
+            VALUES (%s, %s, %s, %s)
+        """, (rid, u1, u2, utcnow_naive()))
+        return rid
+    finally:
+        cur.close()
+# ======================
+# DB init（壊さない段階移行：UUID追加＋既存データ埋め） + ✅DM追加
 # ======================
 def init_db():
     def _do(db, cur):
@@ -374,6 +398,34 @@ def init_db():
             ON profiles(user_id)
             WHERE user_id IS NOT NULL;
         """)
+
+        # ======================
+        # ✅ DM tables（追加）
+        # ======================
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS dm_rooms (
+            id UUID PRIMARY KEY,
+            user1_id UUID NOT NULL,
+            user2_id UUID NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            UNIQUE (user1_id, user2_id)
+        );
+        """)
+
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS dm_messages (
+            id UUID PRIMARY KEY,
+            room_id UUID NOT NULL,
+            sender_id UUID NOT NULL,
+            body TEXT NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            FOREIGN KEY (room_id) REFERENCES dm_rooms(id)
+        );
+        """)
+
+        cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user1_idx ON dm_rooms(user1_id);")
+        cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user2_idx ON dm_rooms(user2_id);")
+        cur.execute("CREATE INDEX IF NOT EXISTS dm_messages_room_time_idx ON dm_messages(room_id, created_at);")
 
     run_db(_do)
 
@@ -709,7 +761,6 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
             "comment_count": len(post_comments)
         })
     return posts
-
 # ======================
 # top
 # ======================
@@ -950,6 +1001,7 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
         "liked_posts": liked_posts,
         "mode": "post_detail"
     })
+
 # ======================
 # comment
 # ======================
@@ -1065,7 +1117,6 @@ def api_comment_like(comment_id: int, request: Request, user: str = Cookie(defau
         return {"ok": True, "liked": liked, "likes": likes_count}
 
     return JSONResponse(run_db(_do))
-
 # ======================
 # profile（/user/{key} は handle優先で解決）
 # ======================
@@ -1493,6 +1544,172 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
 
     run_db(_do)
     return redirect_back(request, fallback="/")
+
+# ======================
+# ✅ DM（JSONでまず動かす：一覧/開始/詳細/送信）
+# ======================
+@app.get("/dm")
+def dm_list(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    db = get_db()
+    cur = db.cursor()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        cur.execute("""
+            SELECT
+                r.id,
+                u.id,
+                COALESCE(u.display_name, u.username) AS display_name,
+                u.handle,
+                pr.icon,
+                (
+                    SELECT body
+                    FROM dm_messages m
+                    WHERE m.room_id = r.id
+                    ORDER BY m.created_at DESC
+                    LIMIT 1
+                ) AS last_message,
+                (
+                    SELECT created_at
+                    FROM dm_messages m
+                    WHERE m.room_id = r.id
+                    ORDER BY m.created_at DESC
+                    LIMIT 1
+                ) AS last_time
+            FROM dm_rooms r
+            JOIN users u
+              ON u.id = CASE
+                WHEN r.user1_id=%s THEN r.user2_id
+                ELSE r.user1_id
+              END
+            LEFT JOIN profiles pr ON pr.user_id = u.id
+            WHERE r.user1_id=%s OR r.user2_id=%s
+            ORDER BY COALESCE(last_time, r.created_at) DESC
+        """, (me_user_id, me_user_id, me_user_id))
+
+        rows = cur.fetchall()
+        return JSONResponse([
+            {
+                "room_id": str(room_id),
+                "target_user_id": str(target_uid),
+                "display_name": display_name,
+                "handle": handle,
+                "icon": icon,
+                "last_message": last_message,
+                "last_time": fmt_jst(last_time) if last_time else ""
+            }
+            for (room_id, target_uid, display_name, handle, icon, last_message, last_time) in rows
+        ])
+    finally:
+        cur.close()
+        db.close()
+
+@app.post("/dm/start/{key}")
+def dm_start(key: str, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    key = unquote(key)
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        row = resolve_user_by_key(db, key)
+        if not row:
+            return RedirectResponse("/", status_code=303)
+
+        other_user_id = str(row[0])
+        if other_user_id == me_user_id:
+            return RedirectResponse("/dm", status_code=303)
+
+        def _do(db2, cur2):
+            rid = get_or_create_dm_room_id(db2, me_user_id, other_user_id)
+            return rid
+
+        room_id = run_db(_do)
+        return RedirectResponse(f"/dm/{room_id}", status_code=303)
+    finally:
+        db.close()
+
+@app.get("/dm/{room_id}")
+def dm_detail(room_id: str, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    db = get_db()
+    cur = db.cursor()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        # 所属確認
+        cur.execute("""
+            SELECT user1_id, user2_id
+            FROM dm_rooms
+            WHERE id=%s
+        """, (room_id,))
+        r = cur.fetchone()
+        if not r:
+            return HTMLResponse("Not Found", status_code=404)
+
+        u1, u2 = str(r[0]), str(r[1])
+        if me_user_id not in (u1, u2):
+            return HTMLResponse("Forbidden", status_code=403)
+
+        cur.execute("""
+            SELECT sender_id, body, created_at
+            FROM dm_messages
+            WHERE room_id=%s
+            ORDER BY created_at ASC
+            LIMIT 500
+        """, (room_id,))
+        rows = cur.fetchall()
+
+        return JSONResponse([
+            {
+                "sender_id": str(sender_id),
+                "body": body,
+                "created_at": fmt_jst(created_at)
+            }
+            for (sender_id, body, created_at) in rows
+        ])
+    finally:
+        cur.close()
+        db.close()
+
+@app.post("/dm/{room_id}/send")
+def dm_send(
+    room_id: str,
+    request: Request,
+    body: str = Form(""),
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
+    body = (body or "").strip()
+    if not body:
+        return RedirectResponse(f"/dm/{room_id}", status_code=303)
+
+    db = get_db()
+    cur = db.cursor()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        # 所属確認
+        cur.execute("SELECT 1 FROM dm_rooms WHERE id=%s AND (%s=user1_id OR %s=user2_id)", (room_id, me_user_id, me_user_id))
+        if not cur.fetchone():
+            return HTMLResponse("Forbidden", status_code=403)
+
+        cur.execute("""
+            INSERT INTO dm_messages (id, room_id, sender_id, body, created_at)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (str(uuid.uuid4()), room_id, me_user_id, body, utcnow_naive()))
+
+        db.commit()
+        return RedirectResponse(f"/dm/{room_id}", status_code=303)
+    finally:
+        cur.close()
+        db.close()
 
 # ======================
 # Render / uvicorn 起動
