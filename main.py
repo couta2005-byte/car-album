@@ -407,6 +407,65 @@ def get_liked_posts(db, me_user_id: Optional[str], me_username: Optional[str]) -
         cur.close()
 
 # ======================
+# ✅ users search（検索ページ用）
+# - username / display_name / handle を対象に検索
+# - 表示用に display_name / handle / icon / profile_key を返す
+# ======================
+def search_users(db, q: str, limit: int = 20) -> List[Dict[str, Any]]:
+    q = (q or "").strip()
+    if not q:
+        return []
+
+    like = f"%{q}%"
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            SELECT
+                u.id,
+                u.username,
+                COALESCE(u.display_name, u.username) AS display_name,
+                u.handle,
+                pr.icon AS icon
+            FROM users u
+            LEFT JOIN profiles pr ON pr.user_id = u.id
+            WHERE
+                u.username ILIKE %s
+                OR COALESCE(u.display_name, '') ILIKE %s
+                OR COALESCE(u.handle, '') ILIKE %s
+            ORDER BY
+                -- handle完全一致を優先
+                CASE WHEN u.handle = %s THEN 0 ELSE 1 END,
+                -- username完全一致
+                CASE WHEN u.username = %s THEN 0 ELSE 1 END,
+                -- 前方一致
+                CASE WHEN u.username ILIKE %s THEN 0 ELSE 1 END,
+                CASE WHEN COALESCE(u.handle,'') ILIKE %s THEN 0 ELSE 1 END,
+                u.username ASC
+            LIMIT %s
+        """, (
+            like, like, like,
+            q.lower(), q,
+            f"{q}%", f"{q}%",
+            int(limit),
+        ))
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+
+    out: List[Dict[str, Any]] = []
+    for (uid, username, display_name, handle, icon) in rows:
+        profile_key = handle if handle else username
+        out.append({
+            "id": str(uid) if uid is not None else None,
+            "username": username,
+            "display_name": display_name,
+            "handle": handle,
+            "icon": icon,
+            "profile_key": profile_key,
+        })
+    return out
+
+# ======================
 # comments fetch（一覧・ランキング用）
 # ✅ display_name/handle/profile_key + user_id を返す（コメント名表示＆削除UI）
 # ======================
@@ -492,7 +551,7 @@ def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str])
             "display_name": display_name,
             "handle": handle,
             "profile_key": profile_key,
-            "user_id": str(c_user_id) if c_user_id is not None else None,   # ✅ 追加
+            "user_id": str(c_user_id) if c_user_id is not None else None,
             "comment": comment,
             "created_at": fmt_jst(created_at),
             "user_icon": user_icon,
@@ -577,7 +636,7 @@ def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) 
             "display_name": display_name,
             "handle": handle,
             "profile_key": profile_key,
-            "user_id": str(c_user_id) if c_user_id is not None else None,   # ✅ 追加
+            "user_id": str(c_user_id) if c_user_id is not None else None,
             "comment": comment,
             "created_at": fmt_jst(created_at),
             "user_icon": user_icon,
@@ -712,11 +771,17 @@ def register_page(request: Request, user: str = Cookie(default=None), uid: str =
 
 # ======================
 # search
+# ✅ 既存の maker/car/region 絞り込みはそのまま
+# ✅ 追加：ユーザー検索 user_q（username / display_name / handle）
+# - 互換：従来の q が来たら user_q にも反映（古いURL/実装を壊さない）
 # ======================
 @app.get("/search", response_class=HTMLResponse)
 def search(
     request: Request,
+    # 既存（互換用）：昔の実装が q を投げてくる可能性があるので残す
     q: str = Query(default=""),
+    # ✅ 新：ユーザー検索（UI側でこれを使う）
+    user_q: str = Query(default=""),
     maker: str = Query(default=""),
     car: str = Query(default=""),
     region: str = Query(default=""),
@@ -724,55 +789,43 @@ def search(
     uid: str = Cookie(default=None),
 ):
     q = (q or "").strip()
+    user_q = (user_q or "").strip()
     maker = (maker or "").strip()
     car = (car or "").strip()
     region = (region or "").strip()
+
+    # ✅ 互換：q が入ってきたら user_q へも反映（古い検索リンク救済）
+    if q and not user_q:
+        user_q = q
 
     db = get_db()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
         liked_posts = get_liked_posts(db, me_user_id, me_username)
-        users = []
-        posts = []
 
-        if q:
-            like = f"%{q}%"
+        users: List[Dict[str, Any]] = []
+        posts: List[Dict[str, Any]] = []
+
+        # =========================
+        # ✅ ユーザー検索（独立）
+        # =========================
+        if user_q:
+            users = search_users(db, user_q, limit=20)
+
+        # =========================
+        # ✅ 投稿検索（既存）
+        # =========================
+        if maker or car or region:
             posts = fetch_posts(
                 db, me_user_id,
-                """
-                WHERE
-                    p.maker ILIKE %s
-                    OR p.car ILIKE %s
-                    OR p.region ILIKE %s
-                    OR COALESCE(u.username, p.username) ILIKE %s
-                    OR COALESCE(u.display_name, '') ILIKE %s
-                    OR COALESCE(u.handle, '') ILIKE %s
-                """,
-                (like, like, like, like, like, like),
+                "WHERE p.maker ILIKE %s AND p.car ILIKE %s AND p.region ILIKE %s",
+                (f"%{maker}%", f"%{car}%", f"%{region}%"),
                 order_sql="ORDER BY p.id DESC"
             )
-
-            cur = db.cursor()
-            try:
-                cur.execute("""
-                    SELECT username
-                    FROM users
-                    WHERE username ILIKE %s OR display_name ILIKE %s OR handle ILIKE %s
-                    ORDER BY username
-                    LIMIT 20
-                """, (like, like, like))
-                users = [r[0] for r in cur.fetchall()]
-            finally:
-                cur.close()
         else:
-            if maker or car or region:
-                posts = fetch_posts(
-                    db, me_user_id,
-                    "WHERE p.maker ILIKE %s AND p.car ILIKE %s AND p.region ILIKE %s",
-                    (f"%{maker}%", f"%{car}%", f"%{region}%"),
-                    order_sql="ORDER BY p.id DESC"
-                )
+            # 既存仕様：絞り込みが無いと投稿は出さない（スクショの挙動維持）
+            posts = []
     finally:
         db.close()
 
@@ -783,8 +836,15 @@ def search(
         "me_user_id": me_user_id,
         "me_handle": me_handle,
         "liked_posts": liked_posts,
+
+        # 互換用（残す）
         "q": q,
+
+        # ✅ ユーザー検索
+        "user_q": user_q,
         "users": users,
+
+        # 投稿絞り込み
         "maker": maker,
         "car": car,
         "region": region,

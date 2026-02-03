@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>検索 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=10">
+  <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 <body>
 
@@ -16,7 +16,50 @@
   <section class="search-hero">
     <h1 class="search-title">検索</h1>
 
-    <!-- ✅ 絞り込みだけ残す（メーカー・車名・地域） -->
+    <!-- ===== ユーザー検索（追加） ===== -->
+    <form action="/search" method="get" class="search-user-form">
+      <input
+        class="search-input"
+        type="text"
+        name="user_q"
+        placeholder="ユーザー検索（@handle / 表示名 / username）"
+        value="{{ user_q }}"
+      >
+      <button class="search-btn" type="submit">ユーザー検索</button>
+    </form>
+
+    {% if user_q %}
+      <p class="search-meta">
+        ユーザー検索：<span class="tag">{{ user_q }}</span>
+      </p>
+    {% endif %}
+
+    {% if users %}
+      <section class="search-section">
+        <h2 class="section-title">ユーザー</h2>
+        <div class="user-list">
+          {% for u in users %}
+            <a class="user-pill" href="/user/{{ u.profile_key | urlencode }}">
+              {% if u.icon %}
+                <img src="{{ u.icon }}" class="avatar" alt="icon">
+              {% else %}
+                <span class="avatar-fallback"></span>
+              {% endif %}
+              <div class="user-pill-text">
+                <div class="user-name">{{ u.display_name }}</div>
+                <div class="user-handle">
+                  @{{ u.handle if u.handle else u.username }}
+                </div>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+      </section>
+    {% elif user_q %}
+      <p class="empty-note">該当ユーザーなし</p>
+    {% endif %}
+
+    <!-- ===== 既存：投稿絞り込み ===== -->
     <form action="/search" method="get" class="search-advanced-form">
       <div class="search-grid">
         <input class="search-input" type="text" name="maker" placeholder="メーカー（例：トヨタ）" value="{{ maker }}">
@@ -58,12 +101,12 @@
 
                 {% if post.user_icon %}
                   <div class="avatar" onclick="event.stopPropagation();" style="position:relative; z-index:2;">
-                    <a href="/user/{{ post.username | urlencode }}" onclick="event.stopPropagation();">
+                    <a href="/user/{{ post.profile_key | urlencode }}" onclick="event.stopPropagation();">
                       <img src="{{ post.user_icon }}" alt="icon">
                     </a>
                   </div>
                 {% else %}
-                  <a href="/user/{{ post.username | urlencode }}"
+                  <a href="/user/{{ post.profile_key | urlencode }}"
                      onclick="event.stopPropagation();"
                      style="position:relative; z-index:2; display:inline-block;">
                     <span class="avatar-fallback"></span>
@@ -71,8 +114,7 @@
                 {% endif %}
 
                 <div class="post-title-main">
-                  <!-- ✅ 表示名 + @handle（なければusername） -->
-                  <a href="/user/{{ post.username | urlencode }}"
+                  <a href="/user/{{ post.profile_key | urlencode }}"
                      class="post-user"
                      style="position:relative; z-index:2; display:inline-flex; flex-direction:column; gap:2px;"
                      onclick="event.stopPropagation();">
@@ -104,18 +146,15 @@
               </div>
             {% endif %}
 
-            <!-- ✅ アクション：削除 → コメント → いいね（右寄せ） -->
             <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
               <div class="post-actions-right">
 
-                <!-- 削除（自分だけ） -->
                 {% if user and user == post.username %}
                   <form action="/delete/{{ post.id }}" method="post" onsubmit="event.stopPropagation();">
                     <button class="delete-btn" type="submit" onclick="event.stopPropagation();">🗑 削除</button>
                   </form>
                 {% endif %}
 
-                <!-- コメント（詳細へ） -->
                 <a href="/post/{{ post.id }}#comments"
                    class="action-btn"
                    onclick="event.stopPropagation();">
@@ -123,7 +162,6 @@
                   <span class="count">{{ post.comment_count }}</span>
                 </a>
 
-                <!-- いいね -->
                 {% if user %}
                   <button type="button"
                           class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
@@ -156,7 +194,6 @@
 </body>
 </html>
 
-<!-- いまのまま残す（動いてるなら触らない） -->
 <script>
 (function(){
   async function postJson(url){

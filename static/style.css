@@ -839,3 +839,69 @@ textarea {
   max-height:100%;
   border-radius:16px;
 }
+/* =========================
+   User Search (ADD ONLY)
+   ※ 既存CSSは一切変更しない
+========================= */
+
+/* ユーザー検索フォーム（検索フォーム直下） */
+.search-user-form {
+  display: flex;
+  gap: 10px;
+  margin: 6px 0 10px;
+}
+
+/* モバイル対応 */
+@media (max-width: 600px) {
+  .search-user-form {
+    flex-direction: column;
+  }
+}
+
+/* ユーザー検索結果リスト
+   既存 .user-list を上書きせず、
+   検索専用の見た目を安定させる */
+.search-section .user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ユーザー検索用ピル（既存 user-pill を壊さないため search-section 限定） */
+.search-section .user-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  text-decoration: none;
+}
+
+/* hover */
+.search-section .user-pill:hover {
+  background: #f7f7f8;
+}
+
+/* テキストブロック */
+.user-pill-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+/* 表示名 */
+.user-name {
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f1419;
+}
+
+/* @handle */
+.user-handle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #536471;
+}
