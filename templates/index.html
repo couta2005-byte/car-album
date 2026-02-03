@@ -112,6 +112,13 @@
 
 </main>
 
+<!-- ✅ ⑩ 画像拡大モーダル（index） -->
+<div id="imgModal" class="img-modal" aria-hidden="true">
+  <div class="img-modal-inner">
+    <img id="imgModalImg" alt="">
+  </div>
+</div>
+
 <!-- ✅ いいね非リロードJS（index用） -->
 <script>
 (function(){
@@ -162,6 +169,38 @@
       btn.classList.remove("is-loading");
     }
   }, { passive:false });
+
+  // ✅ ⑩ 画像拡大（モーダル）
+  const modal = document.getElementById("imgModal");
+  const modalImg = document.getElementById("imgModalImg");
+
+  function closeModal(){
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    modalImg.src = "";
+  }
+
+  modal.addEventListener("click", (e)=>{
+    e.preventDefault();
+    closeModal();
+  });
+
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape" && modal.classList.contains("open")){
+      closeModal();
+    }
+  });
+
+  document.addEventListener("click", (e)=>{
+    const img = e.target.closest(".post-image img");
+    if(!img) return;
+    e.preventDefault();
+    e.stopPropagation();
+    modalImg.src = img.src;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+  });
+
 })();
 </script>
 

@@ -408,13 +408,14 @@ def get_liked_posts(db, me_user_id: Optional[str], me_username: Optional[str]) -
 
 # ======================
 # comments fetch（一覧・ランキング用）
-# ✅ display_name/handle/profile_key(+ user_key) を返す（コメント名表示＆プロフィール遷移修正）
+# ✅ display_name/handle/profile_key + user_id を返す（コメント名表示＆削除UI）
 # ======================
 def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str]) -> Dict[int, List[Dict[str, Any]]]:
     if not post_ids:
         return {}
 
     placeholders = ",".join(["%s"] * len(post_ids))
+
     cur = db.cursor()
     try:
         if me_user_id:
@@ -425,6 +426,7 @@ def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str])
                     COALESCE(u.username, c.username) AS username,
                     COALESCE(u.display_name, COALESCE(u.username, c.username)) AS display_name,
                     u.handle AS handle,
+                    COALESCE(c.user_id, u.id) AS user_id,
                     c.comment,
                     c.created_at,
                     pr.icon AS user_icon,
@@ -452,6 +454,7 @@ def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str])
                     COALESCE(u.username, c.username) AS username,
                     COALESCE(u.display_name, COALESCE(u.username, c.username)) AS display_name,
                     u.handle AS handle,
+                    COALESCE(c.user_id, u.id) AS user_id,
                     c.comment,
                     c.created_at,
                     pr.icon AS user_icon,
@@ -476,20 +479,20 @@ def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str])
     out: Dict[int, List[Dict[str, Any]]] = {}
     for r in rows:
         if me_user_id:
-            post_id, cid, username, display_name, handle, comment, created_at, user_icon, likes, liked = r
+            post_id, cid, username, display_name, handle, c_user_id, comment, created_at, user_icon, likes, liked = r
         else:
-            post_id, cid, username, display_name, handle, comment, created_at, user_icon, likes = r
+            post_id, cid, username, display_name, handle, c_user_id, comment, created_at, user_icon, likes = r
             liked = 0
 
         profile_key = handle if handle else username
 
         out.setdefault(post_id, []).append({
             "id": cid,
-            "username": username,              # 内部ID(ログインID)
-            "display_name": display_name,      # 表示名
-            "handle": handle,                  # @ID
-            "profile_key": profile_key,        # /user/{これ}
-            "user_key": profile_key,           # post_detail.html 互換
+            "username": username,
+            "display_name": display_name,
+            "handle": handle,
+            "profile_key": profile_key,
+            "user_id": str(c_user_id) if c_user_id is not None else None,   # ✅ 追加
             "comment": comment,
             "created_at": fmt_jst(created_at),
             "user_icon": user_icon,
@@ -500,7 +503,7 @@ def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str])
 
 # ======================
 # post_detail用（単体）
-# ✅ display_name/handle/profile_key(+ user_key) を返す
+# ✅ display_name/handle/profile_key + user_id を返す（コメント名表示＆削除UI）
 # ======================
 def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) -> List[Dict[str, Any]]:
     cur = db.cursor()
@@ -512,6 +515,7 @@ def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) 
                     COALESCE(u.username, c.username) AS username,
                     COALESCE(u.display_name, COALESCE(u.username, c.username)) AS display_name,
                     u.handle AS handle,
+                    COALESCE(c.user_id, u.id) AS user_id,
                     c.comment,
                     c.created_at,
                     pr.icon AS user_icon,
@@ -537,6 +541,7 @@ def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) 
                     COALESCE(u.username, c.username) AS username,
                     COALESCE(u.display_name, COALESCE(u.username, c.username)) AS display_name,
                     u.handle AS handle,
+                    COALESCE(c.user_id, u.id) AS user_id,
                     c.comment,
                     c.created_at,
                     pr.icon AS user_icon,
@@ -559,9 +564,9 @@ def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) 
     out: List[Dict[str, Any]] = []
     for r in rows:
         if me_user_id:
-            cid, username, display_name, handle, comment, created_at, user_icon, likes, liked = r
+            cid, username, display_name, handle, c_user_id, comment, created_at, user_icon, likes, liked = r
         else:
-            cid, username, display_name, handle, comment, created_at, user_icon, likes = r
+            cid, username, display_name, handle, c_user_id, comment, created_at, user_icon, likes = r
             liked = 0
 
         profile_key = handle if handle else username
@@ -572,7 +577,7 @@ def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) 
             "display_name": display_name,
             "handle": handle,
             "profile_key": profile_key,
-            "user_key": profile_key,  # post_detail.html 互換
+            "user_id": str(c_user_id) if c_user_id is not None else None,   # ✅ 追加
             "comment": comment,
             "created_at": fmt_jst(created_at),
             "user_icon": user_icon,
@@ -638,19 +643,18 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
         post_comments = comments_map.get(pid, [])
         posts.append({
             "id": pid,
-            "username": username,            # 識別用（ログインID）
-            "display_name": display_name,    # 表示用（ユーザーネーム）
-            "handle": handle,                # @ID
-            "profile_key": profile_key,      # /user/{これ}
-            "user_key": profile_key,         # post_detail.html 互換
-            "user_id": user_id,              # UUID（本体）
+            "username": username,
+            "display_name": display_name,
+            "handle": handle,
+            "profile_key": profile_key,
+            "user_id": user_id,
             "maker": r[5],
             "region": r[6],
             "car": r[7],
             "comment": r[8],
             "image": r[9],
             "created_at": fmt_jst(r[10]),
-            "likes": int(r[11] or 0),
+            "likes": r[11],
             "user_icon": r[12],
             "comments": post_comments,
             "comment_count": len(post_comments)
@@ -694,12 +698,7 @@ def login_page(request: Request, user: str = Cookie(default=None), uid: str = Co
         me_handle = get_me_handle(db, me_user_id)
     finally:
         db.close()
-    return templates.TemplateResponse("login.html", {
-        "request": request,
-        "user": me_username,
-        "me_user_id": me_user_id,
-        "me_handle": me_handle
-    })
+    return templates.TemplateResponse("login.html", {"request": request, "user": me_username, "me_user_id": me_user_id, "me_handle": me_handle})
 
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
@@ -709,12 +708,7 @@ def register_page(request: Request, user: str = Cookie(default=None), uid: str =
         me_handle = get_me_handle(db, me_user_id)
     finally:
         db.close()
-    return templates.TemplateResponse("register.html", {
-        "request": request,
-        "user": me_username,
-        "me_user_id": me_user_id,
-        "me_handle": me_handle
-    })
+    return templates.TemplateResponse("register.html", {"request": request, "user": me_username, "me_user_id": me_user_id, "me_handle": me_handle})
 
 # ======================
 # search
@@ -889,7 +883,6 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
         liked_posts = get_liked_posts(db, me_user_id, me_username)
-
         posts = fetch_posts(db, me_user_id, "WHERE p.id=%s", (post_id,))
         if not posts:
             return RedirectResponse("/", status_code=303)
@@ -948,6 +941,7 @@ def add_comment(
 
 # ======================
 # comment delete（自分のだけ）
+# ✅ user_id NULL残りの旧データも username で救済
 # ======================
 @app.post("/comment_delete/{comment_id}")
 def delete_comment(request: Request, comment_id: int, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
@@ -960,14 +954,29 @@ def delete_comment(request: Request, comment_id: int, user: str = Cookie(default
         db.close()
 
     def _do(db, cur):
-        cur.execute("SELECT post_id FROM comments WHERE id=%s AND user_id=%s", (comment_id, me_user_id))
+        cur.execute("""
+            SELECT post_id
+            FROM comments
+            WHERE id=%s
+              AND (
+                    user_id=%s
+                    OR (user_id IS NULL AND username=%s)
+                  )
+        """, (comment_id, me_user_id, me_username))
         row = cur.fetchone()
         if not row:
             return None
         post_id = row[0]
 
         cur.execute("DELETE FROM comment_likes WHERE comment_id=%s", (comment_id,))
-        cur.execute("DELETE FROM comments WHERE id=%s AND user_id=%s", (comment_id, me_user_id))
+        cur.execute("""
+            DELETE FROM comments
+            WHERE id=%s
+              AND (
+                    user_id=%s
+                    OR (user_id IS NULL AND username=%s)
+                  )
+        """, (comment_id, me_user_id, me_username))
         return post_id
 
     post_id = run_db(_do)
@@ -1008,7 +1017,7 @@ def api_comment_like(comment_id: int, request: Request, user: str = Cookie(defau
         cur.execute("SELECT COUNT(*) FROM comment_likes WHERE comment_id=%s", (comment_id,))
         likes_count = cur.fetchone()[0]
 
-        return {"ok": True, "liked": liked, "likes": int(likes_count or 0)}
+        return {"ok": True, "liked": liked, "likes": likes_count}
 
     return JSONResponse(run_db(_do))
 
@@ -1055,12 +1064,7 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         )
         prof = cur.fetchone()
 
-        # ✅ 重要：移行前( user_id NULL )の投稿も username で拾う
-        posts = fetch_posts(
-            db, me_user_id,
-            "WHERE (p.user_id=%s OR (p.user_id IS NULL AND p.username=%s))",
-            (target_user_id, username)
-        )
+        posts = fetch_posts(db, me_user_id, "WHERE p.user_id=%s", (target_user_id,))
 
         cur.execute("SELECT COUNT(*) FROM follows WHERE follower_id=%s", (target_user_id,))
         follow_count = cur.fetchone()[0]
@@ -1095,8 +1099,8 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         "liked_posts": liked_posts,
         "display_name": display_name,
         "handle": handle,
-        "posts": posts,          # ✅ これが無いと一覧が空に見える
-        "mode": "profile"
+        "mode": "profile",
+        "posts": posts
     })
 
 # ======================
@@ -1149,7 +1153,6 @@ def profile_edit(
         if final_handle is not None:
             cur.execute("SELECT 1 FROM users WHERE handle=%s AND id<>%s LIMIT 1", (final_handle, me_user_id))
             if cur.fetchone() is not None:
-                # 既に使われてるなら保存しない（空扱い）
                 final_handle = None
 
         cur.execute("""
@@ -1426,7 +1429,7 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
         cur.execute("SELECT COUNT(*) FROM likes WHERE post_id=%s", (post_id,))
         likes_count = cur.fetchone()[0]
 
-        return {"ok": True, "liked": liked, "likes": int(likes_count or 0)}
+        return {"ok": True, "liked": liked, "likes": likes_count}
 
     return JSONResponse(run_db(_do))
 
@@ -1468,6 +1471,7 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
 # ======================
 if __name__ == "__main__":
     import uvicorn
+
     port = int(os.environ.get("PORT", 10000))
     uvicorn.run(
         "main:app",

@@ -73,6 +73,7 @@
       {% for c in post.comments %}
         <div class="comment-item">
           <div class="comment-header" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+
             <div style="display:flex; align-items:center; gap:10px;">
               {% if c.user_icon %}
                 <div class="avatar">
@@ -86,14 +87,22 @@
                 </a>
               {% endif %}
 
-              <a href="/user/{{ c.profile_key | urlencode }}" style="text-decoration:none; color:inherit;">
-                <strong>{{ c.display_name }}</strong>
-              </a>
-
+              <strong>{{ c.display_name }}</strong>
               <span class="comment-time">{{ c.created_at }}</span>
             </div>
 
             <div style="display:flex; align-items:center; gap:10px;">
+
+              <!-- ✅ ⑧ 自分のコメントだけ「削除」 -->
+              {% if user and (
+                    (me_user_id and c.user_id and me_user_id == c.user_id)
+                    or (c.user_id is none and c.username == user)
+                  ) %}
+                <form action="/comment_delete/{{ c.id }}" method="post" style="margin:0;">
+                  <button type="submit" class="comment-del-btn">削除</button>
+                </form>
+              {% endif %}
+
               {% if user %}
                 <button type="button"
                         class="like-btn js-comment-like {% if c.liked %}active{% endif %}"
@@ -128,6 +137,13 @@
 
 </main>
 
+<!-- ✅ ⑩ 画像拡大モーダル（post_detail） -->
+<div id="imgModal" class="img-modal" aria-hidden="true">
+  <div class="img-modal-inner">
+    <img id="imgModalImg" alt="">
+  </div>
+</div>
+
 <script>
 (function(){
   async function postJson(url){
@@ -149,8 +165,8 @@
     if (count) count.textContent = String(likes);
   }
 
+  // いいね（投稿＆コメント）
   document.addEventListener("click", async (e) => {
-    // post like
     const postBtn = e.target.closest(".js-like");
     if(postBtn){
       e.preventDefault();
@@ -172,11 +188,10 @@
       return;
     }
 
-    // comment like
     const cBtn = e.target.closest(".js-comment-like");
     if(cBtn){
       e.preventDefault();
-      const cid = cBtn.dataset.commentId; // data-comment-id → dataset.commentId
+      const cid = cBtn.dataset.commentId;
       if(!cid) return;
 
       cBtn.disabled = true;
@@ -193,6 +208,38 @@
       }
     }
   }, { passive:false });
+
+  // ✅ ⑩ 画像拡大（モーダル）
+  const modal = document.getElementById("imgModal");
+  const modalImg = document.getElementById("imgModalImg");
+
+  function closeModal(){
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true");
+    modalImg.src = "";
+  }
+
+  modal.addEventListener("click", (e)=>{
+    e.preventDefault();
+    closeModal();
+  });
+
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape" && modal.classList.contains("open")){
+      closeModal();
+    }
+  });
+
+  document.addEventListener("click", (e)=>{
+    const img = e.target.closest(".post-image img");
+    if(!img) return;
+    e.preventDefault();
+    e.stopPropagation();
+    modalImg.src = img.src;
+    modal.classList.add("open");
+    modal.setAttribute("aria-hidden", "false");
+  });
+
 })();
 </script>
 
