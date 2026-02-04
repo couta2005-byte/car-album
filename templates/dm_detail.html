@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>DM | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css?v=20">
+  <style>
+    .dm-container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 60px);
+    }
+
+    .dm-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding-bottom: 12px;
+    }
+
+    .dm-msg {
+      max-width: 75%;
+      padding: 8px 12px;
+      border-radius: 14px;
+      margin: 6px 0;
+      line-height: 1.4;
+      word-break: break-word;
+      font-size: 15px;
+    }
+
+    .dm-me {
+      margin-left: auto;
+      background: #1d9bf0;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .dm-other {
+      margin-right: auto;
+      background: #f1f1f1;
+      color: #000;
+      border-bottom-left-radius: 4px;
+    }
+
+    .dm-time {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .dm-form {
+      display: flex;
+      gap: 8px;
+      border-top: 1px solid #ddd;
+      padding-top: 8px;
+    }
+
+    .dm-form textarea {
+      flex: 1;
+      resize: none;
+      height: 44px;
+      border-radius: 8px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .dm-form button {
+      padding: 0 16px;
+      border-radius: 8px;
+      border: none;
+      background: #1d9bf0;
+      color: #fff;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+{% include "_nav.html" %}
+
+<main class="dm-container">
+
+  <div id="messages" class="dm-messages"></div>
+
+  <form class="dm-form" method="post" action="/dm/{{ room_id }}/send">
+    <textarea name="body" placeholder="メッセージを入力" required></textarea>
+    <button type="submit">送信</button>
+  </form>
+
+</main>
+
+<script>
+const roomId = "{{ room_id }}";
+const meUserId = "{{ me_user_id }}";
+const box = document.getElementById("messages");
+
+async function loadMessages() {
+  const res = await fetch(`/dm/${roomId}`, { credentials: "same-origin" });
+  if (!res.ok) return;
+  const data = await res.json();
+
+  box.innerHTML = "";
+  data.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "dm-msg " + (m.sender_id === meUserId ? "dm-me" : "dm-other");
+    div.innerHTML = `
+      <div>${escapeHtml(m.body)}</div>
+      <div class="dm-time">${m.created_at}</div>
+    `;
+    box.appendChild(div);
+  });
+
+  box.scrollTop = box.scrollHeight;
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])
+  );
+}
+
+loadMessages();
+setInterval(loadMessages, 3000);
+</script>
+
+</body>
+</html>
