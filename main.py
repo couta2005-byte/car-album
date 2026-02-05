@@ -13,8 +13,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 templates = Jinja2Templates(directory="templates")
+
+# ★★★ これを必ず追加 ★★★
+app.state.templates = templates
+
+# 初期化
 init_app(app, templates)
 
+# routers
 app.include_router(posts_router)
 app.include_router(users_router)
-app.include_router(dm_router)   # ←これ必須
+app.include_router(dm_router)
