@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>DM | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+{% include "_nav.html" %}
+
+<main class="container">
+
+  <h2 style="margin: 10px 0 14px;">ダイレクトメッセージ</h2>
+
+  {% if rooms and rooms|length > 0 %}
+    <div class="dm-list">
+      {% for r in rooms %}
+        <a href="/dm/{{ r.room_id }}" class="dm-item">
+          {% if r.icon %}
+            <div class="avatar">
+              <img src="{{ r.icon }}" alt="icon">
+            </div>
+          {% else %}
+            <span class="avatar-fallback"></span>
+          {% endif %}
+
+          <div class="dm-item-main">
+            <div class="dm-name">
+              {{ r.display_name }}
+            </div>
+            <div class="dm-handle">
+              @{{ r.handle if r.handle else r.username }}
+            </div>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty-note">
+      まだDMはありません。<br>
+      プロフィールから「DMする」を押してみよう。
+    </p>
+  {% endif %}
+
+</main>
+
+</body>
+</html>

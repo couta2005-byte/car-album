@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>DM | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+{% include "_nav.html" %}
+
+<main class="container dm-room">
+
+  <!-- 相手ヘッダ -->
+  <div class="dm-header">
+    <a href="/user/{{ other.profile_key | urlencode }}" class="dm-user">
+      {% if other.icon %}
+        <div class="avatar">
+          <img src="{{ other.icon }}" alt="icon">
+        </div>
+      {% else %}
+        <span class="avatar-fallback"></span>
+      {% endif %}
+
+      <div>
+        <div class="dm-name">{{ other.display_name }}</div>
+        <div class="dm-handle">
+          @{{ other.handle if other.handle else other.username }}
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- メッセージ一覧 -->
+  <div class="dm-messages">
+    {% for m in messages %}
+      <div class="dm-message {% if m.is_me %}me{% else %}other{% endif %}">
+        <div class="dm-bubble">
+          {{ m.body }}
+        </div>
+        <div class="dm-time">
+          {{ m.created_at }}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- 送信フォーム -->
+  <form action="/dm/{{ room_id }}/send" method="post" class="dm-form">
+    <input
+      type="text"
+      name="body"
+      placeholder="メッセージを入力"
+      autocomplete="off"
+      required
+    >
+    <button type="submit">送信</button>
+  </form>
+
+</main>
+
+</body>
+</html>
