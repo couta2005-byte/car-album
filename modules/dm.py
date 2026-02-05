@@ -1,8 +1,8 @@
 # modules/dm.py
 from fastapi import APIRouter, Request, Form, Cookie
-from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
-from typing import Optional, List, Dict, Any
-from datetime import datetime
+from fastapi.responses import RedirectResponse, HTMLResponse
+from typing import List, Dict, Any
+from datetime import timedelta
 import uuid
 
 from modules.core import (
@@ -20,17 +20,11 @@ router = APIRouter(prefix="/dm")
 # helpers
 # ======================
 def redirect_back(request: Request, fallback: str = "/"):
-    next_url = request.query_params.get("next")
-    if next_url and next_url.startswith("/"):
-        return RedirectResponse(next_url, status_code=303)
     referer = request.headers.get("referer")
     return RedirectResponse(referer or fallback, status_code=303)
 
 
 def get_or_create_dm_room_id(db, me_user_id: str, other_user_id: str) -> str:
-    """
-    dm_rooms は (user1_id, user2_id) を昇順で固定して一意化
-    """
     u1, u2 = sorted([me_user_id, other_user_id])
     cur = db.cursor()
     try:
@@ -56,14 +50,10 @@ def get_or_create_dm_room_id(db, me_user_id: str, other_user_id: str) -> str:
 
 
 # ======================
-# DM list（自分の部屋一覧）
+# DM list
 # ======================
 @router.get("", response_class=HTMLResponse)
-def dm_list(
-    request: Request,
-    user: str = Cookie(None),
-    uid: str = Cookie(None),
-):
+def dm_list(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
@@ -79,10 +69,9 @@ def dm_list(
                 CASE
                     WHEN r.user1_id = %s THEN r.user2_id
                     ELSE r.user1_id
-                END AS other_user_id,
-                r.created_at
+                END AS other_user_id
             FROM dm_rooms r
-            WHERE r.user1_id = %s OR r.user2_id = %s
+            WHERE r.user1_id=%s OR r.user2_id=%s
             ORDER BY r.created_at DESC
             """,
             (me_user_id, me_user_id, me_user_id),
@@ -90,16 +79,12 @@ def dm_list(
         rooms = cur.fetchall()
 
         room_list: List[Dict[str, Any]] = []
-        for rid, other_uid, created_at in rooms:
+        for rid, other_uid in rooms:
             cur.execute(
                 """
-                SELECT
-                    u.username,
-                    u.display_name,
-                    u.handle,
-                    pr.icon
+                SELECT u.username, u.display_name, u.handle, p.icon
                 FROM users u
-                LEFT JOIN profiles pr ON pr.user_id = u.id
+                LEFT JOIN profiles p ON p.user_id = u.id
                 WHERE u.id=%s
                 """,
                 (other_uid,),
@@ -131,15 +116,10 @@ def dm_list(
 
 
 # ======================
-# DM room（表示）
+# DM room
 # ======================
 @router.get("/{room_id}", response_class=HTMLResponse)
-def dm_room(
-    request: Request,
-    room_id: str,
-    user: str = Cookie(None),
-    uid: str = Cookie(None),
-):
+def dm_room(request: Request, room_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
@@ -148,14 +128,8 @@ def dm_room(
             return RedirectResponse("/login", status_code=303)
 
         cur = db.cursor()
-
-        # room 所有確認
         cur.execute(
-            """
-            SELECT user1_id, user2_id
-            FROM dm_rooms
-            WHERE id=%s
-            """,
+            "SELECT user1_id, user2_id FROM dm_rooms WHERE id=%s",
             (room_id,),
         )
         r = cur.fetchone()
@@ -165,33 +139,23 @@ def dm_room(
 
         other_user_id = str(r[1] if str(r[0]) == me_user_id else r[0])
 
-        # 相手情報
         cur.execute(
             """
-            SELECT
-                u.username,
-                u.display_name,
-                u.handle,
-                pr.icon
+            SELECT u.username, u.display_name, u.handle, p.icon
             FROM users u
-            LEFT JOIN profiles pr ON pr.user_id = u.id
+            LEFT JOIN profiles p ON p.user_id = u.id
             WHERE u.id=%s
             """,
             (other_user_id,),
         )
         other = cur.fetchone()
 
-        # messages
         cur.execute(
             """
-            SELECT
-                m.id,
-                m.sender_id,
-                m.body,
-                m.created_at
-            FROM dm_messages m
-            WHERE m.room_id=%s
-            ORDER BY m.created_at ASC
+            SELECT sender_id, body, created_at
+            FROM dm_messages
+            WHERE room_id=%s
+            ORDER BY created_at ASC
             """,
             (room_id,),
         )
@@ -199,9 +163,8 @@ def dm_room(
         cur.close()
 
         messages = []
-        for mid, sender_id, body, created_at in rows:
+        for sender_id, body, created_at in rows:
             messages.append({
-                "id": str(mid),
                 "is_me": str(sender_id) == me_user_id,
                 "body": body,
                 "created_at": (created_at + timedelta(hours=9)).strftime("%Y-%m-%d %H:%M"),
@@ -228,39 +191,19 @@ def dm_room(
 
 
 # ======================
-# DM send（POST）
+# DM send
 # ======================
 @router.post("/{room_id}/send")
-def dm_send(
-    request: Request,
-    room_id: str,
-    body: str = Form(""),
-    user: str = Cookie(None),
-    uid: str = Cookie(None),
-):
+def dm_send(request: Request, room_id: str, body: str = Form(""), user: str = Cookie(None), uid: str = Cookie(None)):
     body = (body or "").strip()
     if not body:
-        return redirect_back(request, fallback=f"/dm/{room_id}")
+        return redirect_back(request, f"/dm/{room_id}")
 
     db = get_db()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
-
-        cur = db.cursor()
-        cur.execute(
-            """
-            SELECT 1
-            FROM dm_rooms
-            WHERE id=%s AND (user1_id=%s OR user2_id=%s)
-            """,
-            (room_id, me_user_id, me_user_id),
-        )
-        if not cur.fetchone():
-            cur.close()
-            return RedirectResponse("/", status_code=303)
-        cur.close()
     finally:
         db.close()
 
@@ -270,13 +213,7 @@ def dm_send(
             INSERT INTO dm_messages (id, room_id, sender_id, body, created_at)
             VALUES (%s,%s,%s,%s,%s)
             """,
-            (
-                str(uuid.uuid4()),
-                room_id,
-                me_user_id,
-                body,
-                utcnow_naive(),
-            ),
+            (str(uuid.uuid4()), room_id, me_user_id, body, utcnow_naive()),
         )
 
     run_db(_do)
@@ -284,18 +221,18 @@ def dm_send(
 
 
 # ======================
-# profile から DM 開始
+# DM start（GET）
 # ======================
-@router.post("/start/{target_user_id}")
-def dm_start(
-    target_user_id: str,
-    user: str = Cookie(None),
-    uid: str = Cookie(None),
-):
+@router.get("/start/{target_user_id}")
+def dm_start(target_user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
-        if not me_user_id or me_user_id == target_user_id:
+
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        if me_user_id == target_user_id:
             return RedirectResponse("/", status_code=303)
 
         room_id = get_or_create_dm_room_id(db, me_user_id, target_user_id)
