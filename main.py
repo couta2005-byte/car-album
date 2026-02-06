@@ -1628,36 +1628,30 @@ def dm_room(
     })
 
 
-@app.post("/dm/start/{key}")
+@app.post("/dm/start/{target_user_id}")
 def dm_start(
-    key: str,
-    request: Request,
+    target_user_id: str,
     user: str = Cookie(default=None),
     uid: str = Cookie(default=None),
 ):
-    key = unquote(key)
-
     db = get_db()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        row = resolve_user_by_key(db, key)
-        if not row:
+        if me_user_id == target_user_id:
             return RedirectResponse("/", status_code=303)
 
-        other_user_id = str(row[0])
-        if other_user_id == me_user_id:
-            return RedirectResponse("/", status_code=303)
-
-        room_id = get_or_create_dm_room_id(db, me_user_id, other_user_id)
-
+        room_id = get_or_create_dm_room_id(
+            db,
+            me_user_id,
+            target_user_id
+        )
     finally:
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
-
 
 @app.post("/dm/{room_id}/send")
 def dm_send(
