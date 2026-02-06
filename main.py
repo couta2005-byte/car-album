@@ -1546,10 +1546,16 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
     return redirect_back(request, fallback="/")
 
 # ======================
-# ✅ DM（JSONでまず動かす：一覧/開始/詳細/送信）
+# ✅ DM（HTMLで完全に動かす版）
 # ======================
-@app.get("/dm")
-def dm_list(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+
+@app.get("/dm/{room_id}", response_class=HTMLResponse)
+def dm_room(
+    request: Request,
+    room_id: str,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
     db = get_db()
     cur = db.cursor()
     try:
@@ -1557,58 +1563,80 @@ def dm_list(request: Request, user: str = Cookie(default=None), uid: str = Cooki
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
+        # 所属チェック
+        cur.execute("""
+            SELECT user1_id, user2_id
+            FROM dm_rooms
+            WHERE id=%s
+        """, (room_id,))
+        row = cur.fetchone()
+        if not row:
+            return RedirectResponse("/", status_code=303)
+
+        user1_id, user2_id = str(row[0]), str(row[1])
+        if me_user_id not in (user1_id, user2_id):
+            return RedirectResponse("/", status_code=303)
+
+        other_user_id = user2_id if me_user_id == user1_id else user1_id
+
+        # 相手ユーザー情報
         cur.execute("""
             SELECT
-                r.id,
-                u.id,
-                COALESCE(u.display_name, u.username) AS display_name,
+                u.username,
+                COALESCE(u.display_name, u.username),
                 u.handle,
-                pr.icon,
-                (
-                    SELECT body
-                    FROM dm_messages m
-                    WHERE m.room_id = r.id
-                    ORDER BY m.created_at DESC
-                    LIMIT 1
-                ) AS last_message,
-                (
-                    SELECT created_at
-                    FROM dm_messages m
-                    WHERE m.room_id = r.id
-                    ORDER BY m.created_at DESC
-                    LIMIT 1
-                ) AS last_time
-            FROM dm_rooms r
-            JOIN users u
-              ON u.id = CASE
-                WHEN r.user1_id=%s THEN r.user2_id
-                ELSE r.user1_id
-              END
+                pr.icon
+            FROM users u
             LEFT JOIN profiles pr ON pr.user_id = u.id
-            WHERE r.user1_id=%s OR r.user2_id=%s
-            ORDER BY COALESCE(last_time, r.created_at) DESC
-        """, (me_user_id, me_user_id, me_user_id))
+            WHERE u.id=%s
+        """, (other_user_id,))
+        other = cur.fetchone()
 
+        # メッセージ取得
+        cur.execute("""
+            SELECT sender_id, body, created_at
+            FROM dm_messages
+            WHERE room_id=%s
+            ORDER BY created_at ASC
+        """, (room_id,))
         rows = cur.fetchall()
-        return JSONResponse([
-            {
-                "room_id": str(room_id),
-                "target_user_id": str(target_uid),
-                "display_name": display_name,
-                "handle": handle,
-                "icon": icon,
-                "last_message": last_message,
-                "last_time": fmt_jst(last_time) if last_time else ""
-            }
-            for (room_id, target_uid, display_name, handle, icon, last_message, last_time) in rows
-        ])
+
+        messages = []
+        for sender_id, body, created_at in rows:
+            messages.append({
+                "is_me": str(sender_id) == me_user_id,
+                "body": body,
+                "created_at": fmt_jst(created_at),
+            })
+
     finally:
         cur.close()
         db.close()
 
+    return templates.TemplateResponse("dm_room.html", {
+        "request": request,
+        "room_id": room_id,
+        "messages": messages,
+        "other": {
+            "username": other[0],
+            "display_name": other[1],
+            "handle": other[2],
+            "icon": other[3],
+        },
+        "me_user_id": me_user_id,
+        "mode": "dm",
+    })
+
+
 @app.post("/dm/start/{key}")
-def dm_start(key: str, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+def dm_start(
+    key: str,
+    request: Request,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
     key = unquote(key)
+
     db = get_db()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
@@ -1621,60 +1649,15 @@ def dm_start(key: str, request: Request, user: str = Cookie(default=None), uid: 
 
         other_user_id = str(row[0])
         if other_user_id == me_user_id:
-            return RedirectResponse("/dm", status_code=303)
+            return RedirectResponse("/", status_code=303)
 
-        def _do(db2, cur2):
-            rid = get_or_create_dm_room_id(db2, me_user_id, other_user_id)
-            return rid
+        room_id = get_or_create_dm_room_id(db, me_user_id, other_user_id)
 
-        room_id = run_db(_do)
-        return RedirectResponse(f"/dm/{room_id}", status_code=303)
     finally:
         db.close()
 
-@app.get("/dm/{room_id}")
-def dm_detail(room_id: str, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
-    db = get_db()
-    cur = db.cursor()
-    try:
-        me_username, me_user_id = get_me_from_cookies(db, user, uid)
-        if not me_user_id:
-            return RedirectResponse("/login", status_code=303)
+    return RedirectResponse(f"/dm/{room_id}", status_code=303)
 
-        # 所属確認
-        cur.execute("""
-            SELECT user1_id, user2_id
-            FROM dm_rooms
-            WHERE id=%s
-        """, (room_id,))
-        r = cur.fetchone()
-        if not r:
-            return HTMLResponse("Not Found", status_code=404)
-
-        u1, u2 = str(r[0]), str(r[1])
-        if me_user_id not in (u1, u2):
-            return HTMLResponse("Forbidden", status_code=403)
-
-        cur.execute("""
-            SELECT sender_id, body, created_at
-            FROM dm_messages
-            WHERE room_id=%s
-            ORDER BY created_at ASC
-            LIMIT 500
-        """, (room_id,))
-        rows = cur.fetchall()
-
-        return JSONResponse([
-            {
-                "sender_id": str(sender_id),
-                "body": body,
-                "created_at": fmt_jst(created_at)
-            }
-            for (sender_id, body, created_at) in rows
-        ])
-    finally:
-        cur.close()
-        db.close()
 
 @app.post("/dm/{room_id}/send")
 def dm_send(
@@ -1695,32 +1678,30 @@ def dm_send(
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        # 所属確認
-        cur.execute("SELECT 1 FROM dm_rooms WHERE id=%s AND (%s=user1_id OR %s=user2_id)", (room_id, me_user_id, me_user_id))
+        # 所属チェック
+        cur.execute("""
+            SELECT 1
+            FROM dm_rooms
+            WHERE id=%s AND (user1_id=%s OR user2_id=%s)
+        """, (room_id, me_user_id, me_user_id))
         if not cur.fetchone():
-            return HTMLResponse("Forbidden", status_code=403)
+            return RedirectResponse("/", status_code=303)
 
         cur.execute("""
             INSERT INTO dm_messages (id, room_id, sender_id, body, created_at)
             VALUES (%s, %s, %s, %s, %s)
-        """, (str(uuid.uuid4()), room_id, me_user_id, body, utcnow_naive()))
+        """, (
+            str(uuid.uuid4()),
+            room_id,
+            me_user_id,
+            body,
+            utcnow_naive(),
+        ))
 
         db.commit()
-        return RedirectResponse(f"/dm/{room_id}", status_code=303)
+
     finally:
         cur.close()
         db.close()
 
-# ======================
-# Render / uvicorn 起動
-# ======================
-if __name__ == "__main__":
-    import uvicorn
-
-    port = int(os.environ.get("PORT", 10000))
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=port,
-        log_level="info"
-    )
+    return RedirectResponse(f"/dm/{room_id}", status_code=303)

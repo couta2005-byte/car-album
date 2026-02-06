@@ -10,51 +10,28 @@
 
 {% include "_nav.html" %}
 
-<main class="container dm-room">
+<main class="container">
 
-  <!-- 相手ヘッダ -->
-  <div class="dm-header">
-    <a href="/user/{{ other.profile_key | urlencode }}" class="dm-user">
-      {% if other.icon %}
-        <div class="avatar">
-          <img src="{{ other.icon }}" alt="icon">
-        </div>
-      {% else %}
-        <span class="avatar-fallback"></span>
-      {% endif %}
+  <h2 style="margin-bottom:12px;">
+    {{ other.display_name }}
+  </h2>
 
-      <div>
-        <div class="dm-name">{{ other.display_name }}</div>
-        <div class="dm-handle">
-          @{{ other.handle if other.handle else other.username }}
-        </div>
-      </div>
-    </a>
-  </div>
-
-  <!-- メッセージ一覧 -->
-  <div class="dm-messages">
+  <div style="border:1px solid #ddd; padding:12px; min-height:300px;">
     {% for m in messages %}
-      <div class="dm-message {% if m.is_me %}me{% else %}other{% endif %}">
-        <div class="dm-bubble">
+      <div style="margin-bottom:8px; text-align:{% if m.is_me %}right{% else %}left{% endif %};">
+        <span style="display:inline-block; padding:6px 10px; border-radius:6px; background:#f1f1f1;">
           {{ m.body }}
-        </div>
-        <div class="dm-time">
+        </span>
+        <div style="font-size:11px; color:#888;">
           {{ m.created_at }}
         </div>
       </div>
     {% endfor %}
   </div>
 
-  <!-- 送信フォーム -->
-  <form action="/dm/{{ room_id }}/send" method="post" class="dm-form">
-    <input
-      type="text"
-      name="body"
-      placeholder="メッセージを入力"
-      autocomplete="off"
-      required
-    >
+  <form action="/dm/{{ room_id }}/send" method="post" style="margin-top:12px; display:flex; gap:8px;">
+    <input name="body" required placeholder="メッセージ"
+           style="flex:1; padding:8px;">
     <button type="submit">送信</button>
   </form>
 
