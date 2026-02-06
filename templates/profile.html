@@ -12,8 +12,12 @@
 
 <main class="container">
 
-  <!-- ===== Profile Header ===== -->
-  <div class="profile-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin: 8px 0 10px;">
+  <!-- ======================
+       Profile Header
+  ====================== -->
+  <div class="profile-header"
+       style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin: 8px 0 10px;">
+
     <div style="display:flex; align-items:center; gap:12px;">
       {% if profile and profile[4] %}
         <div class="avatar" style="width:54px; height:54px;">
@@ -33,22 +37,44 @@
       </div>
     </div>
 
-    <!-- Follow Button (other user) -->
+    <!-- ======================
+         Follow / DM Buttons
+    ====================== -->
     {% if me_user_id and target_user_id and me_user_id != target_user_id %}
-      {% if is_following %}
-        <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post" style="margin:0;">
-          <button class="follow-btn" type="submit">フォロー解除</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+
+        {% if is_following %}
+          <form action="/unfollow/{{ (handle if handle else username) | urlencode }}"
+                method="post"
+                style="margin:0;">
+            <button class="follow-btn" type="submit">フォロー解除</button>
+          </form>
+        {% else %}
+          <form action="/follow/{{ (handle if handle else username) | urlencode }}"
+                method="post"
+                style="margin:0;">
+            <button class="follow-btn" type="submit">フォローする</button>
+          </form>
+        {% endif %}
+
+        <!-- ✅ DMボタン（UUIDベース） -->
+        <form action="/dm/start/{{ target_user_id }}"
+              method="post"
+              style="margin:0;">
+          <button class="follow-btn" type="submit">DMする</button>
         </form>
-      {% else %}
-        <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post" style="margin:0;">
-          <button class="follow-btn" type="submit">フォローする</button>
-        </form>
-      {% endif %}
+
+      </div>
     {% endif %}
   </div>
 
-  <!-- ===== Profile Info Box ===== -->
-  <div class="profile-box" style="margin: 12px 0; background:#fff; border-radius:18px; padding:14px; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+  <!-- ======================
+       Profile Info Box
+  ====================== -->
+  <div class="profile-box"
+       style="margin: 12px 0; background:#fff; border-radius:18px; padding:14px;
+              box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+
     <div style="display:flex; gap:16px; flex-wrap:wrap;">
       <div><strong>メーカー：</strong>{{ profile[0] if profile else "" }}</div>
       <div><strong>車名：</strong>{{ profile[1] if profile else "" }}</div>
@@ -64,42 +90,45 @@
     {% endif %}
   </div>
 
-  <!-- ===== Edit (me) ===== -->
+  <!-- ======================
+       Profile Edit (Me)
+  ====================== -->
   {% if me_user_id and target_user_id and me_user_id == target_user_id %}
     <section class="profile-edit" style="margin: 18px 0 22px;">
       <h3 style="margin:0 0 10px;">プロフィール編集</h3>
 
       <form action="/profile/edit" method="post" enctype="multipart/form-data">
-        <!-- ✅ 表示名（見た目用） -->
-        <input name="display_name" placeholder="表示名（例：タコ）" value="{{ display_name if display_name else username }}">
 
-        <!-- ✅ アカウントID（@ID） -->
-        <input name="handle" placeholder="アカウントID（英数字/._ 3〜20文字）" value="{{ handle if handle else '' }}">
+        <input name="display_name"
+               placeholder="表示名"
+               value="{{ display_name if display_name else username }}">
+
+        <input name="handle"
+               placeholder="アカウントID（英数字/._）"
+               value="{{ handle if handle else '' }}">
 
         <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
         <input name="car" placeholder="車名" value="{{ profile[1] if profile else '' }}">
         <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
+
         <textarea name="bio" placeholder="ひとこと">{{ profile[3] if profile else '' }}</textarea>
 
-        <div style="margin: 8px 0 12px;">
+        <div style="margin:8px 0 12px;">
           <div style="font-weight:900; margin-bottom:6px;">ユーザーアイコン</div>
           <input type="file" name="icon" accept="image/*">
           <div style="color:#536471; font-size:12px; margin-top:6px;">
-            ※画像を選ばなければ、アイコンは変更しない
+            ※ 画像を選ばなければ変更されません
           </div>
         </div>
 
         <button class="primary-btn" type="submit">保存</button>
-
-        <div style="color:#536471; font-size:12px; margin-top:10px; line-height:1.5;">
-          ※ アカウントIDは「英数字/._」のみ（3〜20文字）。空でもOK。<br>
-          ※ ログインID（username）は変更しない設計（UUIDで識別してるので将来対応可）。
-        </div>
       </form>
     </section>
   {% endif %}
 
-  <!-- ===== Posts ===== -->
+  <!-- ======================
+       Posts
+  ====================== -->
   <h3 style="margin: 16px 0 10px;">投稿</h3>
 
   <div class="posts">
@@ -108,30 +137,26 @@
                role="link"
                tabindex="0"
                onclick="location.href='/post/{{ post.id }}';"
-               onkeydown="if(event.key==='Enter' || event.key===' '){ location.href='/post/{{ post.id }}'; }"
                style="position:relative;">
 
         <div class="post-top">
           <div class="post-title">
+
             {% if post.user_icon %}
-              <div class="avatar" onclick="event.stopPropagation();" style="position:relative; z-index:2;">
-                <a href="/user/{{ post.profile_key | urlencode }}" onclick="event.stopPropagation();">
+              <div class="avatar" style="position:relative; z-index:2;">
+                <a href="/user/{{ post.profile_key | urlencode }}">
                   <img src="{{ post.user_icon }}" alt="icon">
                 </a>
               </div>
             {% else %}
-              <a href="/user/{{ post.profile_key | urlencode }}"
-                 onclick="event.stopPropagation();"
-                 style="position:relative; z-index:2;">
+              <a href="/user/{{ post.profile_key | urlencode }}">
                 <span class="avatar-fallback"></span>
               </a>
             {% endif %}
 
             <div class="post-title-main">
               <a href="/user/{{ post.profile_key | urlencode }}"
-                 class="post-user"
-                 style="position:relative; z-index:2;"
-                 onclick="event.stopPropagation();">
+                 class="post-user">
                 {{ post.display_name }}
               </a>
               <span class="post-sep">：</span>
@@ -152,96 +177,64 @@
           </div>
         {% endif %}
 
-        <!-- ✅ Actions：削除 → コメント → いいね（右寄せ） -->
-        <div class="post-actions" style="position:relative; z-index:2;" onclick="event.stopPropagation();">
-          <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+        <div class="post-actions" onclick="event.stopPropagation();">
+          <div style="margin-left:auto; display:flex; gap:10px;">
 
-            {% if me_user_id and post.user_id and me_user_id == post.user_id %}
-              <form action="/delete/{{ post.id }}" method="post" style="margin:0;" onsubmit="event.stopPropagation();">
-                <button class="delete-btn" type="submit" onclick="event.stopPropagation();">🗑 削除</button>
+            {% if me_user_id and post.user_id == me_user_id %}
+              <form action="/delete/{{ post.id }}" method="post">
+                <button class="delete-btn" type="submit">🗑</button>
               </form>
             {% endif %}
 
-            <a href="/post/{{ post.id }}#comments"
-               class="action-btn"
-               style="text-decoration:none;"
-               onclick="event.stopPropagation();">
-              <span>💬</span>
-              <span class="count">{{ post.comment_count }}</span>
+            <a href="/post/{{ post.id }}#comments" class="action-btn">
+              💬 {{ post.comment_count }}
             </a>
 
             {% if me_user_id %}
               <button type="button"
                       class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
-                      data-post-id="{{ post.id }}"
-                      data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}"
-                      aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}">
-                <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+                      data-post-id="{{ post.id }}">
+                <span class="like-icon">
+                  {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
+                </span>
                 <span class="like-count">{{ post.likes }}</span>
               </button>
             {% else %}
-              <span>🤍 {{ post.likes }}</span>
+              🤍 {{ post.likes }}
             {% endif %}
-
           </div>
         </div>
-
       </article>
     {% endfor %}
   </div>
 
 </main>
 
-<!-- ✅ いいね非リロードJS（profile用） -->
+<!-- ======================
+     Like JS
+====================== -->
 <script>
 (function(){
   async function postJson(url){
-    const res = await fetch(url, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await res.json().catch(()=>null);
-    return { ok: res.ok, status: res.status, data };
+    const res = await fetch(url, { method:"POST", credentials:"same-origin" });
+    return res.json();
   }
 
-  function setBtn(btn, liked, likes){
-    btn.dataset.liked = liked ? "1" : "0";
-    btn.classList.toggle("active", liked);
-    btn.setAttribute("aria-pressed", liked ? "true" : "false");
-    const icon = btn.querySelector(".like-icon");
-    const count = btn.querySelector(".like-count");
-    if (icon) icon.textContent = liked ? "❤️" : "🤍";
-    if (count) count.textContent = String(likes);
-  }
-
-  document.addEventListener("click", async (e) => {
+  document.addEventListener("click", async e => {
     const btn = e.target.closest(".js-like");
     if(!btn) return;
 
     e.preventDefault();
-    e.stopPropagation();
-
     const postId = btn.dataset.postId;
-    if(!postId) return;
-
-    if (btn.classList.contains("is-loading")) return;
-    btn.classList.add("is-loading");
-    btn.disabled = true;
-
-    try{
-      const r = await postJson(`/api/like/${postId}`);
-      if(!r.ok || !r.data || r.data.ok !== true){
-        if(r.status === 401) { location.href = "/login"; return; }
-        alert("いいねに失敗しました");
-        return;
-      }
-      setBtn(btn, !!r.data.liked, r.data.likes);
-    } finally {
-      btn.disabled = false;
-      btn.classList.remove("is-loading");
+    const r = await postJson(`/api/like/${postId}`);
+    if(!r || !r.ok){
+      if(r && r.error === "login_required") location.href="/login";
+      return;
     }
-  }, { passive:false });
+    btn.classList.toggle("active", r.liked);
+    btn.querySelector(".like-icon").textContent = r.liked ? "❤️" : "🤍";
+    btn.querySelector(".like-count").textContent = r.likes;
+  });
 })();
 </script>
 
