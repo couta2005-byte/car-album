@@ -1549,31 +1549,85 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
 # ✅ DM（HTMLで完全に動かす版）
 # ======================
 
+# ======================
+# ✅ DM room（HTML）
+# ======================
 @app.get("/dm/{room_id}", response_class=HTMLResponse)
-def dm_room(...):
+def dm_room(
+    request: Request,
+    room_id: str,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
     db = get_db()
     cur = db.cursor()
     try:
+        # ログイン判定
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-+       me_handle = get_me_handle(db, me_user_id)
+        me_handle = get_me_handle(db, me_user_id)
 
-        ...
+        # 自分が所属しているルームか確認
+        cur.execute("""
+            SELECT user1_id, user2_id
+            FROM dm_rooms
+            WHERE id=%s AND (user1_id=%s OR user2_id=%s)
+        """, (room_id, me_user_id, me_user_id))
+        row = cur.fetchone()
+        if not row:
+            return RedirectResponse("/", status_code=303)
+
+        user1_id, user2_id = row
+        other_user_id = user2_id if str(user1_id) == me_user_id else user1_id
+
+        # 相手ユーザー情報
+        cur.execute("""
+            SELECT u.id, u.username, u.display_name, u.handle, p.icon
+            FROM users u
+            LEFT JOIN profiles p ON p.user_id = u.id
+            WHERE u.id=%s
+        """, (other_user_id,))
+        other = cur.fetchone()
+
+        # メッセージ一覧
+        cur.execute("""
+            SELECT
+                m.id,
+                m.sender_id,
+                m.body,
+                m.created_at,
+                u.username,
+                u.display_name,
+                u.handle
+            FROM dm_messages m
+            JOIN users u ON u.id = m.sender_id
+            WHERE m.room_id=%s
+            ORDER BY m.created_at ASC
+        """, (room_id,))
+        messages = cur.fetchall()
+
     finally:
         cur.close()
         db.close()
 
     return templates.TemplateResponse("dm_room.html", {
-        ...
+        "request": request,
+        "room_id": room_id,
+        "messages": messages,
+        "other": {
+            "id": str(other[0]),
+            "username": other[1],
+            "display_name": other[2],
+            "handle": other[3],
+            "icon": other[4],
+        },
         "user": me_username,
         "me_user_id": me_user_id,
--       "me_handle": get_me_handle(db, me_user_id),
-+       "me_handle": me_handle,
+        "me_handle": me_handle,
         "mode": "dm",
     })
-
 
 @app.post("/dm/start/{target_user_id}")
 def dm_start(
