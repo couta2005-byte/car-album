@@ -1613,20 +1613,22 @@ def dm_room(
         cur.close()
         db.close()
 
-    return templates.TemplateResponse("dm_room.html", {
-        "request": request,
-        "room_id": room_id,
-        "messages": messages,
-        "other": {
-            "username": other[0],
-            "display_name": other[1],
-            "handle": other[2],
-            "icon": other[3],
-        },
-        "me_user_id": me_user_id,
-        "mode": "dm",
-    })
-
+return templates.TemplateResponse("dm_room.html", {
+    "request": request,
+    "room_id": room_id,
+    "messages": messages,
+    "other": {
+        "username": other[0],
+        "display_name": other[1],
+        "handle": other[2],
+        "icon": other[3],
+    },
+    "user": me_username,          # ← 追加
+    "me_user_id": me_user_id,
+    "me_handle": get_me_handle(db, me_user_id),  # ← 追加
+    "mode": "dm",
+})
+    
 
 @app.post("/dm/start/{target_user_id}")
 def dm_start(
