@@ -1606,7 +1606,9 @@ def dm_room(
             WHERE m.room_id=%s
             ORDER BY m.created_at ASC
         """, (room_id,))
-       rows = cur.fetchall()
+       
+     rows = cur.fetchall()
+
 
 messages = []
 for r in rows:
