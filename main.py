@@ -1606,22 +1606,20 @@ def dm_room(
             WHERE m.room_id=%s
             ORDER BY m.created_at ASC
         """, (room_id,))
-       
-     rows = cur.fetchall()
+        rows = cur.fetchall()
 
-
-messages = []
-for r in rows:
-    messages.append({
-        "id": str(r[0]),
-        "sender_id": str(r[1]),
-        "body": r[2],
-        "created_at": fmt_jst(r[3]),
-        "username": r[4],
-        "display_name": r[5],
-        "handle": r[6],
-        "is_me": str(r[1]) == me_user_id,
-    })
+        messages = []
+        for r in rows:
+            messages.append({
+                "id": str(r[0]),
+                "sender_id": str(r[1]),
+                "body": r[2],
+                "created_at": fmt_jst(r[3]),
+                "username": r[4],
+                "display_name": r[5],
+                "handle": r[6],
+                "is_me": str(r[1]) == me_user_id,
+            })
 
     finally:
         cur.close()
