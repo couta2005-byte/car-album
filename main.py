@@ -1712,3 +1712,62 @@ def dm_send(
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
+@app.get("/dm", response_class=HTMLResponse)
+def dm_list(request: Request, uid: str = Cookie(None)):
+    if not uid:
+        return RedirectResponse("/login", status_code=302)
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    try:
+        # 自分の user_id 取得
+        cur.execute("SELECT id FROM users WHERE uid=%s", (uid,))
+        row = cur.fetchone()
+        if not row:
+            return RedirectResponse("/login", status_code=302)
+
+        user_id = row[0]
+
+        # DM一覧取得（相手情報＋最新メッセージ）
+        cur.execute("""
+            SELECT
+                r.id AS room_id,
+                u.id AS partner_id,
+                u.username,
+                u.handle,
+                u.icon_url,
+                m.body,
+                m.created_at
+            FROM dm_rooms r
+            JOIN users u
+              ON u.id = CASE
+                WHEN r.user1_id = %s THEN r.user2_id
+                ELSE r.user1_id
+              END
+            LEFT JOIN LATERAL (
+                SELECT body, created_at
+                FROM dm_messages
+                WHERE room_id = r.id
+                ORDER BY created_at DESC
+                LIMIT 1
+            ) m ON true
+            WHERE %s IN (r.user1_id, r.user2_id)
+            ORDER BY m.created_at DESC NULLS LAST
+        """, (user_id, user_id))
+
+        rooms = cur.fetchall()
+
+    finally:
+        cur.close()
+        conn.close()
+
+    return templates.TemplateResponse(
+        "dm_list.html",
+        {
+            "request": request,
+            "rooms": rooms,
+            "user": {"id": user_id},
+            "mode": "dm"
+        }
+    )

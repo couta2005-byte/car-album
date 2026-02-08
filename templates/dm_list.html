@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>DM | Carbum</title>
+  <title>DM一覧 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -11,39 +11,40 @@
 {% include "_nav.html" %}
 
 <main class="container">
+  <h2 class="page-title">DM一覧</h2>
 
-  <h2 style="margin: 10px 0 14px;">ダイレクトメッセージ</h2>
-
-  {% if rooms and rooms|length > 0 %}
+  {% if rooms %}
     <div class="dm-list">
       {% for r in rooms %}
-        <a href="/dm/{{ r.room_id }}" class="dm-item">
-          {% if r.icon %}
-            <div class="avatar">
-              <img src="{{ r.icon }}" alt="icon">
-            </div>
-          {% else %}
-            <span class="avatar-fallback"></span>
-          {% endif %}
+        <a href="/dm/{{ r[0] }}" class="dm-item">
+          <div class="dm-icon">
+            {% if r[4] %}
+              <img src="{{ r[4] }}" alt="">
+            {% else %}
+              <div class="icon-placeholder"></div>
+            {% endif %}
+          </div>
 
-          <div class="dm-item-main">
-            <div class="dm-name">
-              {{ r.display_name }}
+          <div class="dm-body">
+            <div class="dm-header">
+              <span class="dm-name">{{ r[2] }}</span>
+              {% if r[6] %}
+                <time class="dm-time">
+                  {{ (r[6] + timedelta(hours=9)).strftime("%m/%d %H:%M") }}
+                </time>
+              {% endif %}
             </div>
-            <div class="dm-handle">
-              @{{ r.handle if r.handle else r.username }}
+
+            <div class="dm-preview">
+              {{ r[5] if r[5] else "まだメッセージはありません" }}
             </div>
           </div>
         </a>
       {% endfor %}
     </div>
   {% else %}
-    <p class="empty-note">
-      まだDMはありません。<br>
-      プロフィールから「DMする」を押してみよう。
-    </p>
+    <p class="empty-text">DMはまだありません</p>
   {% endif %}
-
 </main>
 
 </body>

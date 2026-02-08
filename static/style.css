@@ -905,3 +905,60 @@ textarea {
   font-weight: 800;
   color: #536471;
 }
+/* ===== DM List ===== */
+.dm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dm-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: background .15s;
+}
+
+.dm-item:hover {
+  background: #f5f5f5;
+}
+
+.dm-icon img,
+.icon-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ddd;
+  object-fit: cover;
+}
+
+.dm-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dm-name {
+  font-weight: 700;
+}
+
+.dm-time {
+  font-size: 12px;
+  color: #777;
+}
+
+.dm-preview {
+  font-size: 14px;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

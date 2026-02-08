@@ -18,6 +18,7 @@
   <div class="profile-header"
        style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin: 8px 0 10px;">
 
+    <!-- ===== Left (Icon + Name) ===== -->
     <div style="display:flex; align-items:center; gap:12px;">
       {% if profile and profile[4] %}
         <div class="avatar" style="width:54px; height:54px;">
@@ -37,11 +38,11 @@
       </div>
     </div>
 
-    <!-- ======================
-         Follow / DM Buttons
-    ====================== -->
-    {% if me_user_id and target_user_id and me_user_id != target_user_id %}
-      <div style="display:flex; gap:8px; align-items:center;">
+    <!-- ===== Right (Action Buttons) ===== -->
+    <div style="display:flex; gap:8px; align-items:center;">
+
+      <!-- ===== 他人のプロフィール ===== -->
+      {% if me_user_id and target_user_id and me_user_id != target_user_id %}
 
         {% if is_following %}
           <form action="/unfollow/{{ (handle if handle else username) | urlencode }}"
@@ -57,15 +58,21 @@
           </form>
         {% endif %}
 
-        <!-- ✅ DMボタン（UUIDベース） -->
+        <!-- DMする -->
         <form action="/dm/start/{{ target_user_id }}"
               method="post"
               style="margin:0;">
           <button class="follow-btn" type="submit">DMする</button>
         </form>
 
-      </div>
-    {% endif %}
+      {% endif %}
+
+      <!-- ===== 自分のプロフィール ===== -->
+      {% if me_user_id and target_user_id and me_user_id == target_user_id %}
+        <a href="/dm" class="follow-btn">DM一覧</a>
+      {% endif %}
+
+    </div>
   </div>
 
   <!-- ======================
