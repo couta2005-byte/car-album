@@ -18,8 +18,8 @@
       {% for r in rooms %}
         <a href="/dm/{{ r[0] }}" class="dm-item">
           <div class="dm-icon">
-            {% if r[4] %}
-              <img src="{{ r[4] }}" alt="">
+            {% if r[5] %}
+              <img src="{{ r[5] }}" alt="">
             {% else %}
               <div class="icon-placeholder"></div>
             {% endif %}
@@ -27,16 +27,19 @@
 
           <div class="dm-body">
             <div class="dm-header">
-              <span class="dm-name">{{ r[2] }}</span>
-              {% if r[6] %}
+              <span class="dm-name">
+                {{ r[3] if r[3] else r[2] }}
+              </span>
+
+              {% if r[7] %}
                 <time class="dm-time">
-                  {{ (r[6] + timedelta(hours=9)).strftime("%m/%d %H:%M") }}
+                  {{ (r[7] + timedelta(hours=9)).strftime("%m/%d %H:%M") }}
                 </time>
               {% endif %}
             </div>
 
             <div class="dm-preview">
-              {{ r[5] if r[5] else "まだメッセージはありません" }}
+              {{ r[6] if r[6] else "まだメッセージはありません" }}
             </div>
           </div>
         </a>

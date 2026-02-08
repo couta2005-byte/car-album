@@ -1765,13 +1765,15 @@ def dm_list(
         db.close()
 
     return templates.TemplateResponse(
-        "dm_list.html",
-        {
-            "request": request,
-            "rooms": rooms,
-            "user": me_username,
-            "me_user_id": me_user_id,
-            "me_handle": me_handle,
-            "mode": "dm",
-        }
-    )
+    "dm_list.html",
+    {
+        "request": request,
+        "rooms": rooms,
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "me_handle": me_handle,
+        "mode": "dm",
+        "timedelta": timedelta,  # ← ★これ
+    }
+)
+
