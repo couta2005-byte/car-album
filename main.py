@@ -1649,6 +1649,7 @@ def dm_start(
     uid: str = Cookie(default=None),
 ):
     db = get_db()
+    cur = db.cursor()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
@@ -1657,12 +1658,29 @@ def dm_start(
         if me_user_id == target_user_id:
             return RedirectResponse("/", status_code=303)
 
+        # ✅ 相互フォロー判定（ここが欠けていた）
+        cur.execute("""
+            SELECT 1
+            FROM follows f1
+            JOIN follows f2
+              ON f1.follower_id = f2.followee_id
+             AND f1.followee_id = f2.follower_id
+            WHERE f1.follower_id = %s
+              AND f1.followee_id = %s
+        """, (me_user_id, target_user_id))
+
+        if cur.fetchone() is None:
+            # 相互フォローでなければDM不可
+            return RedirectResponse("/", status_code=303)
+
+        # DMルーム作成 or 取得
         room_id = get_or_create_dm_room_id(
             db,
             me_user_id,
             target_user_id
         )
     finally:
+        cur.close()
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
@@ -1770,7 +1788,7 @@ def dm_list(
         "request": request,
         "rooms": rooms,
         "user": me_username,
-        "me_user_id": me_user_id,
+        "me_user_id": me_user_id,fF
         "me_handle": me_handle,
         "mode": "dm",
         "timedelta": timedelta,  # ← ★これ
