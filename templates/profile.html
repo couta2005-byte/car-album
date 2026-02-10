@@ -35,7 +35,7 @@
   {% endif %}
 
   <!-- ===== CSS ===== -->
-  <link rel="stylesheet" href="/static/style.css?v=11">
+  <link rel="stylesheet" href="/static/style.css?v=12">
 </head>
 <body>
 
@@ -82,13 +82,13 @@
         {% endif %}
 
         <form action="/dm/start/{{ target_user_id }}" method="post" class="inline-form">
-          <button class="follow-btn" type="submit">DMする</button>
+          <button class="dm-btn" type="submit">DMする</button>
         </form>
 
       {% endif %}
 
       {% if me_user_id and target_user_id and me_user_id == target_user_id %}
-        <a href="/dm" class="follow-btn">DM一覧</a>
+        <a href="/dm" class="dm-btn">DM一覧</a>
       {% endif %}
     </div>
   </section>
@@ -106,14 +106,15 @@
       {% endif %}
     </div>
 
+    <!-- ★ 表示修正ここ -->
     <div class="profile-stats">
       <div class="stat">
-        <strong class="stat-num">{{ follow_count }}</strong>
         <span class="stat-label">フォロー</span>
+        <strong class="stat-num">{{ follow_count }}</strong>
       </div>
       <div class="stat">
-        <strong class="stat-num">{{ follower_count }}</strong>
         <span class="stat-label">フォロワー</span>
+        <strong class="stat-num">{{ follower_count }}</strong>
       </div>
     </div>
 

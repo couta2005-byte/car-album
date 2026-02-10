@@ -1295,3 +1295,74 @@ textarea {
     0 3px 8px rgba(29,155,240,0.25),
     inset 0 -1px 0 rgba(255,255,255,0.2);
 }
+/* =========================================================
+   PROFILE FINAL FIX（衝突ゼロ・完成形）
+========================================================= */
+
+/* ===== フォロー / フォロワー（横並び・読みやすい） ===== */
+.profile-stats{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+  margin-top:14px;
+}
+
+.profile-stats .stat{
+  display:flex;
+  align-items:center;     /* 横並び */
+  gap:6px;
+  font-size:13px;
+  font-weight:700;
+  color:#536471;
+}
+
+.profile-stats .stat-label{
+  font-size:13px;
+  font-weight:700;
+  color:#536471;
+}
+
+.profile-stats .stat-num{
+  font-size:17px;
+  font-weight:900;
+  color:#0f1419;
+  letter-spacing:.2px;
+}
+
+/* ===== DMボタン（主役・完成形） ===== */
+.dm-btn{
+  height:38px;
+  padding:0 18px;
+  border-radius:999px;
+  border:none;
+
+  background: linear-gradient(135deg, #1d9bf0, #0a85d1);
+  color:#fff;
+
+  font-size:14px;
+  font-weight:900;
+  cursor:pointer;
+
+  box-shadow:
+    0 4px 12px rgba(29,155,240,0.35),
+    inset 0 -1px 0 rgba(255,255,255,0.25);
+
+  transition:
+    transform .08s ease,
+    box-shadow .12s ease,
+    opacity .12s ease;
+}
+
+.dm-btn:hover{
+  opacity:.95;
+  box-shadow:
+    0 6px 16px rgba(29,155,240,0.4),
+    inset 0 -1px 0 rgba(255,255,255,0.3);
+}
+
+.dm-btn:active{
+  transform: translateY(1px);
+  box-shadow:
+    0 3px 8px rgba(29,155,240,0.25),
+    inset 0 -1px 0 rgba(255,255,255,0.2);
+}
