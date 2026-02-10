@@ -1788,7 +1788,7 @@ def dm_list(
         "request": request,
         "rooms": rooms,
         "user": me_username,
-        "me_user_id": me_user_id,fF
+        "me_user_id": me_user_id,
         "me_handle": me_handle,
         "mode": "dm",
         "timedelta": timedelta,  # ← ★これ
