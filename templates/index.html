@@ -2,9 +2,26 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Carbum</title>
+
+  <title>Carbum｜クルマ好きのSNS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=10">
+
+  <!-- OGP -->
+  <meta property="og:site_name" content="Carbum">
+  <meta property="og:title" content="Carbum｜クルマ好きのSNS">
+  <meta property="og:description" content="愛車を投稿して、クルマ好きとつながろう">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://car-album-3.onrender.com/">
+  <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Carbum｜クルマ好きのSNS">
+  <meta name="twitter:description" content="愛車を投稿して、クルマ好きとつながろう">
+  <meta name="twitter:image" content="https://car-album-3.onrender.com/static/ogp.png">
+  <meta name="twitter:url" content="https://car-album-3.onrender.com/">
+
+  <link rel="stylesheet" href="/static/style.css?v=11">
 </head>
 <body>
 
@@ -48,7 +65,9 @@
         {% endif %}
 
         <div class="post-title-main">
-          <a href="/user/{{ post.profile_key | urlencode }}" class="post-user" style="text-decoration:none; color:inherit;">
+          <a href="/user/{{ post.profile_key | urlencode }}"
+             class="post-user"
+             style="text-decoration:none; color:inherit;">
             <strong>{{ post.display_name }}</strong>
           </a>
           <span class="post-sep">：</span>
@@ -69,18 +88,23 @@
       </div>
     {% endif %}
 
-    <!-- ✅ アクション：削除 → コメント → いいね（右寄せ） -->
-    <div class="post-actions" style="position:relative; z-index:5; display:flex; align-items:center; gap:10px; margin-top:10px;">
-      <div class="post-actions-right" style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+    <!-- アクション -->
+    <div class="post-actions"
+         style="position:relative; z-index:5; display:flex; align-items:center; gap:10px; margin-top:10px;">
+      <div class="post-actions-right"
+           style="margin-left:auto; display:flex; align-items:center; gap:10px;">
 
-        <!-- 削除（自分だけ：user_id一致） -->
         {% if me_user_id and post.user_id and me_user_id == post.user_id %}
-          <form action="/delete/{{ post.id }}" method="post" style="margin:0;" onsubmit="event.stopPropagation();">
-            <button class="delete-btn" type="submit" onclick="event.stopPropagation();">🗑 削除</button>
+          <form action="/delete/{{ post.id }}"
+                method="post"
+                style="margin:0;"
+                onsubmit="event.stopPropagation();">
+            <button class="delete-btn" type="submit" onclick="event.stopPropagation();">
+              🗑 削除
+            </button>
           </form>
         {% endif %}
 
-        <!-- コメント（詳細へ） -->
         <a href="/post/{{ post.id }}#comments"
            class="action-btn"
            style="text-decoration:none;"
@@ -89,7 +113,6 @@
           <span class="count">{{ post.comment_count }}</span>
         </a>
 
-        <!-- いいね（最右） -->
         {% if user %}
           <button type="button"
                   class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
@@ -112,14 +135,14 @@
 
 </main>
 
-<!-- ✅ ⑩ 画像拡大モーダル（index） -->
+<!-- 画像モーダル -->
 <div id="imgModal" class="img-modal" aria-hidden="true">
   <div class="img-modal-inner">
     <img id="imgModalImg" alt="">
   </div>
 </div>
 
-<!-- ✅ いいね非リロードJS（index用） -->
+<!-- いいね & モーダルJS -->
 <script>
 (function(){
   async function postJson(url){
@@ -136,10 +159,8 @@
     btn.dataset.liked = liked ? "1" : "0";
     btn.classList.toggle("active", liked);
     btn.setAttribute("aria-pressed", liked ? "true" : "false");
-    const icon = btn.querySelector(".like-icon");
-    const count = btn.querySelector(".like-count");
-    if (icon) icon.textContent = liked ? "❤️" : "🤍";
-    if (count) count.textContent = String(likes);
+    btn.querySelector(".like-icon").textContent = liked ? "❤️" : "🤍";
+    btn.querySelector(".like-count").textContent = String(likes);
   }
 
   document.addEventListener("click", async (e) => {
@@ -159,7 +180,7 @@
     try{
       const r = await postJson(`/api/like/${postId}`);
       if(!r.ok || !r.data || r.data.ok !== true){
-        if(r.status === 401) { location.href = "/login"; return; }
+        if(r.status === 401){ location.href="/login"; return; }
         alert("いいねに失敗しました");
         return;
       }
@@ -168,9 +189,8 @@
       btn.disabled = false;
       btn.classList.remove("is-loading");
     }
-  }, { passive:false });
+  });
 
-  // ✅ ⑩ 画像拡大（モーダル）
   const modal = document.getElementById("imgModal");
   const modalImg = document.getElementById("imgModalImg");
 
@@ -180,27 +200,20 @@
     modalImg.src = "";
   }
 
-  modal.addEventListener("click", (e)=>{
-    e.preventDefault();
-    closeModal();
+  modal.addEventListener("click", closeModal);
+  document.addEventListener("keydown", e=>{
+    if(e.key==="Escape" && modal.classList.contains("open")) closeModal();
   });
 
-  document.addEventListener("keydown", (e)=>{
-    if(e.key === "Escape" && modal.classList.contains("open")){
-      closeModal();
-    }
-  });
-
-  document.addEventListener("click", (e)=>{
+  document.addEventListener("click", e=>{
     const img = e.target.closest(".post-image img");
     if(!img) return;
     e.preventDefault();
     e.stopPropagation();
     modalImg.src = img.src;
     modal.classList.add("open");
-    modal.setAttribute("aria-hidden", "false");
+    modal.setAttribute("aria-hidden","false");
   });
-
 })();
 </script>
 

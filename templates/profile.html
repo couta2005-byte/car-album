@@ -2,8 +2,40 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>{{ username }} | Carbum</title>
+
+  <!-- ===== Title ===== -->
+  <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
+
+  <!-- ===== Viewport ===== -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ===== OGP (Profile) ===== -->
+  <meta property="og:site_name" content="Carbum">
+  <meta property="og:type" content="profile">
+  <meta property="og:title"
+        content="{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum">
+  <meta property="og:description"
+        content="{{ profile[3] if profile and profile[3] else 'Carbumのプロフィールを見る' }}">
+  <meta property="og:url" content="{{ request.url }}">
+  {% if profile and profile[4] %}
+    <meta property="og:image" content="{{ profile[4] }}">
+  {% else %}
+    <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
+  {% endif %}
+
+  <!-- ===== Twitter Card ===== -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title"
+        content="{{ display_name if display_name else username }} | Carbum">
+  <meta name="twitter:description"
+        content="{{ profile[3] if profile and profile[3] else 'Carbumのプロフィールを見る' }}">
+  {% if profile and profile[4] %}
+    <meta name="twitter:image" content="{{ profile[4] }}">
+  {% else %}
+    <meta name="twitter:image" content="https://car-album-3.onrender.com/static/ogp.png">
+  {% endif %}
+
+  <!-- ===== CSS ===== -->
   <link rel="stylesheet" href="/static/style.css?v=10">
 </head>
 <body>
@@ -41,33 +73,26 @@
     <!-- ===== Right (Action Buttons) ===== -->
     <div style="display:flex; gap:8px; align-items:center;">
 
-      <!-- ===== 他人のプロフィール ===== -->
       {% if me_user_id and target_user_id and me_user_id != target_user_id %}
 
         {% if is_following %}
           <form action="/unfollow/{{ (handle if handle else username) | urlencode }}"
-                method="post"
-                style="margin:0;">
+                method="post" style="margin:0;">
             <button class="follow-btn" type="submit">フォロー解除</button>
           </form>
         {% else %}
           <form action="/follow/{{ (handle if handle else username) | urlencode }}"
-                method="post"
-                style="margin:0;">
+                method="post" style="margin:0;">
             <button class="follow-btn" type="submit">フォローする</button>
           </form>
         {% endif %}
 
-        <!-- DMする -->
-        <form action="/dm/start/{{ target_user_id }}"
-              method="post"
-              style="margin:0;">
+        <form action="/dm/start/{{ target_user_id }}" method="post" style="margin:0;">
           <button class="follow-btn" type="submit">DMする</button>
         </form>
 
       {% endif %}
 
-      <!-- ===== 自分のプロフィール ===== -->
       {% if me_user_id and target_user_id and me_user_id == target_user_id %}
         <a href="/dm" class="follow-btn">DM一覧</a>
       {% endif %}
@@ -76,10 +101,10 @@
   </div>
 
   <!-- ======================
-       Profile Info Box
+       Profile Info
   ====================== -->
   <div class="profile-box"
-       style="margin: 12px 0; background:#fff; border-radius:18px; padding:14px;
+       style="margin:12px 0; background:#fff; border-radius:18px; padding:14px;
               box-shadow:0 1px 4px rgba(0,0,0,0.08);">
 
     <div style="display:flex; gap:16px; flex-wrap:wrap;">
@@ -91,7 +116,7 @@
     </div>
 
     {% if profile and profile[3] %}
-      <div style="margin-top:10px; color:#0f1419; white-space:pre-wrap; word-break:break-word;">
+      <div style="margin-top:10px; white-space:pre-wrap;">
         {{ profile[3] }}
       </div>
     {% endif %}
@@ -101,7 +126,7 @@
        Profile Edit (Me)
   ====================== -->
   {% if me_user_id and target_user_id and me_user_id == target_user_id %}
-    <section class="profile-edit" style="margin: 18px 0 22px;">
+    <section class="profile-edit" style="margin:18px 0 22px;">
       <h3 style="margin:0 0 10px;">プロフィール編集</h3>
 
       <form action="/profile/edit" method="post" enctype="multipart/form-data">
@@ -136,7 +161,7 @@
   <!-- ======================
        Posts
   ====================== -->
-  <h3 style="margin: 16px 0 10px;">投稿</h3>
+  <h3 style="margin:16px 0 10px;">投稿</h3>
 
   <div class="posts">
     {% for post in posts %}
@@ -150,7 +175,7 @@
           <div class="post-title">
 
             {% if post.user_icon %}
-              <div class="avatar" style="position:relative; z-index:2;">
+              <div class="avatar">
                 <a href="/user/{{ post.profile_key | urlencode }}">
                   <img src="{{ post.user_icon }}" alt="icon">
                 </a>
@@ -162,8 +187,7 @@
             {% endif %}
 
             <div class="post-title-main">
-              <a href="/user/{{ post.profile_key | urlencode }}"
-                 class="post-user">
+              <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
                 {{ post.display_name }}
               </a>
               <span class="post-sep">：</span>
@@ -217,17 +241,14 @@
 
 </main>
 
-<!-- ======================
-     Like JS
-====================== -->
 <script>
 (function(){
   async function postJson(url){
-    const res = await fetch(url, { method:"POST", credentials:"same-origin" });
+    const res = await fetch(url,{method:"POST",credentials:"same-origin"});
     return res.json();
   }
 
-  document.addEventListener("click", async e => {
+  document.addEventListener("click", async e=>{
     const btn = e.target.closest(".js-like");
     if(!btn) return;
 
@@ -235,7 +256,7 @@
     const postId = btn.dataset.postId;
     const r = await postJson(`/api/like/${postId}`);
     if(!r || !r.ok){
-      if(r && r.error === "login_required") location.href="/login";
+      if(r && r.error==="login_required") location.href="/login";
       return;
     }
     btn.classList.toggle("active", r.liked);
