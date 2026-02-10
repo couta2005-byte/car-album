@@ -25,8 +25,7 @@
 
   <!-- ===== Twitter Card ===== -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title"
-        content="{{ display_name if display_name else username }} | Carbum">
+  <meta name="twitter:title" content="{{ display_name if display_name else username }} | Carbum">
   <meta name="twitter:description"
         content="{{ profile[3] if profile and profile[3] else 'Carbumのプロフィールを見る' }}">
   {% if profile and profile[4] %}
@@ -36,7 +35,7 @@
   {% endif %}
 
   <!-- ===== CSS ===== -->
-  <link rel="stylesheet" href="/static/style.css?v=10">
+  <link rel="stylesheet" href="/static/style.css?v=11">
 </head>
 <body>
 
@@ -47,47 +46,42 @@
   <!-- ======================
        Profile Header
   ====================== -->
-  <div class="profile-header"
-       style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin: 8px 0 10px;">
-
-    <!-- ===== Left (Icon + Name) ===== -->
-    <div style="display:flex; align-items:center; gap:12px;">
+  <section class="profile-header">
+    <div class="profile-left">
       {% if profile and profile[4] %}
-        <div class="avatar" style="width:54px; height:54px;">
+        <div class="avatar profile-avatar">
           <img src="{{ profile[4] }}" alt="icon">
         </div>
       {% else %}
-        <span class="avatar-fallback" style="width:54px; height:54px;"></span>
+        <span class="avatar-fallback profile-avatar"></span>
       {% endif %}
 
-      <div>
-        <h2 class="profile-name" style="margin:0;">
+      <div class="profile-idblock">
+        <h2 class="profile-name">
           {{ display_name if display_name else username }}
         </h2>
-        <div style="color:#536471; font-size:13px;">
+        <div class="profile-handle">
           @{{ handle if handle else username }}
         </div>
       </div>
     </div>
 
-    <!-- ===== Right (Action Buttons) ===== -->
-    <div style="display:flex; gap:8px; align-items:center;">
-
+    <div class="profile-actions">
       {% if me_user_id and target_user_id and me_user_id != target_user_id %}
 
         {% if is_following %}
           <form action="/unfollow/{{ (handle if handle else username) | urlencode }}"
-                method="post" style="margin:0;">
+                method="post" class="inline-form">
             <button class="follow-btn" type="submit">フォロー解除</button>
           </form>
         {% else %}
           <form action="/follow/{{ (handle if handle else username) | urlencode }}"
-                method="post" style="margin:0;">
+                method="post" class="inline-form">
             <button class="follow-btn" type="submit">フォローする</button>
           </form>
         {% endif %}
 
-        <form action="/dm/start/{{ target_user_id }}" method="post" style="margin:0;">
+        <form action="/dm/start/{{ target_user_id }}" method="post" class="inline-form">
           <button class="follow-btn" type="submit">DMする</button>
         </form>
 
@@ -96,72 +90,99 @@
       {% if me_user_id and target_user_id and me_user_id == target_user_id %}
         <a href="/dm" class="follow-btn">DM一覧</a>
       {% endif %}
-
     </div>
-  </div>
+  </section>
 
   <!-- ======================
        Profile Info
   ====================== -->
-  <div class="profile-box"
-       style="margin:12px 0; background:#fff; border-radius:18px; padding:14px;
-              box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+  <section class="profile-box">
 
-    <div style="display:flex; gap:16px; flex-wrap:wrap;">
-      <div><strong>メーカー：</strong>{{ profile[0] if profile else "" }}</div>
-      <div><strong>車名：</strong>{{ profile[1] if profile else "" }}</div>
-      <div><strong>地域：</strong>{{ profile[2] if profile else "" }}</div>
-      <div><strong>フォロー：</strong>{{ follow_count }}</div>
-      <div><strong>フォロワー：</strong>{{ follower_count }}</div>
+    <div class="profile-badges">
+      {% if profile %}
+        {% if profile[0] %}<span class="badge">メーカー：{{ profile[0] }}</span>{% endif %}
+        {% if profile[1] %}<span class="badge">車名：{{ profile[1] }}</span>{% endif %}
+        {% if profile[2] %}<span class="badge">地域：{{ profile[2] }}</span>{% endif %}
+      {% endif %}
+    </div>
+
+    <div class="profile-stats">
+      <div class="stat">
+        <strong class="stat-num">{{ follow_count }}</strong>
+        <span class="stat-label">フォロー</span>
+      </div>
+      <div class="stat">
+        <strong class="stat-num">{{ follower_count }}</strong>
+        <span class="stat-label">フォロワー</span>
+      </div>
     </div>
 
     {% if profile and profile[3] %}
-      <div style="margin-top:10px; white-space:pre-wrap;">
-        {{ profile[3] }}
-      </div>
+      <p class="profile-bio">{{ profile[3] }}</p>
     {% endif %}
-  </div>
+  </section>
 
   <!-- ======================
        Profile Edit (Me)
   ====================== -->
   {% if me_user_id and target_user_id and me_user_id == target_user_id %}
-    <section class="profile-edit" style="margin:18px 0 22px;">
-      <h3 style="margin:0 0 10px;">プロフィール編集</h3>
+    <details class="profile-edit">
+      <summary class="profile-edit-summary">プロフィール編集</summary>
 
-      <form action="/profile/edit" method="post" enctype="multipart/form-data">
+      <form action="/profile/edit" method="post" enctype="multipart/form-data" class="profile-edit-form">
 
-        <input name="display_name"
-               placeholder="表示名"
-               value="{{ display_name if display_name else username }}">
+        <div class="form-grid">
+          <label class="field">
+            <span class="field-label">表示名</span>
+            <input name="display_name"
+                   placeholder="表示名"
+                   value="{{ display_name if display_name else username }}">
+          </label>
 
-        <input name="handle"
-               placeholder="アカウントID（英数字/._）"
-               value="{{ handle if handle else '' }}">
+          <label class="field">
+            <span class="field-label">アカウントID（英数字/._）</span>
+            <input name="handle"
+                   placeholder="例：kumax / kumax_86 / kumax.86"
+                   value="{{ handle if handle else '' }}">
+            <span class="field-help">※ ひらがな・漢字は使えません</span>
+          </label>
 
-        <input name="maker" placeholder="メーカー" value="{{ profile[0] if profile else '' }}">
-        <input name="car" placeholder="車名" value="{{ profile[1] if profile else '' }}">
-        <input name="region" placeholder="地域" value="{{ profile[2] if profile else '' }}">
+          <label class="field">
+            <span class="field-label">メーカー</span>
+            <input name="maker" placeholder="トヨタ" value="{{ profile[0] if profile else '' }}">
+          </label>
 
-        <textarea name="bio" placeholder="ひとこと">{{ profile[3] if profile else '' }}</textarea>
+          <label class="field">
+            <span class="field-label">車名</span>
+            <input name="car" placeholder="マークX" value="{{ profile[1] if profile else '' }}">
+          </label>
 
-        <div style="margin:8px 0 12px;">
-          <div style="font-weight:900; margin-bottom:6px;">ユーザーアイコン</div>
-          <input type="file" name="icon" accept="image/*">
-          <div style="color:#536471; font-size:12px; margin-top:6px;">
-            ※ 画像を選ばなければ変更されません
-          </div>
+          <label class="field">
+            <span class="field-label">地域</span>
+            <input name="region" placeholder="北海道" value="{{ profile[2] if profile else '' }}">
+          </label>
+
+          <label class="field field-wide">
+            <span class="field-label">ひとこと</span>
+            <textarea name="bio" placeholder="例：深夜ドライブ好き。雪溶けたら走る！">{{ profile[3] if profile else '' }}</textarea>
+          </label>
+
+          <label class="field field-wide">
+            <span class="field-label">ユーザーアイコン</span>
+            <input type="file" name="icon" accept="image/*">
+            <span class="field-help">※ 画像を選ばなければ変更されません</span>
+          </label>
         </div>
 
         <button class="primary-btn" type="submit">保存</button>
       </form>
-    </section>
+    </details>
   {% endif %}
 
   <!-- ======================
        Posts
   ====================== -->
-  <h3 style="margin:16px 0 10px;">投稿</h3>
+  <h3 class="profile-section-title">投稿</h3>
 
   <div class="posts">
     {% for post in posts %}
