@@ -4,27 +4,33 @@
   <meta charset="UTF-8">
 
   <!-- ===== Title ===== -->
-  <title>{{ post.display_name }}の愛車 | Carbum</title>
+  <title>{{ post.car }} | {{ post.display_name }} | Carbum</title>
 
   <!-- ===== Viewport ===== -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ===== OGP (Post) ===== -->
-  <meta property="og:site_name" content="Carbum">
-  <meta property="og:title" content="{{ post.display_name }}の愛車 | Carbum">
-  <meta property="og:description" content="{{ post.comment if post.comment else 'Carbumの投稿を見る' }}">
+  <!-- ===== OGP (Post Detail) ===== -->
   <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Carbum">
+  <meta property="og:title" content="{{ post.car }} | {{ post.display_name }}">
+  <meta property="og:description"
+        content="{{ post.comment | striptags | truncate(80, True, '…') if post.comment else 'Carbumの投稿を見る' }}">
   <meta property="og:url" content="{{ request.url }}">
+
   {% if post.image %}
     <meta property="og:image" content="{{ post.image }}">
   {% else %}
     <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
   {% endif %}
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
 
   <!-- ===== Twitter Card ===== -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ post.display_name }}の愛車 | Carbum">
-  <meta name="twitter:description" content="{{ post.comment if post.comment else 'Carbumの投稿を見る' }}">
+  <meta name="twitter:title" content="{{ post.car }} | {{ post.display_name }}">
+  <meta name="twitter:description"
+        content="{{ post.comment | striptags | truncate(80, True, '…') if post.comment else 'Carbumの投稿を見る' }}">
+  <meta name="twitter:url" content="{{ request.url }}">
   {% if post.image %}
     <meta name="twitter:image" content="{{ post.image }}">
   {% else %}
@@ -32,7 +38,7 @@
   {% endif %}
 
   <!-- ===== CSS ===== -->
-  <link rel="stylesheet" href="/static/style.css?v=14">
+  <link rel="stylesheet" href="/static/style.css?v=16">
 </head>
 <body>
 
@@ -44,8 +50,10 @@
 
   <!-- ===== Post ===== -->
   <div class="post">
+
     <div class="post-top">
       <div class="post-title">
+
         {% if post.user_icon %}
           <div class="avatar">
             <a href="/user/{{ post.profile_key | urlencode }}">
@@ -82,28 +90,32 @@
       </div>
     {% endif %}
 
+    <!-- ===== Post Like ===== -->
     <div class="post-actions" style="margin-top:10px;">
       {% if user %}
         <button type="button"
                 class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
-                data-post-id="{{ post.id }}"
-                data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
-          <span class="like-icon">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+                data-post-id="{{ post.id }}">
+          <span class="like-icon">
+            {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
+          </span>
           <span class="like-count">{{ post.likes }}</span>
         </button>
       {% else %}
         <span>🤍 {{ post.likes }}</span>
       {% endif %}
     </div>
+
   </div>
 
   <!-- ===== Comments ===== -->
   <section class="comment-section" id="comments">
     <h3>コメント（{{ post.comments | length }}）</h3>
 
-    {% if post.comments and post.comments|length > 0 %}
+    {% if post.comments %}
       {% for c in post.comments %}
         <div class="comment-item">
+
           <div class="comment-header"
                style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
 
@@ -124,7 +136,8 @@
               <span class="comment-time">{{ c.created_at }}</span>
             </div>
 
-            <div style="display:flex; align-items:center; gap:10px;">
+            <div style="display:flex; gap:10px; align-items:center;">
+
               {% if user and (
                     (me_user_id and c.user_id and me_user_id == c.user_id)
                     or (c.user_id is none and c.username == user)
@@ -137,18 +150,19 @@
               {% if user %}
                 <button type="button"
                         class="like-btn js-comment-like {% if c.liked %}active{% endif %}"
-                        data-comment-id="{{ c.id }}"
-                        data-liked="{% if c.liked %}1{% else %}0{% endif %}">
+                        data-comment-id="{{ c.id }}">
                   <span class="like-icon">{% if c.liked %}❤️{% else %}🤍{% endif %}</span>
                   <span class="like-count">{{ c.likes }}</span>
                 </button>
               {% else %}
                 <span>🤍 {{ c.likes }}</span>
               {% endif %}
+
             </div>
           </div>
 
           <div class="comment-body">{{ c.comment }}</div>
+
         </div>
       {% endfor %}
     {% else %}
@@ -179,6 +193,7 @@
   </div>
 </div>
 
+<!-- ===== Like & Modal JS ===== -->
 <script>
 (function(){
   async function postJson(url){
@@ -192,30 +207,20 @@
   }
 
   function setBtn(btn, liked, likes){
-    btn.dataset.liked = liked ? "1" : "0";
     btn.classList.toggle("active", liked);
     btn.querySelector(".like-icon").textContent = liked ? "❤️" : "🤍";
     btn.querySelector(".like-count").textContent = String(likes);
   }
 
   document.addEventListener("click", async (e) => {
+
     const postBtn = e.target.closest(".js-like");
     if(postBtn){
       e.preventDefault();
-      const postId = postBtn.dataset.postId;
-      if(!postId) return;
-
-      postBtn.disabled = true;
-      try{
-        const r = await postJson(`/api/like/${postId}`);
-        if(!r.ok || !r.data || r.data.ok !== true){
-          if(r.status === 401){ location.href="/login"; return; }
-          alert("いいねに失敗しました");
-          return;
-        }
-        setBtn(postBtn, !!r.data.liked, r.data.likes);
-      } finally {
-        postBtn.disabled = false;
+      const id = postBtn.dataset.postId;
+      const r = await postJson(`/api/like/${id}`);
+      if(r.ok && r.data?.ok){
+        setBtn(postBtn, r.data.liked, r.data.likes);
       }
       return;
     }
@@ -223,46 +228,30 @@
     const cBtn = e.target.closest(".js-comment-like");
     if(cBtn){
       e.preventDefault();
-      const cid = cBtn.dataset.commentId;
-      if(!cid) return;
-
-      cBtn.disabled = true;
-      try{
-        const r = await postJson(`/api/comment_like/${cid}`);
-        if(!r.ok || !r.data || r.data.ok !== true){
-          if(r.status === 401){ location.href="/login"; return; }
-          alert("コメントいいねに失敗しました");
-          return;
-        }
-        setBtn(cBtn, !!r.data.liked, r.data.likes);
-      } finally {
-        cBtn.disabled = false;
+      const id = cBtn.dataset.commentId;
+      const r = await postJson(`/api/comment_like/${id}`);
+      if(r.ok && r.data?.ok){
+        setBtn(cBtn, r.data.liked, r.data.likes);
       }
     }
-  }, { passive:false });
+  });
 
   const modal = document.getElementById("imgModal");
   const modalImg = document.getElementById("imgModalImg");
-
-  function closeModal(){
-    modal.classList.remove("open");
-    modal.setAttribute("aria-hidden","true");
-    modalImg.src = "";
-  }
-
-  modal.addEventListener("click", closeModal);
-  document.addEventListener("keydown", e=>{
-    if(e.key==="Escape" && modal.classList.contains("open")) closeModal();
-  });
 
   document.addEventListener("click", e=>{
     const img = e.target.closest(".post-image img");
     if(!img) return;
     e.preventDefault();
-    e.stopPropagation();
     modalImg.src = img.src;
     modal.classList.add("open");
     modal.setAttribute("aria-hidden","false");
+  });
+
+  modal.addEventListener("click", ()=>{
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden","true");
+    modalImg.src = "";
   });
 })();
 </script>
