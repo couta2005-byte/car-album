@@ -1658,24 +1658,31 @@ def dm_start(
         if me_user_id == target_user_id:
             return RedirectResponse("/", status_code=303)
 
-        # ✅ 相互フォロー判定（ここが欠けていた）
-        cur.execute("""
-    SELECT 1
-    FROM follows
-    WHERE follower_id = %s AND followee_id = %s
-""", (me_user_id, target_user_id))
+        # 相互フォロー判定①
+        cur.execute(
+            "SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s",
+            (me_user_id, target_user_id),
+        )
+        if cur.fetchone() is None:
+            return RedirectResponse("/", status_code=303)
 
-if cur.fetchone() is None:
-    return RedirectResponse("/", status_code=303)
+        # 相互フォロー判定②
+        cur.execute(
+            "SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s",
+            (target_user_id, me_user_id),
+        )
+        if cur.fetchone() is None:
+            return RedirectResponse("/", status_code=303)
 
-cur.execute("""
-    SELECT 1
-    FROM follows
-    WHERE follower_id = %s AND followee_id = %s
-""", (target_user_id, me_user_id))
+        # ✅ DMルーム作成 or 取得
+        room_id = get_or_create_dm_room_id(db, me_user_id, target_user_id)
+        db.commit()
 
-if cur.fetchone() is None:
-    return RedirectResponse("/", status_code=303)
+    finally:
+        cur.close()
+        db.close()
+
+    return RedirectResponse(f"/dm/{room_id}", status_code=303)
 
 @app.post("/dm/{room_id}/send")
 def dm_send(
