@@ -1592,7 +1592,6 @@ def dm_room(
             WHERE u.id=%s
         """, (other_user_id,))
         other = cur.fetchone()
-                other = cur.fetchone()
 
         # ✅ 相手からの未読メッセージを既読にする
         cur.execute("""
@@ -1771,7 +1770,7 @@ def dm_list(
             FROM dm_rooms r
             JOIN users u
               ON u.id = CASE
-                WHEN r.user1_id = %s THEN r.user2_id
+                WHEN r.user1_id = %s THEN r.user2_idf
                 ELSE r.user1_id
               END
             LEFT JOIN profiles p ON p.user_id = u.id
