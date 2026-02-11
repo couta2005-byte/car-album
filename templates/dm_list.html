@@ -31,6 +31,11 @@
                 {{ r[3] if r[3] else r[2] }}
               </span>
 
+              {# 🔴 未読バッジ #}
+              {% if r[8] and r[8] > 0 %}
+                <span class="dm-unread-badge">{{ r[8] }}</span>
+              {% endif %}
+
               {% if r[7] %}
                 <time class="dm-time">
                   {{ (r[7] + timedelta(hours=9)).strftime("%m/%d %H:%M") }}

@@ -1757,36 +1757,53 @@ def dm_list(
         me_handle = get_me_handle(db, me_user_id)
 
         # DM一覧（相手 + 最新メッセージ）
+              rooms = cur.fetchall()
         cur.execute("""
-            SELECT
-                r.id AS room_id,
-                u.id AS partner_id,
-                u.username,
-                u.display_name,
-                u.handle,
-                p.icon,
-                m.body,
-                m.created_at
-            FROM dm_rooms r
-            JOIN users u
-              ON u.id = CASE
-                WHEN r.user1_id = %s THEN r.user2_id
-                ELSE r.user1_id
-              END
-            LEFT JOIN profiles p ON p.user_id = u.id
-            LEFT JOIN dm_messages m
-              ON m.id = (
-                SELECT id
-                FROM dm_messages
-                WHERE room_id = r.id
-                ORDER BY created_at DESC
-                LIMIT 1
-              )
-            WHERE %s IN (r.user1_id, r.user2_id)
-            ORDER BY m.created_at DESC NULLS LAST
-        """, (me_user_id, me_user_id))
+    SELECT
+        r.id AS room_id,
+        u.id AS partner_id,
+        u.username,
+        u.display_name,
+        u.handle,
+        p.icon,
+        last_m.body,
+        last_m.created_at,
+        COUNT(m.id) FILTER (
+          WHERE m.read_at IS NULL
+            AND m.sender_id <> %s
+        ) AS unread_count
+    FROM dm_rooms r
+    JOIN users u
+      ON u.id = CASE
+        WHEN r.user1_id = %s THEN r.user2_id
+        ELSE r.user1_id
+      END
+    LEFT JOIN profiles p ON p.user_id = u.id
 
-        rooms = cur.fetchall()
+    LEFT JOIN dm_messages last_m
+      ON last_m.id = (
+        SELECT id
+        FROM dm_messages
+        WHERE room_id = r.id
+        ORDER BY created_at DESC
+        LIMIT 1
+      )
+
+    LEFT JOIN dm_messages m
+      ON m.room_id = r.id
+
+    WHERE %s IN (r.user1_id, r.user2_id)
+    GROUP BY
+        r.id,
+        u.id,
+        u.username,
+        u.display_name,
+        u.handle,
+        p.icon,
+        last_m.body,
+        last_m.created_at
+    ORDER BY last_m.created_at DESC NULLS LAST
+""", (me_user_id, me_user_id, me_user_id))
 
     finally:
         cur.close()

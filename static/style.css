@@ -1366,3 +1366,17 @@ textarea {
     0 3px 8px rgba(29,155,240,0.25),
     inset 0 -1px 0 rgba(255,255,255,0.2);
 }
+.dm-unread-badge {
+  margin-left: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
