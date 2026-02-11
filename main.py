@@ -1770,7 +1770,7 @@ def dm_list(
             FROM dm_rooms r
             JOIN users u
               ON u.id = CASE
-                WHEN r.user1_id = %s THEN r.user2_idf
+                WHEN r.user1_id = %s THEN r.user2_id
                 ELSE r.user1_id
               END
             LEFT JOIN profiles p ON p.user_id = u.id
