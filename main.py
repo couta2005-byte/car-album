@@ -426,6 +426,9 @@ def init_db():
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user1_idx ON dm_rooms(user1_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user2_idx ON dm_rooms(user2_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_messages_room_time_idx ON dm_messages(room_id, created_at);")
+# ✅ DM 既読管理（Shell不要）
+cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP;")
+
 
     run_db(_do)
 
@@ -1590,6 +1593,14 @@ def dm_room(
             WHERE u.id=%s
         """, (other_user_id,))
         other = cur.fetchone()
+# ✅ 相手からの未読メッセージを既読にする
+cur.execute("""
+    UPDATE dm_messages
+    SET read_at = %s
+    WHERE room_id = %s
+      AND sender_id <> %s
+      AND read_at IS NULL
+""", (utcnow_naive(), room_id, me_user_id))
 
         # メッセージ一覧
         cur.execute("""
