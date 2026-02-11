@@ -1601,6 +1601,7 @@ def dm_room(
               AND sender_id <> %s
               AND read_at IS NULL
         """, (utcnow_naive(), room_id, me_user_id))
+        db.commit()
 
         # メッセージ一覧
         cur.execute("""
