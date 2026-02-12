@@ -471,6 +471,24 @@ def has_unread_dm(db, me_user_id: Optional[str]) -> bool:
         cur.close()
 
 
+# ======================
+# ✅ liked posts helper（★これが無くて落ちてた）
+# ======================
+def get_liked_posts(db, me_user_id: Optional[str], me_username: Optional[str]):
+    if not me_user_id:
+        return set()
+
+    cur = db.cursor()
+    try:
+        cur.execute(
+            "SELECT post_id FROM likes WHERE user_id=%s",
+            (me_user_id,)
+        )
+        rows = cur.fetchall()
+        return {r[0] for r in rows}
+    finally:
+        cur.close()
+
 
 # ======================
 # ✅ users search（検索ページ用）
@@ -913,19 +931,21 @@ def search(
 def following(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
     try:
-        me_username, me_user_id = get_me_from_cookies(db, user, uid)
-        me_handle = get_me_handle(db, me_user_id)
-        if not me_user_id:
-            return RedirectResponse("/login", status_code=303)
+    me_username, me_user_id = get_me_from_cookies(db, user, uid)
+    me_handle = get_me_handle(db, me_user_id)
+    if not me_user_id:
+        return RedirectResponse("/login", status_code=303)
 
-        posts = fetch_posts(
-            db, me_user_id,
-            "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
-            (me_user_id,)
-        )
-        liked_posts = get_liked_posts(db, me_user_id, me_username)
-    finally:
-        db.close()
+    unread_dm = has_unread_dm(db, me_user_id)  # ← ★これ追加
+
+    posts = fetch_posts(
+        db, me_user_id,
+        "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
+        (me_user_id,)
+    )
+    liked_posts = get_liked_posts(db, me_user_id, me_username)
+finally:
+    db.close()
 
     return templates.TemplateResponse("index.html", {
     "request": request,
