@@ -782,14 +782,27 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
-try:
-    me_username, me_user_id = get_me_from_cookies(db, user, uid)
-    me_handle = get_me_handle(db, me_user_id)
-    unread_dm = has_unread_dm(db, me_user_id)  # ← ★これだけ
-    posts = fetch_posts(db, me_user_id)
-    liked_posts = get_liked_posts(db, me_user_id, me_username)
-finally:
-    db.close()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        me_handle = get_me_handle(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
+        posts = fetch_posts(db, me_user_id)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
+    finally:
+        db.close()
+
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "posts": posts,
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "me_handle": me_handle,
+        "unread_dm": unread_dm,
+        "liked_posts": liked_posts,
+        "mode": "home",
+        "ranking_title": "",
+        "period": ""
+    })
 
 # ======================
 # auth pages（errorをテンプレに渡す）
