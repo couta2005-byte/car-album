@@ -438,6 +438,7 @@ def startup():
 # ======================
 # common
 # ======================
+
 def redirect_back(request: Request, fallback: str = "/"):
     next_url = request.query_params.get("next")
     if next_url and next_url.startswith("/"):
@@ -446,18 +447,30 @@ def redirect_back(request: Request, fallback: str = "/"):
     referer = request.headers.get("referer")
     return RedirectResponse(referer or fallback, status_code=303)
 
-def get_liked_posts(db, me_user_id: Optional[str], me_username: Optional[str]) -> set:
-    if not me_user_id and not me_username:
-        return set()
+
+# ======================
+# ✅ nav DM unread helper
+# ======================
+def has_unread_dm(db, me_user_id: Optional[str]) -> bool:
+    if not me_user_id:
+        return False
+
     cur = db.cursor()
     try:
-        if me_user_id:
-            cur.execute("SELECT post_id FROM likes WHERE user_id=%s", (me_user_id,))
-        else:
-            cur.execute("SELECT post_id FROM likes WHERE username=%s", (me_username,))
-        return {r[0] for r in cur.fetchall()}
+        cur.execute("""
+            SELECT 1
+            FROM dm_messages m
+            JOIN dm_rooms r ON r.id = m.room_id
+            WHERE m.read_at IS NULL
+              AND m.sender_id <> %s
+              AND %s IN (r.user1_id, r.user2_id)
+            LIMIT 1
+        """, (me_user_id, me_user_id))
+        return cur.fetchone() is not None
     finally:
         cur.close()
+
+
 
 # ======================
 # ✅ users search（検索ページ用）
@@ -769,25 +782,14 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
-    try:
-        me_username, me_user_id = get_me_from_cookies(db, user, uid)
-        me_handle = get_me_handle(db, me_user_id)
-        posts = fetch_posts(db, me_user_id)
-        liked_posts = get_liked_posts(db, me_user_id, me_username)
-    finally:
-        db.close()
-
-    return templates.TemplateResponse("index.html", {
-        "request": request,
-        "posts": posts,
-        "user": me_username,
-        "me_user_id": me_user_id,
-        "me_handle": me_handle,
-        "liked_posts": liked_posts,
-        "mode": "home",
-        "ranking_title": "",
-        "period": ""
-    })
+try:
+    me_username, me_user_id = get_me_from_cookies(db, user, uid)
+    me_handle = get_me_handle(db, me_user_id)
+    unread_dm = has_unread_dm(db, me_user_id)  # ← ★これだけ
+    posts = fetch_posts(db, me_user_id)
+    liked_posts = get_liked_posts(db, me_user_id, me_username)
+finally:
+    db.close()
 
 # ======================
 # auth pages（errorをテンプレに渡す）
@@ -913,17 +915,17 @@ def following(request: Request, user: str = Cookie(default=None), uid: str = Coo
         db.close()
 
     return templates.TemplateResponse("index.html", {
-        "request": request,
-        "posts": posts,
-        "user": me_username,
-        "me_user_id": me_user_id,
-        "me_handle": me_handle,
-        "liked_posts": liked_posts,
-        "mode": "following",
-        "ranking_title": "",
-        "period": ""
-    })
-
+    "request": request,
+    "posts": posts,
+    "user": me_username,
+    "me_user_id": me_user_id,
+    "me_handle": me_handle,
+    "unread_dm": unread_dm,   # ← 追加
+    "liked_posts": liked_posts,
+    "mode": "home",
+    "ranking_title": "",
+    "period": ""
+})
 # ======================
 # ranking
 # ======================

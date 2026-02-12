@@ -1,3 +1,4 @@
+
 <header class="header">
   <div class="header-inner">
     <a href="/" class="logo">Carbum</a>
@@ -9,12 +10,19 @@
       {% if user %}
         <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
 
+        <!-- ✅ DM（未読ドット対応） -->
+        <a href="/dm" class="nav-link dm-nav {% if mode=='dm' %}active{% endif %}">
+          DM
+          {% if unread_dm %}
+            <span class="dm-unread-dot"></span>
+          {% endif %}
+        </a>
+
         <a href="/ranking?period=day"
            class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
           ランキング
         </a>
 
-        <!-- ✅ strong版main.py：プロフィールは /user/<username> -->
         <a href="/user/{{ user | urlencode }}"
            class="nav-link {% if mode=='profile' %}active{% endif %}">
           プロフィール
@@ -31,5 +39,4 @@
   </div>
 </header>
 
-<!-- ✅ 全ページ共通：いいねJS（ここ1回だけ） -->
 <script src="/static/like.js?v=3000" defer></script>
