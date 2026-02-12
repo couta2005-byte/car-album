@@ -1593,17 +1593,21 @@ def dm_room(
         """, (other_user_id,))
         other = cur.fetchone()
 
-        # ✅ 相手からの未読メッセージを既読にする
+                # ✅ 相手からの未読メッセージを既読にする（ルームを開いた瞬間）
         cur.execute("""
             UPDATE dm_messages
             SET read_at = %s
             WHERE room_id = %s
               AND sender_id <> %s
               AND read_at IS NULL
-        """, (utcnow_naive(), room_id, me_user_id))
-        db.commit()
+        """, (
+            utcnow_naive(),
+            room_id,
+            me_user_id
+        ))
 
-        # メッセージ一覧
+        db.commit()
+     # メッセージ一覧
         cur.execute("""
             SELECT
                 m.id,
