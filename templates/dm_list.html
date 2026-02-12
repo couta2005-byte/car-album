@@ -55,5 +55,17 @@
   {% endif %}
 </main>
 
+<!-- ✅ DMクリック時に未読バッジを即消す -->
+<script>
+document.querySelectorAll(".dm-item").forEach(item => {
+  item.addEventListener("click", () => {
+    const badge = item.querySelector(".dm-unread-badge");
+    if (badge) {
+      badge.remove();
+    }
+  });
+});
+</script>
+
 </body>
 </html>
