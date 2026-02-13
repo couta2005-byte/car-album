@@ -7,22 +7,23 @@ html, body { height: 100%; }
 
 body {
   margin: 0;
-  padding-bottom: 64px; /* 下ナビ分 */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  padding-bottom: 64px; /* 下ナビ分（SPのみ有効） */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, "Noto Sans JP", sans-serif;
   background: #ffffff;
   color: #0f1419;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden; /* 横はみ出しで右スカスカ化するのを防ぐ */
+  overflow-x: hidden;
 }
 
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 
-img, video {
+img {
+  display: block;
   max-width: 100%;
   height: auto;
-  display: block;
 }
 
 /* =========================================================
@@ -38,7 +39,7 @@ img, video {
    Layout
 ========================================================= */
 .container {
-  width: 100%;              /* ✅ 幅100%を明示（右スカスカ対策） */
+  width: 100%;
   max-width: 680px;
   margin: 0 auto;
   padding: 12px;
@@ -93,7 +94,7 @@ textarea {
 }
 
 /* =========================================================
-   Post Card（投稿・ランキング共通）
+   Post Card
 ========================================================= */
 .post,
 .post-card {
@@ -103,7 +104,7 @@ textarea {
   margin-bottom: 16px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   position: relative;
-  overflow: hidden; /* ✅ 画像/中身がカード外にはみ出すの防ぐ */
+  overflow: hidden;
 }
 
 .post-header,
@@ -136,19 +137,22 @@ textarea {
   word-break: break-word;
 }
 
+/* =========================================================
+   Image（改造前準拠・唯一の正解）
+========================================================= */
 .post-image {
   margin-top: 10px;
+  width: 100%;
+  max-height: 420px;
   border-radius: 16px;
   overflow: hidden;
-  background: #f2f4f7;
+  background: #f3f4f6;
 }
 
-/* ✅ 画像がデカすぎて崩れるのを防ぐ（スマホ最適） */
 .post-image img {
   width: 100%;
   height: auto;
-  max-height: 520px;     /* PCでも暴れない */
-  object-fit: cover;     /* 余白を作らずに見栄え優先 */
+  object-fit: cover;
 }
 
 /* =========================================================
@@ -256,12 +260,6 @@ textarea {
   color: #8899a6;
 }
 
-.comment-body {
-  margin-top: 4px;
-  font-size: 14px;
-  white-space: pre-wrap;
-}
-
 /* =========================================================
    Search
 ========================================================= */
@@ -282,35 +280,6 @@ textarea {
 .search-bar {
   display: flex;
   gap: 10px;
-}
-
-.search-btn {
-  padding: 12px 18px;
-  border-radius: 999px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: 900;
-}
-
-/* =========================================================
-   DM List
-========================================================= */
-.dm-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.dm-item {
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 14px;
-}
-
-.dm-item:hover {
-  background: #f5f5f5;
 }
 
 /* =========================================================
@@ -345,7 +314,6 @@ textarea {
   color: #536471;
 }
 
-/* Profile stats */
 .profile-stats {
   display: flex;
   justify-content: center;
@@ -368,28 +336,14 @@ textarea {
   color: #0f1419;
 }
 
-/* DM button */
-.dm-btn {
-  height: 38px;
-  padding: 0 18px;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(135deg, #1d9bf0, #0a85d1);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 900;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(29,155,240,0.35);
-}
-
 /* =========================================================
-   Bottom Navigation（唯一のナビ）
+   Bottom Navigation（SP専用）
 ========================================================= */
 .bottom-nav {
   position: fixed;
-  bottom: 0;
   left: 0;
   right: 0;
+  bottom: 0;
   height: 56px;
   background: #000;
   display: flex;
@@ -399,218 +353,70 @@ textarea {
 }
 
 .nav-item {
-  color: #aaa;
-  font-size: 12px;
   position: relative;
-  padding: 6px 10px;
   min-width: 56px;
-  text-align: center;
-
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 44px;
-  line-height: 1;
+  color: #aaa;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .nav-item.active {
   color: #1d9bf0;
 }
 
-/* active indicator */
 .nav-item.active::after {
   content: "";
-  display: block;
-  margin: 4px auto 0;
+  position: absolute;
+  bottom: 4px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: #1d9bf0;
 }
 
-/* DM unread dot */
+/* 🔍 検索だけ強調 */
+.nav-search {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.nav-search.active::after {
+  display: none;
+}
+
+/* DM 未読ドット */
 .dm-unread-dot {
   position: absolute;
-  top: -4px;
-  right: -6px;
+  top: 6px;
+  right: 14px;
   width: 7px;
   height: 7px;
   background: #ff3b30;
   border-radius: 50%;
 }
 
-/* ✅ 🔍だけ目立たせる */
-.nav-search {
-  font-size: 18px;
-  font-weight: 900;
-  min-width: 44px;
-  padding: 6px 12px;
-}
-/* 🔍のactiveドットは消す */
-.nav-search.active::after { display: none; }
-
 /* =========================================================
-   Mobile Adjust（必須）
+   Responsive
 ========================================================= */
 @media (max-width: 600px) {
-  .container {
-    padding: 10px;
-  }
-
   .search-bar {
     flex-direction: column;
   }
 
-  .post,
-  .post-card {
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-
-  /* ✅ スマホで画像がデカすぎないよう制限強め */
   .post-image img {
     max-height: 360px;
   }
-
-  .post-header,
-  .post-top {
-    align-items: flex-start;
-  }
-
-  .profile-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .profile-stats {
-    gap: 20px;
-  }
 }
-/* =========================================================
-   PC表示 最適化（768px以上）
-========================================================= */
+
+/* PCでは下ナビを無効化 */
 @media (min-width: 768px) {
+  body { padding-bottom: 0; }
 
-  body {
-    background: #f5f6f8; /* スカスカ防止 */
-  }
-
-  /* すべてのメイン要素を中央寄せ */
-  .container,
-  .search-hero,
-  .post,
-  .post-card,
-  form {
-    max-width: 680px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* 投稿フォームも中央に */
-  form {
-    background: #fff;
-    padding: 16px;
-    border-radius: 18px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    margin-bottom: 20px;
-  }
-
-  /* 上の「おすすめ / フォロー中」タブも中央寄せ */
-  .ranking-tabs,
-  .top-tabs,
-  .tab-switch {
-    max-width: 680px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  /* PCでは下ナビを消す（スマホ専用） */
   .bottom-nav {
     display: none;
   }
-
-  /* PCでは下余白不要 */
-  body {
-    padding-bottom: 0;
-  }
-}
-/* =========================
-   Bottom Navigation (NEW)
-========================= */
-
-.bottom-nav{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  height:56px;
-  background:#000;
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-  z-index:1000;
-}
-
-/* item */
-.bn-item{
-  position:relative;
-  min-width:56px;
-  height:44px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#aaa;
-  font-size:12px;
-  font-weight:800;
-}
-
-/* text */
-.bn-label{
-  line-height:1;
-}
-
-/* active */
-.bn-item.active{
-  color:#1d9bf0;
-}
-
-.bn-item.active::after{
-  content:"";
-  position:absolute;
-  bottom:4px;
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:#1d9bf0;
-}
-
-/* 🔍 search */
-.bn-search{
-  font-size:18px;
-  font-weight:900;
-}
-
-.bn-search.active::after{
-  display:none;
-}
-
-/* DM unread */
-.bn-unread-dot{
-  position:absolute;
-  top:6px;
-  right:14px;
-  width:7px;
-  height:7px;
-  background:#ff3b30;
-  border-radius:50%;
-}
-
-/* avatar */
-.bn-avatar img,
-.bn-avatar-fallback{
-  width:32px;
-  height:32px;
-  border-radius:50%;
-  background:#e5e7eb;
-  object-fit:cover;
 }
