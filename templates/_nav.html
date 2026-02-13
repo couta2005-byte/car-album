@@ -7,6 +7,12 @@
     ホーム
   </a>
 
+  <!-- 🔍 検索（追加） -->
+  <a href="/search"
+     class="nav-item {% if mode=='search' %}active{% endif %}">
+    🔍
+  </a>
+
   <!-- ランキング -->
   <a href="/ranking?period=day"
      class="nav-item {% if mode.startswith('ranking') %}active{% endif %}">
