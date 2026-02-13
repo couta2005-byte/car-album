@@ -797,15 +797,34 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
 # ======================
 # top
 # ======================
+# ======================
+# top（HOME：おすすめ / フォロー中）
+# ======================
 @app.get("/", response_class=HTMLResponse)
-def index(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+def index(
+    request: Request,
+    tab: str = Query(default="recommend"),
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
     db = get_db()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
-        posts = fetch_posts(db, me_user_id)
+
+        # 🔽 タブ分岐
+        if tab == "following" and me_user_id:
+            posts = fetch_posts(
+                db, me_user_id,
+                "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
+                (me_user_id,)
+            )
+        else:
+            posts = fetch_posts(db, me_user_id)
+
         liked_posts = get_liked_posts(db, me_user_id, me_username)
+
     finally:
         db.close()
 
@@ -817,6 +836,11 @@ def index(request: Request, user: str = Cookie(default=None), uid: str = Cookie(
         "me_handle": me_handle,
         "unread_dm": unread_dm,
         "liked_posts": liked_posts,
+
+        # 🔽 追加
+        "tab": tab,
+
+        # 既存互換
         "mode": "home",
         "ranking_title": "",
         "period": ""

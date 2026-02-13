@@ -1,42 +1,44 @@
+<!-- ===== Bottom Navigation ===== -->
+<nav class="bottom-nav">
 
-<header class="header">
-  <div class="header-inner">
-    <a href="/" class="logo">Carbum</a>
+  <!-- ホーム -->
+  <a href="/"
+     class="nav-item {% if mode=='home' %}active{% endif %}">
+    ホーム
+  </a>
 
-    <nav class="nav">
-      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
-      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">検索</a>
+  <!-- ランキング -->
+  <a href="/ranking?period=day"
+     class="nav-item {% if mode.startswith('ranking') %}active{% endif %}">
+    ランキング
+  </a>
 
-      {% if user %}
-        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
+  <!-- DM（未読ドット） -->
+  <a href="/dm"
+     class="nav-item {% if mode=='dm' %}active{% endif %}">
+    DM
+    {% if unread_dm %}
+      <span class="dm-unread-dot"></span>
+    {% endif %}
+  </a>
 
-        <!-- ✅ DM（未読ドット対応） -->
-        <a href="/dm" class="nav-link dm-nav {% if mode=='dm' %}active{% endif %}">
-          DM
-          {% if unread_dm %}
-            <span class="dm-unread-dot"></span>
-          {% endif %}
-        </a>
-
-        <a href="/ranking?period=day"
-           class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
-          ランキング
-        </a>
-
-        <a href="/user/{{ user | urlencode }}"
-           class="nav-link {% if mode=='profile' %}active{% endif %}">
-          プロフィール
-        </a>
-
-        <form action="/logout" method="post" style="display:inline;">
-          <button type="submit" class="logout-btn">ログアウト</button>
-        </form>
+  <!-- プロフィール（アイコン） -->
+  {% if user %}
+    <a href="/user/{{ me_handle or user | urlencode }}"
+       class="nav-item nav-avatar {% if mode=='profile' %}active{% endif %}">
+      {% if me_icon %}
+        <img src="{{ me_icon }}" alt="profile">
       {% else %}
-        <a href="/login" class="nav-link">ログイン</a>
-        <a href="/register" class="nav-link">新規登録</a>
+        <div class="avatar-placeholder"></div>
       {% endif %}
-    </nav>
-  </div>
-</header>
+    </a>
+  {% else %}
+    <a href="/login" class="nav-item">
+      ログイン
+    </a>
+  {% endif %}
 
+</nav>
+
+<!-- 👍 既存いいねJSはそのまま -->
 <script src="/static/like.js?v=3000" defer></script>
