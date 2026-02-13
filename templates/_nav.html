@@ -1,50 +1,39 @@
-<!-- ===== Bottom Navigation ===== -->
 <nav class="bottom-nav">
 
-  <!-- ホーム -->
-  <a href="/"
-     class="nav-item {% if mode=='home' %}active{% endif %}">
-    ホーム
+  <a href="/" class="bn-item {% if mode=='home' %}active{% endif %}">
+    <span class="bn-label">ホーム</span>
   </a>
 
-  <!-- 🔍 検索（追加） -->
-  <a href="/search"
-     class="nav-item {% if mode=='search' %}active{% endif %}">
+  <a href="/search" class="bn-item bn-search {% if mode=='search' %}active{% endif %}">
     🔍
   </a>
 
-  <!-- ランキング -->
   <a href="/ranking?period=day"
-     class="nav-item {% if mode.startswith('ranking') %}active{% endif %}">
-    ランキング
+     class="bn-item {% if mode.startswith('ranking') %}active{% endif %}">
+    <span class="bn-label">ランキング</span>
   </a>
 
-  <!-- DM（未読ドット） -->
   <a href="/dm"
-     class="nav-item {% if mode=='dm' %}active{% endif %}">
-    DM
+     class="bn-item bn-dm {% if mode=='dm' %}active{% endif %}">
+    <span class="bn-label">DM</span>
     {% if unread_dm %}
-      <span class="dm-unread-dot"></span>
+      <span class="bn-unread-dot"></span>
     {% endif %}
   </a>
 
-  <!-- プロフィール（アイコン） -->
   {% if user %}
     <a href="/user/{{ me_handle or user | urlencode }}"
-       class="nav-item nav-avatar {% if mode=='profile' %}active{% endif %}">
+       class="bn-item bn-avatar {% if mode=='profile' %}active{% endif %}">
       {% if me_icon %}
-        <img src="{{ me_icon }}" alt="profile">
+        <img src="{{ me_icon }}" alt="">
       {% else %}
-        <div class="avatar-placeholder"></div>
+        <div class="bn-avatar-fallback"></div>
       {% endif %}
     </a>
   {% else %}
-    <a href="/login" class="nav-item">
-      ログイン
+    <a href="/login" class="bn-item">
+      <span class="bn-label">ログイン</span>
     </a>
   {% endif %}
 
 </nav>
-
-<!-- 👍 既存いいねJSはそのまま -->
-<script src="/static/like.js?v=3000" defer></script>
