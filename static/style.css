@@ -7,7 +7,6 @@ html, body { height: 100%; }
 
 body {
   margin: 0;
-  padding-bottom: 64px; /* 下ナビ分（SPのみ有効） */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
                Roboto, "Noto Sans JP", sans-serif;
   background: #ffffff;
@@ -17,10 +16,15 @@ body {
   overflow-x: hidden;
 }
 
+/* SPだけ下ナビ分余白 */
+@media (max-width: 767px){
+  body { padding-bottom: 72px; }
+}
+
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 
-img {
+img, video {
   display: block;
   max-width: 100%;
   height: auto;
@@ -85,7 +89,9 @@ textarea {
 ========================================================= */
 .avatar,
 .avatar-placeholder,
-.nav-avatar img {
+.nav-avatar img,
+.bn-avatar img,
+.bn-avatar-fallback {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -155,6 +161,10 @@ textarea {
   object-fit: cover;
 }
 
+@media (max-width: 600px){
+  .post-image img { max-height: 360px; }
+}
+
 /* =========================================================
    Actions
 ========================================================= */
@@ -180,7 +190,8 @@ textarea {
 .action-btn,
 .like-btn,
 .delete-btn,
-.follow-btn {
+.follow-btn,
+.dm-btn {
   height: 38px;
   padding: 0 14px;
   border-radius: 999px;
@@ -189,13 +200,6 @@ textarea {
   font-size: 14px;
   font-weight: 900;
   cursor: pointer;
-}
-
-.action-btn:hover,
-.like-btn:hover,
-.delete-btn:hover,
-.follow-btn:hover {
-  background: #f6f7f8;
 }
 
 .like-btn.active {
@@ -207,6 +211,14 @@ textarea {
 .like-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* DMボタン（主役） */
+.dm-btn {
+  border: none;
+  background: linear-gradient(135deg, #1d9bf0, #0a85d1);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(29,155,240,0.35);
 }
 
 /* =========================================================
@@ -247,17 +259,6 @@ textarea {
   padding: 12px 14px;
   margin-bottom: 12px;
   border: 1px solid rgba(15,20,25,0.06);
-}
-
-.comment-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.comment-time {
-  font-size: 12px;
-  color: #8899a6;
 }
 
 /* =========================================================
@@ -321,25 +322,10 @@ textarea {
   margin-top: 14px;
 }
 
-.profile-stats .stat {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #536471;
-}
-
-.profile-stats .stat-num {
-  font-size: 17px;
-  font-weight: 900;
-  color: #0f1419;
-}
-
 /* =========================================================
-   Bottom Navigation（SP専用）
+   Bottom Navigation（最終・B統合版）
 ========================================================= */
-.bottom-nav {
+.bottom-nav{
   position: fixed;
   left: 0;
   right: 0;
@@ -350,9 +336,13 @@ textarea {
   justify-content: space-around;
   align-items: center;
   z-index: 1000;
+
+  /* nav自体は触らせない */
+  pointer-events: none;
 }
 
-.nav-item {
+.bn-item{
+  pointer-events: auto;
   position: relative;
   min-width: 56px;
   height: 44px;
@@ -364,59 +354,42 @@ textarea {
   font-weight: 800;
 }
 
-.nav-item.active {
+.bn-item.active{
   color: #1d9bf0;
 }
 
-.nav-item.active::after {
-  content: "";
-  position: absolute;
-  bottom: 4px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #1d9bf0;
+.bn-item.active::after{
+  content:"";
+  position:absolute;
+  bottom:4px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#1d9bf0;
 }
 
-/* 🔍 検索だけ強調 */
-.nav-search {
-  font-size: 18px;
-  font-weight: 900;
+/* search */
+.bn-search{
+  font-size:18px;
+  font-weight:900;
 }
+.bn-search.active::after{ display:none; }
 
-.nav-search.active::after {
-  display: none;
-}
-
-/* DM 未読ドット */
-.dm-unread-dot {
-  position: absolute;
-  top: 6px;
-  right: 14px;
-  width: 7px;
-  height: 7px;
-  background: #ff3b30;
-  border-radius: 50%;
+/* DM unread */
+.bn-unread-dot{
+  position:absolute;
+  top:6px;
+  right:14px;
+  width:7px;
+  height:7px;
+  background:#ff3b30;
+  border-radius:50%;
 }
 
 /* =========================================================
-   Responsive
+   PCでは下ナビ完全OFF
 ========================================================= */
-@media (max-width: 600px) {
-  .search-bar {
-    flex-direction: column;
-  }
-
-  .post-image img {
-    max-height: 360px;
-  }
-}
-
-/* PCでは下ナビを無効化 */
-@media (min-width: 768px) {
-  body { padding-bottom: 0; }
-
-  .bottom-nav {
-    display: none;
-  }
+@media (min-width: 768px){
+  .bottom-nav{ display:none !important; }
+  body{ padding-bottom:0; background:#f5f6f8; }
 }
