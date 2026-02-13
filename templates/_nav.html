@@ -1,34 +1,42 @@
-<nav class="bottom-nav">
 
-  <a href="/" class="nav-item {% if mode == 'home' %}active{% endif %}">
-    ホーム
-  </a>
+<header class="header">
+  <div class="header-inner">
+    <a href="/" class="logo">Carbum</a>
 
-  <a href="/search" class="nav-item {% if mode == 'search' %}active{% endif %}">
-    🔍
-  </a>
+    <nav class="nav">
+      <a href="/" class="nav-link {% if mode=='home' %}active{% endif %}">おすすめ</a>
+      <a href="/search" class="nav-link {% if mode=='search' %}active{% endif %}">検索</a>
 
-  <a href="/ranking?period=day"
-     class="nav-item {% if mode.startswith('ranking') %}active{% endif %}">
-    ランキング
-  </a>
+      {% if user %}
+        <a href="/following" class="nav-link {% if mode=='following' %}active{% endif %}">フォロー中</a>
 
-  <a href="/dm" class="nav-item {% if mode == 'dm' %}active{% endif %}">
-    DM
-    {% if unread_dm %}
-      <span class="dm-unread-dot"></span>
-    {% endif %}
-  </a>
+        <!-- ✅ DM（未読ドット対応） -->
+        <a href="/dm" class="nav-link dm-nav {% if mode=='dm' %}active{% endif %}">
+          DM
+          {% if unread_dm %}
+            <span class="dm-unread-dot"></span>
+          {% endif %}
+        </a>
 
-  {% if user %}
-    <a href="/user/{{ me_handle if me_handle else user | urlencode }}"
-       class="nav-item {% if mode == 'profile' %}active{% endif %}">
-      プロフ
-    </a>
-  {% else %}
-    <a href="/login" class="nav-item">
-      ログイン
-    </a>
-  {% endif %}
+        <a href="/ranking?period=day"
+           class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
+          ランキング
+        </a>
 
-</nav>
+        <a href="/user/{{ user | urlencode }}"
+           class="nav-link {% if mode=='profile' %}active{% endif %}">
+          プロフィール
+        </a>
+
+        <form action="/logout" method="post" style="display:inline;">
+          <button type="submit" class="logout-btn">ログアウト</button>
+        </form>
+      {% else %}
+        <a href="/login" class="nav-link">ログイン</a>
+        <a href="/register" class="nav-link">新規登録</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+
+<script src="/static/like.js?v=3000" defer></script>

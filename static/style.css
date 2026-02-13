@@ -1,276 +1,1305 @@
-/* =========================================================
+/* =========================
    Reset / Base
-========================================================= */
+========================= */
 * { box-sizing: border-box; }
 
 html, body { height: 100%; }
 
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
-  background:#ffffff;
-  color:#0f1419;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  overflow-x:hidden;
-
-  /* ✅ 下ナビぶんの余白（SPだけ） */
-  padding-bottom:72px;
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  background: #ffffff;
+  color: #0f1419;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-a{ color:inherit; text-decoration:none; }
-button{ font-family:inherit; }
+a { color: inherit; }
+button { font-family: inherit; }
 
-img, video{
-  display:block;
-  max-width:100%;
-  height:auto;
+/* =========================
+   Header / Nav
+========================= */
+.header { background: #000; }
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  gap: 12px;
 }
 
-/* =========================================================
-   Top Navigation（完全廃止）
-========================================================= */
-.header, .header-inner, .nav{
-  display:none !important;
+.logo {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 900;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
-/* =========================================================
+.nav {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.nav-link {
+  color: #bbb;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.nav-link.active {
+  color: #1d9bf0;
+  background: rgba(29,155,240,0.12);
+}
+
+.logout-btn {
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logout-btn:hover { opacity: 0.92; }
+
+/* =========================
    Layout
-========================================================= */
-.container{
-  width:100%;
-  max-width:680px;
-  margin:0 auto;
-  padding:12px;
+========================= */
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 12px 12px 32px;
 }
 
-/* =========================================================
-   Forms
-========================================================= */
-input, textarea{
-  width:100%;
-  padding:12px 14px;
-  border-radius:14px;
-  border:2px solid #cfd9de;
-  font-size:14px;
-  background:#fff;
-  color:#0f1419;
+/* =========================
+   Forms（共通）
+========================= */
+.post-form { margin-bottom: 16px; }
+
+.form-row {
+  display: flex;
+  gap: 10px;
 }
 
-input:focus, textarea:focus{
-  outline:none;
-  border-color:#1d9bf0;
-  box-shadow:0 0 0 3px rgba(29,155,240,0.15);
+.form-row.bottom {
+  align-items: center;
 }
 
-textarea{
-  min-height:90px;
-  resize:vertical;
+@media (max-width: 600px) {
+  .form-row { flex-direction: column; }
 }
 
-.primary-btn{
-  width:100%;
-  padding:12px;
-  border-radius:999px;
-  border:none;
-  background:#1d9bf0;
-  color:#fff;
-  font-weight:900;
-  cursor:pointer;
+input, textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 2px solid #cfd9de;
+  font-size: 14px;
+  margin-bottom: 10px;
+  background: #fff;
+  color: #0f1419;
 }
 
-/* =========================================================
-   Avatar
-========================================================= */
-.avatar,
-.avatar-placeholder{
-  width:36px;
-  height:36px;
-  border-radius:50%;
-  background:#e5e7eb;
-  object-fit:cover;
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #1d9bf0;
+  box-shadow: 0 0 0 3px rgba(29,155,240,0.15);
 }
 
-/* =========================================================
-   Post Card
-========================================================= */
-.post, .post-card{
-  background:#fff;
-  border-radius:18px;
-  padding:14px;
-  margin-bottom:16px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.08);
-  position:relative;
-  overflow:hidden;
+textarea {
+  min-height: 90px;
+  resize: vertical;
 }
 
-.post-header, .post-top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
+.primary-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 999px;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
 }
 
-.post-title{
-  display:flex;
-  align-items:center;
-  gap:10px;
+.primary-btn:hover { opacity: 0.92; }
+
+/* =========================
+   Avatar（ユーザーアイコン）
+========================= */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #e5e7eb;
+  border: 1px solid rgba(15,20,25,0.06);
 }
 
-.post-user{ font-weight:900; }
-.post-car{ font-size:16px; font-weight:900; }
-
-.post-text, .post-comment{
-  margin-top:6px;
-  font-size:14px;
-  line-height:1.65;
-  white-space:pre-wrap;
-  word-break:break-word;
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-/* =========================================================
-   Image（暴れ停止：改造前準拠）
-========================================================= */
-.post-image{
-  margin-top:10px;
-  width:100%;
-  max-height:420px;
-  border-radius:16px;
-  overflow:hidden;
-  background:#f3f4f6;
+.avatar-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: 1px solid rgba(15,20,25,0.06);
+  display: inline-block;
 }
 
-.post-image img{
-  width:100%;
-  height:auto;
-  object-fit:cover;
+/* =========================
+   Post Card（共通）
+========================= */
+.post, .post-card {
+  position: relative; /* ←重なり対策の土台 */
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
-/* =========================================================
-   Actions
-========================================================= */
-.post-actions, .ranking-actions{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-top:10px;
-  flex-wrap:wrap;
+.post-top, .post-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center; /* アイコン時に揃える */
 }
 
-.post-actions form{ margin:0; }
+.post-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
+.post-title-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: baseline;
+}
+
+.post-user {
+  font-weight: 800;
+  text-decoration: none;
+  color: #0f1419;
+}
+
+.post-user:hover { text-decoration: underline; }
+
+.post-sep { color: #536471; }
+
+.post-car {
+  font-size: 16px;
+  font-weight: 900;
+  margin-top: 2px;
+}
+
+.post-date, .post-time {
+  font-size: 12px;
+  color: #536471;
+  white-space: nowrap;
+}
+
+.post-text, .post-comment {
+  font-size: 14px;
+  line-height: 1.65;
+  margin-top: 6px;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* =========================
+   Image（重なり対策）
+========================= */
+.post-image {
+  position: relative;
+  z-index: 1; /* ←アクションより後ろ */
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  max-height: 420px;
+  background: #f3f4f6;
+}
+
+.post-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* =========================
+   Actions（統一）
+========================= */
+.post-actions,
+.ranking-actions {
+  position: relative;
+  z-index: 5; /* ←画像より前に固定して「押せない」を防ぐ */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+/* formが並ぶとズレるの防止 */
+.post-actions form { margin: 0; }
+
+/* ✅ 追加：右寄せグループ（削除→コメント→いいね をまとめる） */
 .post-actions-right{
-  margin-left:auto;
-  display:flex;
-  gap:10px;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-/* =========================================================
-   Buttons
-========================================================= */
-.action-btn, .like-btn, .delete-btn, .follow-btn{
-  height:38px;
-  padding:0 14px;
-  border-radius:999px;
-  border:1px solid #e5e7eb;
-  background:#fff;
-  font-size:14px;
-  font-weight:900;
-  cursor:pointer;
+/* =========================
+   Buttons（統一デザイン）
+========================= */
+/* 共通：ピルボタン（リンク用） */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  height: 38px;
+  padding: 0 14px;
+
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
 }
 
-.action-btn:hover, .like-btn:hover, .delete-btn:hover, .follow-btn:hover{
-  background:#f6f7f8;
+.action-btn:hover { background: #f7f7f8; }
+.action-btn:active { transform: scale(0.985); }
+
+.action-btn .count {
+  font-weight: 900;
+  min-width: 10px;
+  text-align: center;
 }
+
+/* いいねボタン（JS対象） */
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  height: 38px;
+  padding: 0 14px;
+
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+
+  color: #111827;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
+}
+
+.like-btn:hover { background:#f7f7f8; }
+.like-btn:active { transform: scale(0.985); }
 
 .like-btn.active{
-  background:#ffe7ef;
-  border-color:#ffb3cc;
-  color:#be123c;
+  background: #ffe7ef;
+  border-color: #ffb3cc;
+  color: #be123c;
 }
 
 .like-btn:disabled{
-  opacity:.6;
-  cursor:not-allowed;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-/* =========================================================
-   Ranking
-========================================================= */
-.ranking-tabs{
-  display:flex;
-  gap:10px;
-  margin-bottom:16px;
+.like-btn .like-icon {
+  display: inline-block;
+  width: 1.2em;
+  text-align: center;
 }
 
-.ranking-tab{
-  flex:1;
-  padding:11px 0;
-  border-radius:999px;
-  background:#f3f4f6;
-  font-weight:900;
-  text-align:center;
+.like-btn .like-count {
+  font-weight: 900;
+  letter-spacing: 0.2px;
 }
 
-.ranking-tab.active{
-  background:#000;
-  color:#fff;
+/* （今回使わないけど残してOK：detail-link） */
+.detail-link{
+  margin-left: auto;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 900;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 10px;
 }
 
-/* =========================================================
-   Search
-========================================================= */
-.search-hero{
+.detail-link:hover{
+  background: #eef2ff;
+}
+
+/* delete / follow */
+.delete-btn, .follow-btn {
+  height: 38px;
+  border-radius: 999px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  border: 1px solid #cfd9de;
+  background: #fff;
+  color: #0f1419;
+}
+
+.delete-btn:hover, .follow-btn:hover { background: #f6f7f8; }
+
+.delete-btn { border-color: rgba(244,63,94,0.35); }
+.delete-btn:hover { background: rgba(244,63,94,0.08); }
+
+/* =========================
+   Back link
+========================= */
+.back-link {
+  display: inline-block;
+  margin: 6px 0 12px;
+  color: #0f1419;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.back-link:hover { text-decoration: underline; }
+
+/* =========================
+   Ranking Tabs
+========================= */
+.ranking-tabs {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0 16px;
+}
+
+.ranking-tab {
+  flex: 1;
+  text-align: center;
+  padding: 11px 0;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+  background: #f3f4f6;
+  color: #333;
+  border: none;
+}
+
+.ranking-tab:hover { opacity: 0.92; }
+
+.ranking-tab.active {
+  background: #000;
+  color: #fff;
+}
+
+/* =========================
+   Ranking Card
+========================= */
+.ranking-card {
+  position: relative;
+  padding: 16px 16px 18px 78px;
+  border-radius: 22px;
+  margin-bottom: 22px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.10);
+  text-align: left;
+  transition: transform 0.08s ease, box-shadow 0.12s ease;
+}
+
+.ranking-card:hover { box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
+.ranking-card:active { transform: scale(0.995); }
+
+.ranking-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  border-radius: 22px 0 0 22px;
+}
+
+.rank-1::before { background: #ffd43b; }
+.rank-2::before { background: #adb5bd; }
+.rank-3::before { background: #f1a36b; }
+
+.rank-badge {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  font-size: 18px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+
+.rank-1 .rank-badge { background: #f5b400; }
+.rank-2 .rank-badge { background: #9ca3af; }
+.rank-3 .rank-badge { background: #c97a3d; }
+
+.ranking-title {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 16px;
+  align-items: center;
+}
+
+.ranking-user { font-weight: 900; }
+.ranking-car  { font-weight: 900; }
+
+.ranking-meta {
+  position: relative;
+  z-index: 5; /* ←画像より前 */
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #666;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* =========================
+   Comment Section（統一・安定）
+========================= */
+.comment-section {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid #e6ecf0;
+}
+
+.comment-section h3 {
+  font-size: 18px;
+  font-weight: 900;
+  margin: 0 0 16px;
+}
+
+.comment-section ul, .comment-section ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.comment-item {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: #f7f9fb;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  color: #0f1419;
+  border: 1px solid rgba(15,20,25,0.06);
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.comment-header strong {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f1419 !important;
+}
+
+.comment-time {
+  font-size: 12px;
+  color: #8899a6;
+  white-space: nowrap;
+}
+
+.comment-body {
+  display: block;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #0f1419 !important;
+  white-space: pre-wrap;
+  word-break: break-word;
+  visibility: visible !important;
+}
+
+.no-comment {
+  font-size: 14px;
+  color: #8899a6;
+  margin: 0 0 12px;
+}
+
+/* =========================
+   Comment Form
+========================= */
+.comment-form { margin-top: 28px; }
+
+.comment-form h4 {
+  font-size: 16px;
+  font-weight: 900;
+  margin: 0 0 10px;
+}
+
+.comment-form button {
+  margin-top: 10px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.comment-form button:hover { opacity: 0.92; }
+
+/* =========================
+   Search Page (Clean UI)
+========================= */
+.search-hero {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin: 8px 0 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.search-title {
+  font-size: 26px;
+  font-weight: 900;
+  margin: 2px 0 12px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-input {
+  width: 100%;
+  margin: 0;
+}
+
+.search-btn {
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 900;
+  border-radius: 999px;
+  padding: 12px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-btn:hover { opacity: 0.92; }
+
+.search-meta {
+  margin: 10px 0 0;
+  color: #536471;
+  font-size: 14px;
+}
+
+.search-advanced { margin-top: 12px; }
+
+.search-advanced-summary {
+  cursor: pointer;
+  font-weight: 900;
+  color: #0f1419;
+  user-select: none;
+}
+
+.search-advanced-form { margin-top: 10px; }
+
+.search-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.search-section { margin: 14px 0 22px; }
+
+.section-title {
+  font-size: 16px;
+  font-weight: 900;
+  margin: 0 0 10px;
+  color: #0f1419;
+}
+
+.user-list {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #cfd9de;
+  background: #fff;
+  text-decoration: none;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.user-pill:hover { background: #f6f7f8; }
+
+.user-at { font-weight: 900; color: #0f1419; }
+.user-go { color: #536471; font-weight: 900; }
+
+.empty-note { color: #8899a6; margin: 0; font-size: 14px; }
+
+/* =========================
+   Mobile
+========================= */
+@media (max-width: 600px) {
+  .logo { font-size: 20px; }
+  .header-inner { padding: 12px 12px; }
+  .container { padding: 12px 12px 30px; }
+
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-grid { grid-template-columns: 1fr; }
+
+  .search-btn { width: 100%; }
+}
+/* =========================
+   Unified cards for Search / Profile
+========================= */
+
+/* 検索の上の箱（search-hero）を投稿カードと同じ質感に寄せる */
+.search-hero {
+  border-radius: 18px;                 /* postと合わせる */
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  background: #fff;
+}
+
+/* 検索結果のユーザーpillを “カードっぽいピル” に統一 */
+.user-pill {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  padding: 10px 14px;
+}
+
+.user-pill:hover {
+  background: #f7f7f8;
+}
+
+/* プロフィール：名前見出し（もし既に使ってるなら上書きで統一） */
+.profile-name {
+  font-size: 22px;
+  font-weight: 900;
+  margin: 10px 0 12px;
+}
+
+/* プロフィール：情報ボックスを投稿カードと同じ “白カード” に */
+.profile-box {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin: 12px 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* プロフィール：ボックス内の項目を見やすく */
+.profile-box strong {
+  display: inline-block;
+  min-width: 5em;
+  color: #111827;
+}
+
+.profile-box .muted,
+.profile-box small {
+  color: #536471;
+}
+
+/* プロフィール上部（アイコン＋名前＋ボタンの並びを作りたい時用） */
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 10px 0 12px;
+}
+
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* プロフィールの投稿一覧も、postsと同じ間隔 */
+.profile-posts .post {
+  margin-bottom: 16px;
+}
+/* =========================
+   ⑧ コメント削除ボタン
+========================= */
+.comment-del-btn{
+  border:1px solid #ddd;
   background:#fff;
-  border-radius:18px;
-  padding:14px;
-  margin-bottom:16px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.08);
-}
-
-.search-title{
-  font-size:26px;
+  border-radius:12px;
+  padding:6px 10px;
   font-weight:900;
-  margin-bottom:12px;
+  cursor:pointer;
 }
 
-.search-bar{
-  display:flex;
-  gap:10px;
+/* =========================
+   ⑩ 画像拡大モーダル
+========================= */
+.post-image img{ cursor: zoom-in; }
+
+.img-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.86);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:18px;
+}
+.img-modal.open{ display:flex; }
+
+.img-modal-inner{
+  max-width:100%;
+  max-height:100%;
 }
 
-/* =========================================================
-   Profile
-========================================================= */
+.img-modal img{
+  max-width:100%;
+  max-height:100%;
+  border-radius:16px;
+}
+/* =========================
+   User Search (ADD ONLY)
+   ※ 既存CSSは一切変更しない
+========================= */
+
+/* ユーザー検索フォーム（検索フォーム直下） */
+.search-user-form {
+  display: flex;
+  gap: 10px;
+  margin: 6px 0 10px;
+}
+
+/* モバイル対応 */
+@media (max-width: 600px) {
+  .search-user-form {
+    flex-direction: column;
+  }
+}
+
+/* ユーザー検索結果リスト
+   既存 .user-list を上書きせず、
+   検索専用の見た目を安定させる */
+.search-section .user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ユーザー検索用ピル（既存 user-pill を壊さないため search-section 限定） */
+.search-section .user-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  text-decoration: none;
+}
+
+/* hover */
+.search-section .user-pill:hover {
+  background: #f7f7f8;
+}
+
+/* テキストブロック */
+.user-pill-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+/* 表示名 */
+.user-name {
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f1419;
+}
+
+/* @handle */
+.user-handle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #536471;
+}
+/* ===== DM List ===== */
+.dm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dm-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: background .15s;
+}
+
+.dm-item:hover {
+  background: #f5f5f5;
+}
+
+.dm-icon img,
+.icon-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ddd;
+  object-fit: cover;
+}
+
+.dm-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dm-name {
+  font-weight: 700;
+}
+
+.dm-time {
+  font-size: 12px;
+  color: #777;
+}
+
+.dm-preview {
+  font-size: 14px;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* =========================
+   Profile Page Upgrade
+   これを style.css の末尾に追記
+========================= */
+
+.inline-form { margin: 0; }
+
 .profile-header{
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
   gap:12px;
+  margin: 10px 0 12px;
 }
 
 .profile-left{
   display:flex;
   align-items:center;
   gap:12px;
+  min-width: 0;
+}
+
+.profile-avatar{
+  width:54px;
+  height:54px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  overflow:hidden;
 }
 
 .profile-avatar img{
-  width:54px;
-  height:54px;
-  border-radius:50%;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
 }
 
+.profile-idblock{ min-width:0; }
+
 .profile-name{
+  margin:0;
   font-size:18px;
   font-weight:900;
+  letter-spacing: .2px;
+  line-height: 1.15;
 }
 
 .profile-handle{
+  color:#536471;
   font-size:13px;
+  margin-top:4px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.profile-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+/* ===== Profile Box ===== */
+.profile-box{
+  margin:12px 0;
+  background:#fff;
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+
+.profile-badges{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.badge{
+  background:#f2f4f7;
+  border:1px solid #e5e7eb;
+  border-radius:999px;
+  padding:6px 10px;
+  font-size:12px;
+  font-weight:700;
+  color:#111827;
+}
+
+.profile-stats{
+  display:flex;
+  gap:16px;
+  align-items:flex-end;
+  margin-top:12px;
+}
+
+.profile-stats .stat{
+  display:flex;
+  align-items:baseline;
+  gap:6px;
+}
+
+.stat-num{
+  font-size:18px;
+  font-weight:900;
+  letter-spacing: .2px;
+}
+
+.stat-label{
+  font-size:12px;
+  color:#536471;
+  font-weight:700;
+}
+
+.profile-bio{
+  margin:12px 0 0;
+  white-space:pre-wrap;
+  color:#111827;
+  font-size:14px;
+  line-height:1.55;
+}
+
+/* ===== Profile Edit (details) ===== */
+.profile-edit{
+  margin: 16px 0 22px;
+  background:#fff;
+  border-radius:18px;
+  padding: 12px 14px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+
+.profile-edit-summary{
+  cursor:pointer;
+  font-weight:900;
+  list-style:none;
+  user-select:none;
+}
+
+.profile-edit summary::-webkit-details-marker{ display:none; }
+
+.profile-edit-summary::after{
+  content:"▼";
+  float:right;
+  color:#6b7280;
+  font-size:12px;
+  transform: translateY(2px);
+}
+
+.profile-edit[open] .profile-edit-summary::after{
+  content:"▲";
+}
+
+.profile-edit-form{
+  margin-top: 12px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.field{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.field-label{
+  font-size:12px;
+  font-weight:900;
+  color:#111827;
+}
+
+.field-help{
+  font-size:12px;
   color:#536471;
 }
 
+.field input,
+.field textarea{
+  width:100%;
+  padding:12px 12px;
+  border:1px solid #e5e7eb;
+  border-radius:14px;
+  font-size:14px;
+  outline:none;
+  background:#fff;
+}
+
+.field textarea{
+  min-height: 96px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus{
+  border-color:#94a3b8;
+  box-shadow:0 0 0 3px rgba(148,163,184,0.25);
+}
+
+.field-wide{ grid-column: 1 / -1; }
+
+/* ===== Section title ===== */
+.profile-section-title{
+  margin: 16px 0 10px;
+  font-size:16px;
+  font-weight:900;
+}
+
+/* ===== Mobile tuning ===== */
+@media (max-width: 420px){
+  .profile-name{ font-size:17px; }
+  .profile-avatar{ width:52px; height:52px; }
+  .profile-actions{ gap:6px; }
+  .badge{ padding:6px 9px; }
+}
+/* =========================================================
+   FINAL FIX（後勝ち・安全）
+   - フォロー/フォロワーのズレ修正
+   - DMボタン主役化
+========================================================= */
+
+/* --- フォロー/フォロワー：縦＋中央揃え --- */
+.profile-stats{
+  display:flex;
+  justify-content:center;
+  gap:32px;
+  margin-top:14px;
+}
+
+.profile-stats .stat{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-width:64px;
+}
+
+.stat-num{
+  font-size:20px;
+  font-weight:900;
+  line-height:1;
+}
+
+.stat-label{
+  margin-top:4px;
+  font-size:12px;
+  color:#536471;
+  font-weight:700;
+}
+
+/* --- DMボタン主役化（follow-btnは壊さない） --- */
+.dm-btn{
+  background: linear-gradient(135deg, #1d9bf0, #0a85d1);
+  color:#fff;
+  border:none;
+  font-weight:900;
+  box-shadow:0 4px 12px rgba(29,155,240,0.35);
+}
+
+.dm-btn:hover{ opacity:.92; }
+.dm-btn:active{
+  transform: translateY(1px);
+  box-shadow:0 2px 6px rgba(29,155,240,0.3);
+}
+/* =========================
+   Profile stats（ラベル → 数）
+========================= */
+
+.profile-stats{
+  display:flex;
+  justify-content:center;
+  gap:24px;
+  margin-top:14px;
+}
+
+.profile-stats .stat{
+  display:flex;
+  align-items:center;      /* 横並び */
+  gap:6px;                 /* ラベルと数字の距離 */
+  font-size:13px;
+  color:#536471;
+  font-weight:700;
+}
+
+.profile-stats .stat-label{
+  font-size:13px;
+  color:#536471;
+  font-weight:700;
+}
+
+.profile-stats .stat-num{
+  font-size:16px;
+  font-weight:900;
+  color:#0f1419;
+}
+/* =========================
+   DM Button（refined）
+========================= */
+
+.dm-btn{
+  height:38px;
+  padding:0 16px;
+  border-radius:999px;
+  border:1px solid #dbeafe;
+  background: linear-gradient(135deg, #1d9bf0, #0a85d1);
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+  cursor:pointer;
+
+  box-shadow:
+    0 4px 10px rgba(29,155,240,0.25),
+    inset 0 -1px 0 rgba(255,255,255,0.25);
+
+  transition:
+    transform .08s ease,
+    box-shadow .12s ease,
+    opacity .12s ease;
+}
+
+.dm-btn:hover{
+  opacity:.95;
+  box-shadow:
+    0 6px 14px rgba(29,155,240,0.35),
+    inset 0 -1px 0 rgba(255,255,255,0.3);
+}
+
+.dm-btn:active{
+  transform: translateY(1px);
+  box-shadow:
+    0 3px 8px rgba(29,155,240,0.25),
+    inset 0 -1px 0 rgba(255,255,255,0.2);
+}
+/* =========================================================
+   PROFILE FINAL FIX（衝突ゼロ・完成形）
+========================================================= */
+
+/* ===== フォロー / フォロワー（横並び・読みやすい） ===== */
 .profile-stats{
   display:flex;
   justify-content:center;
@@ -280,8 +1309,14 @@ textarea{
 
 .profile-stats .stat{
   display:flex;
-  align-items:center;
+  align-items:center;     /* 横並び */
   gap:6px;
+  font-size:13px;
+  font-weight:700;
+  color:#536471;
+}
+
+.profile-stats .stat-label{
   font-size:13px;
   font-weight:700;
   color:#536471;
@@ -291,173 +1326,71 @@ textarea{
   font-size:17px;
   font-weight:900;
   color:#0f1419;
+  letter-spacing:.2px;
 }
 
-/* =========================================================
-   Bottom Navigation（SP専用 / タップ不具合ゼロ）
-========================================================= */
-.bottom-nav{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  height:56px;
-  background:#000;
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-  z-index:9999;
-}
+/* ===== DMボタン（主役・完成形） ===== */
+.dm-btn{
+  height:38px;
+  padding:0 18px;
+  border-radius:999px;
+  border:none;
 
-/* ✅ 重要：nav全体をタップ不可にするな（それが原因で開かない） */
-/* bn-item だけ普通に押せば良い */
+  background: linear-gradient(135deg, #1d9bf0, #0a85d1);
+  color:#fff;
 
-.bn-item{
-  position:relative;
-  min-width:56px;
-  height:44px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#aaa;
-  font-size:12px;
-  font-weight:800;
-}
-
-.bn-item.active{ color:#1d9bf0; }
-
-.bn-item.active::after{
-  content:"";
-  position:absolute;
-  bottom:4px;
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:#1d9bf0;
-}
-
-/* 🔍だけ強調 */
-.bn-search{
-  font-size:18px;
+  font-size:14px;
   font-weight:900;
-}
-.bn-search.active::after{ display:none; }
+  cursor:pointer;
 
-/* DM 未読ドット */
-.bn-unread-dot{
-  position:absolute;
-  top:6px;
-  right:14px;
-  width:7px;
-  height:7px;
-  background:#ff3b30;
-  border-radius:50%;
+  box-shadow:
+    0 4px 12px rgba(29,155,240,0.35),
+    inset 0 -1px 0 rgba(255,255,255,0.25);
+
+  transition:
+    transform .08s ease,
+    box-shadow .12s ease,
+    opacity .12s ease;
 }
 
-/* avatar */
-.bn-avatar img,
-.bn-avatar-fallback{
-  width:32px;
-  height:32px;
-  border-radius:50%;
-  background:#e5e7eb;
-  object-fit:cover;
+.dm-btn:hover{
+  opacity:.95;
+  box-shadow:
+    0 6px 16px rgba(29,155,240,0.4),
+    inset 0 -1px 0 rgba(255,255,255,0.3);
 }
 
-/* =========================================================
-   Responsive
-========================================================= */
-@media (max-width:600px){
-  .search-bar{ flex-direction:column; }
-  .post-image{ max-height:360px; }
+.dm-btn:active{
+  transform: translateY(1px);
+  box-shadow:
+    0 3px 8px rgba(29,155,240,0.25),
+    inset 0 -1px 0 rgba(255,255,255,0.2);
+}
+.dm-unread-badge {
+  margin-left: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* ===== Nav DM unread dot ===== */
+.dm-nav {
+  position: relative;
 }
 
-/* PCでは下ナビ無効 */
-@media (min-width:768px){
-  body{ padding-bottom:0; }
-  .bottom-nav{ display:none; }
-}
-/* =========================
-   Bottom Nav FINAL FIX
-========================= */
-.bottom-nav{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  height:56px;
-  background:#000;
-  display:flex;
-  justify-content:space-around;
-  align-items:center;
-  z-index:1000;
-}
-
-/* nav自体は貫通 */
-.bottom-nav,
-.bottom-nav *{
-  pointer-events:none;
-}
-
-/* 押せるのはアイテムだけ */
-.bn-item{
-  pointer-events:auto;
-  min-width:56px;
-  height:44px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#aaa;
-  font-size:12px;
-  font-weight:800;
-  position:relative;
-}
-
-.bn-item.active{
-  color:#1d9bf0;
-}
-
-.bn-item.active::after{
-  content:"";
-  position:absolute;
-  bottom:4px;
-  width:6px;
-  height:6px;
-  border-radius:50%;
-  background:#1d9bf0;
-}
-
-.bn-search{
-  font-size:18px;
-  font-weight:900;
-}
-
-.bn-unread-dot{
-  position:absolute;
-  top:6px;
-  right:14px;
-  width:7px;
-  height:7px;
-  background:#ff3b30;
-  border-radius:50%;
-}
-
-.bn-avatar img,
-.bn-avatar-fallback{
-  width:32px;
-  height:32px;
-  border-radius:50%;
-  background:#e5e7eb;
-  object-fit:cover;
-}
-
-/* SP余白 */
-@media(max-width:767px){
-  body{ padding-bottom:72px; }
-}
-
-/* PCでは完全OFF */
-@media(min-width:768px){
-  .bottom-nav{ display:none!important; }
-  body{ padding-bottom:0; }
+.dm-unread-dot {
+  position: absolute;
+  top: 2px;
+  right: -6px;
+  width: 8px;
+  height: 8px;
+  background: #ff3b30;
+  border-radius: 50%;
 }
