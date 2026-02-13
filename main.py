@@ -1884,3 +1884,32 @@ def dm_list(
             "timedelta": timedelta,
         }
     )
+def nav_context(request: Request, mode: str, db, user_cookie, uid_cookie):
+    me_username, me_user_id = get_me_from_cookies(db, user_cookie, uid_cookie)
+    me_handle = get_me_handle(db, me_user_id)
+    unread_dm = has_unread_dm(db, me_user_id)
+
+    # me_icon
+    me_icon = None
+    if me_user_id:
+        cur = db.cursor()
+        try:
+            cur.execute(
+                "SELECT icon FROM profiles WHERE user_id=%s",
+                (me_user_id,)
+            )
+            r = cur.fetchone()
+            if r:
+                me_icon = r[0]
+        finally:
+            cur.close()
+
+    return {
+        "request": request,
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "me_handle": me_handle,
+        "me_icon": me_icon,
+        "unread_dm": unread_dm,
+        "mode": mode,
+    }

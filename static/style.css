@@ -5,357 +5,416 @@
 
 html, body { height: 100%; }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
-               Roboto, "Noto Sans JP", sans-serif;
-  background: #ffffff;
-  color: #0f1419;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+  background:#ffffff;
+  color:#0f1419;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+
+  /* ✅ 下ナビぶんの余白（SPだけ） */
+  padding-bottom:72px;
 }
 
-/* SPだけ下ナビ分余白 */
-@media (max-width: 767px){
-  body { padding-bottom: 72px; }
-}
+a{ color:inherit; text-decoration:none; }
+button{ font-family:inherit; }
 
-a { color: inherit; text-decoration: none; }
-button { font-family: inherit; }
-
-img, video {
-  display: block;
-  max-width: 100%;
-  height: auto;
+img, video{
+  display:block;
+  max-width:100%;
+  height:auto;
 }
 
 /* =========================================================
    Top Navigation（完全廃止）
 ========================================================= */
-.header,
-.header-inner,
-.nav {
-  display: none !important;
+.header, .header-inner, .nav{
+  display:none !important;
 }
 
 /* =========================================================
    Layout
 ========================================================= */
-.container {
-  width: 100%;
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 12px;
+.container{
+  width:100%;
+  max-width:680px;
+  margin:0 auto;
+  padding:12px;
 }
 
 /* =========================================================
    Forms
 ========================================================= */
-input, textarea {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 2px solid #cfd9de;
-  font-size: 14px;
-  background: #fff;
-  color: #0f1419;
+input, textarea{
+  width:100%;
+  padding:12px 14px;
+  border-radius:14px;
+  border:2px solid #cfd9de;
+  font-size:14px;
+  background:#fff;
+  color:#0f1419;
 }
 
-input:focus, textarea:focus {
-  outline: none;
-  border-color: #1d9bf0;
-  box-shadow: 0 0 0 3px rgba(29,155,240,0.15);
+input:focus, textarea:focus{
+  outline:none;
+  border-color:#1d9bf0;
+  box-shadow:0 0 0 3px rgba(29,155,240,0.15);
 }
 
-textarea {
-  min-height: 90px;
-  resize: vertical;
+textarea{
+  min-height:90px;
+  resize:vertical;
 }
 
-.primary-btn {
-  width: 100%;
-  padding: 12px;
-  border-radius: 999px;
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: 900;
-  cursor: pointer;
+.primary-btn{
+  width:100%;
+  padding:12px;
+  border-radius:999px;
+  border:none;
+  background:#1d9bf0;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
 }
 
 /* =========================================================
    Avatar
 ========================================================= */
 .avatar,
-.avatar-placeholder,
-.nav-avatar img,
-.bn-avatar img,
-.bn-avatar-fallback {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  object-fit: cover;
+.avatar-placeholder{
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  background:#e5e7eb;
+  object-fit:cover;
 }
 
 /* =========================================================
    Post Card
 ========================================================= */
-.post,
-.post-card {
-  background: #fff;
-  border-radius: 18px;
-  padding: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  position: relative;
-  overflow: hidden;
+.post, .post-card{
+  background:#fff;
+  border-radius:18px;
+  padding:14px;
+  margin-bottom:16px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+  position:relative;
+  overflow:hidden;
 }
 
-.post-header,
-.post-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
+.post-header, .post-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
 }
 
-.post-title {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.post-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
-.post-user { font-weight: 900; }
+.post-user{ font-weight:900; }
+.post-car{ font-size:16px; font-weight:900; }
 
-.post-car {
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.post-text,
-.post-comment {
-  margin-top: 6px;
-  font-size: 14px;
-  line-height: 1.65;
-  white-space: pre-wrap;
-  word-break: break-word;
+.post-text, .post-comment{
+  margin-top:6px;
+  font-size:14px;
+  line-height:1.65;
+  white-space:pre-wrap;
+  word-break:break-word;
 }
 
 /* =========================================================
-   Image（改造前準拠・唯一の正解）
+   Image（暴れ停止：改造前準拠）
 ========================================================= */
-.post-image {
-  margin-top: 10px;
-  width: 100%;
-  max-height: 420px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #f3f4f6;
+.post-image{
+  margin-top:10px;
+  width:100%;
+  max-height:420px;
+  border-radius:16px;
+  overflow:hidden;
+  background:#f3f4f6;
 }
 
-.post-image img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-}
-
-@media (max-width: 600px){
-  .post-image img { max-height: 360px; }
+.post-image img{
+  width:100%;
+  height:auto;
+  object-fit:cover;
 }
 
 /* =========================================================
    Actions
 ========================================================= */
-.post-actions,
-.ranking-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 10px;
+.post-actions, .ranking-actions{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+  flex-wrap:wrap;
 }
 
-.post-actions form { margin: 0; }
+.post-actions form{ margin:0; }
 
-.post-actions-right {
-  margin-left: auto;
-  display: flex;
-  gap: 10px;
+.post-actions-right{
+  margin-left:auto;
+  display:flex;
+  gap:10px;
 }
 
 /* =========================================================
    Buttons
 ========================================================= */
-.action-btn,
-.like-btn,
-.delete-btn,
-.follow-btn,
-.dm-btn {
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  font-size: 14px;
-  font-weight: 900;
-  cursor: pointer;
+.action-btn, .like-btn, .delete-btn, .follow-btn{
+  height:38px;
+  padding:0 14px;
+  border-radius:999px;
+  border:1px solid #e5e7eb;
+  background:#fff;
+  font-size:14px;
+  font-weight:900;
+  cursor:pointer;
 }
 
-.like-btn.active {
-  background: #ffe7ef;
-  border-color: #ffb3cc;
-  color: #be123c;
+.action-btn:hover, .like-btn:hover, .delete-btn:hover, .follow-btn:hover{
+  background:#f6f7f8;
 }
 
-.like-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.like-btn.active{
+  background:#ffe7ef;
+  border-color:#ffb3cc;
+  color:#be123c;
 }
 
-/* DMボタン（主役） */
-.dm-btn {
-  border: none;
-  background: linear-gradient(135deg, #1d9bf0, #0a85d1);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(29,155,240,0.35);
+.like-btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
 }
 
 /* =========================================================
    Ranking
 ========================================================= */
-.ranking-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+.ranking-tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:16px;
 }
 
-.ranking-tab {
-  flex: 1;
-  padding: 11px 0;
-  border-radius: 999px;
-  background: #f3f4f6;
-  font-weight: 900;
-  text-align: center;
+.ranking-tab{
+  flex:1;
+  padding:11px 0;
+  border-radius:999px;
+  background:#f3f4f6;
+  font-weight:900;
+  text-align:center;
 }
 
-.ranking-tab.active {
-  background: #000;
-  color: #fff;
-}
-
-/* =========================================================
-   Comment
-========================================================= */
-.comment-section {
-  margin-top: 36px;
-  padding-top: 24px;
-  border-top: 1px solid #e6ecf0;
-}
-
-.comment-item {
-  background: #f7f9fb;
-  border-radius: 16px;
-  padding: 12px 14px;
-  margin-bottom: 12px;
-  border: 1px solid rgba(15,20,25,0.06);
+.ranking-tab.active{
+  background:#000;
+  color:#fff;
 }
 
 /* =========================================================
    Search
 ========================================================= */
-.search-hero {
-  background: #fff;
-  border-radius: 18px;
-  padding: 14px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+.search-hero{
+  background:#fff;
+  border-radius:18px;
+  padding:14px;
+  margin-bottom:16px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
 }
 
-.search-title {
-  font-size: 26px;
-  font-weight: 900;
-  margin-bottom: 12px;
+.search-title{
+  font-size:26px;
+  font-weight:900;
+  margin-bottom:12px;
 }
 
-.search-bar {
-  display: flex;
-  gap: 10px;
+.search-bar{
+  display:flex;
+  gap:10px;
 }
 
 /* =========================================================
    Profile
 ========================================================= */
-.profile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
+.profile-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
 }
 
-.profile-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.profile-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
 
-.profile-avatar img {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
+.profile-avatar img{
+  width:54px;
+  height:54px;
+  border-radius:50%;
 }
 
-.profile-name {
-  font-size: 18px;
-  font-weight: 900;
+.profile-name{
+  font-size:18px;
+  font-weight:900;
 }
 
-.profile-handle {
-  font-size: 13px;
-  color: #536471;
+.profile-handle{
+  font-size:13px;
+  color:#536471;
 }
 
-.profile-stats {
-  display: flex;
-  justify-content: center;
-  gap: 28px;
-  margin-top: 14px;
+.profile-stats{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+  margin-top:14px;
+}
+
+.profile-stats .stat{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:700;
+  color:#536471;
+}
+
+.profile-stats .stat-num{
+  font-size:17px;
+  font-weight:900;
+  color:#0f1419;
 }
 
 /* =========================================================
-   Bottom Navigation（最終・B統合版）
+   Bottom Navigation（SP専用 / タップ不具合ゼロ）
 ========================================================= */
 .bottom-nav{
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 56px;
-  background: #000;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  z-index: 1000;
-
-  /* nav自体は触らせない */
-  pointer-events: none;
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  height:56px;
+  background:#000;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:9999;
 }
 
+/* ✅ 重要：nav全体をタップ不可にするな（それが原因で開かない） */
+/* bn-item だけ普通に押せば良い */
+
 .bn-item{
-  pointer-events: auto;
-  position: relative;
-  min-width: 56px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #aaa;
-  font-size: 12px;
-  font-weight: 800;
+  position:relative;
+  min-width:56px;
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#aaa;
+  font-size:12px;
+  font-weight:800;
+}
+
+.bn-item.active{ color:#1d9bf0; }
+
+.bn-item.active::after{
+  content:"";
+  position:absolute;
+  bottom:4px;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:#1d9bf0;
+}
+
+/* 🔍だけ強調 */
+.bn-search{
+  font-size:18px;
+  font-weight:900;
+}
+.bn-search.active::after{ display:none; }
+
+/* DM 未読ドット */
+.bn-unread-dot{
+  position:absolute;
+  top:6px;
+  right:14px;
+  width:7px;
+  height:7px;
+  background:#ff3b30;
+  border-radius:50%;
+}
+
+/* avatar */
+.bn-avatar img,
+.bn-avatar-fallback{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:#e5e7eb;
+  object-fit:cover;
+}
+
+/* =========================================================
+   Responsive
+========================================================= */
+@media (max-width:600px){
+  .search-bar{ flex-direction:column; }
+  .post-image{ max-height:360px; }
+}
+
+/* PCでは下ナビ無効 */
+@media (min-width:768px){
+  body{ padding-bottom:0; }
+  .bottom-nav{ display:none; }
+}
+/* =========================
+   Bottom Nav FINAL FIX
+========================= */
+.bottom-nav{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  height:56px;
+  background:#000;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:1000;
+}
+
+/* nav自体は貫通 */
+.bottom-nav,
+.bottom-nav *{
+  pointer-events:none;
+}
+
+/* 押せるのはアイテムだけ */
+.bn-item{
+  pointer-events:auto;
+  min-width:56px;
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#aaa;
+  font-size:12px;
+  font-weight:800;
+  position:relative;
 }
 
 .bn-item.active{
-  color: #1d9bf0;
+  color:#1d9bf0;
 }
 
 .bn-item.active::after{
@@ -368,14 +427,11 @@ textarea {
   background:#1d9bf0;
 }
 
-/* search */
 .bn-search{
   font-size:18px;
   font-weight:900;
 }
-.bn-search.active::after{ display:none; }
 
-/* DM unread */
 .bn-unread-dot{
   position:absolute;
   top:6px;
@@ -386,10 +442,22 @@ textarea {
   border-radius:50%;
 }
 
-/* =========================================================
-   PCでは下ナビ完全OFF
-========================================================= */
-@media (min-width: 768px){
-  .bottom-nav{ display:none !important; }
-  body{ padding-bottom:0; background:#f5f6f8; }
+.bn-avatar img,
+.bn-avatar-fallback{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:#e5e7eb;
+  object-fit:cover;
+}
+
+/* SP余白 */
+@media(max-width:767px){
+  body{ padding-bottom:72px; }
+}
+
+/* PCでは完全OFF */
+@media(min-width:768px){
+  .bottom-nav{ display:none!important; }
+  body{ padding-bottom:0; }
 }
