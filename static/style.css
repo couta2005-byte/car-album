@@ -1394,3 +1394,26 @@ textarea {
   background: #ff3b30;
   border-radius: 50%;
 }
+/* ===== Nav Profile Icon ===== */
+.nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;            /* 既存デザインに合わせて調整OK */
+}
+
+.nav-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.nav-avatar.placeholder {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: block;
+  background: #333;            /* 好きな色でOK */
+}
