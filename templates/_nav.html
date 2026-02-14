@@ -1,3 +1,4 @@
+<!-- templates/_nav.html -->
 <header class="header">
   <div class="header-inner">
     <a href="/" class="logo">Carbum</a>
@@ -12,7 +13,7 @@
       {% if user %}
         <!-- ランキング -->
         <a href="/ranking?period=day"
-           class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
+           class="nav-link {% if mode and mode.startswith('ranking') %}active{% endif %}">
           ランキング
         </a>
 
@@ -25,9 +26,9 @@
           {% endif %}
         </a>
 
-        <!-- プロフィール（アイコン） -->
+        <!-- ✅ プロフィール（右上固定アイコン） -->
         <a href="/user/{{ user | urlencode }}"
-           class="nav-link nav-icon {% if mode=='profile' %}active{% endif %}"
+           class="nav-avatar-wrap"
            aria-label="プロフィール">
           {% if user_icon %}
             <img src="{{ user_icon }}" alt="icon" class="nav-avatar">
@@ -40,12 +41,14 @@
         <form action="/logout" method="post" class="logout-form">
           <button type="submit" class="logout-btn">ログアウト</button>
         </form>
+
       {% else %}
-        <a href="/login" class="nav-link">ログイン</a>
-        <a href="/register" class="nav-link">新規登録</a>
+        <a href="/login" class="nav-link {% if mode=='login' %}active{% endif %}">ログイン</a>
+        <a href="/register" class="nav-link {% if mode=='register' %}active{% endif %}">新規登録</a>
       {% endif %}
     </nav>
   </div>
 </header>
 
+<!-- like.js（必要なら） -->
 <script src="/static/like.js?v=3000" defer></script>

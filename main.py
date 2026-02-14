@@ -489,6 +489,22 @@ def get_liked_posts(db, me_user_id: Optional[str], me_username: Optional[str]):
     finally:
         cur.close()
 
+# ======================
+# ✅ nav用：自分のアイコン取得
+# ======================
+def get_my_icon(db, me_user_id: Optional[str]) -> Optional[str]:
+    if not me_user_id:
+        return None
+    cur = db.cursor()
+    try:
+        cur.execute(
+            "SELECT icon FROM profiles WHERE user_id=%s",
+            (me_user_id,)
+        )
+        row = cur.fetchone()
+        return row[0] if row and row[0] else None
+    finally:
+        cur.close()
 
 # ======================
 # ✅ users search（検索ページ用）
@@ -831,6 +847,8 @@ def login_page(request: Request, user: str = Cookie(default=None), uid: str = Co
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
     finally:
         db.close()
 
@@ -840,7 +858,10 @@ def login_page(request: Request, user: str = Cookie(default=None), uid: str = Co
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
-        "error": error
+        "user_icon": user_icon,      # ★追加
+        "unread_dm": unread_dm,      # ★追加
+        "error": error,
+        "mode": "login"
     })
 
 @app.get("/register", response_class=HTMLResponse)
@@ -1014,30 +1035,26 @@ def ranking(
 @app.get("/post/{post_id}", response_class=HTMLResponse)
 def post_detail(request: Request, post_id: int, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
-    try:
-        me_username, me_user_id = get_me_from_cookies(db, user, uid)
-        me_handle = get_me_handle(db, me_user_id)
-        liked_posts = get_liked_posts(db, me_user_id, me_username)
-        posts = fetch_posts(db, me_user_id, "WHERE p.id=%s", (post_id,))
-        if not posts:
-            return RedirectResponse("/", status_code=303)
+try:
+    me_username, me_user_id = get_me_from_cookies(db, user, uid)
+    me_handle = get_me_handle(db, me_user_id)
+    user_icon = get_my_icon(db, me_user_id)
+    unread_dm = has_unread_dm(db, me_user_id)
+    ...
+finally:
+    db.close()
 
-        post = posts[0]
-        post_comments = fetch_comments_for_post_detail(db, post_id, me_user_id)
-        post["comments"] = post_comments
-        post["comment_count"] = len(post_comments)
-    finally:
-        db.close()
-
-    return templates.TemplateResponse("post_detail.html", {
-        "request": request,
-        "post": post,
-        "user": me_username,
-        "me_user_id": me_user_id,
-        "me_handle": me_handle,
-        "liked_posts": liked_posts,
-        "mode": "post_detail"
-    })
+return templates.TemplateResponse("post_detail.html", {
+    "request": request,
+    "post": post,
+    "user": me_username,
+    "me_user_id": me_user_id,
+    "me_handle": me_handle,
+    "user_icon": user_icon,    # ★
+    "unread_dm": unread_dm,    # ★
+    "liked_posts": liked_posts,
+    "mode": "post_detail"
+})
 
 # ======================
 # comment
