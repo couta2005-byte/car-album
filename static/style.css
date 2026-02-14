@@ -1417,3 +1417,31 @@ textarea {
   display: block;
   background: #333;            /* 好きな色でOK */
 }
+/* =========================
+   Nav Avatar（プロフィールアイコン）
+========================= */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.nav-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.nav-avatar.placeholder {
+  background: #666;
+}
