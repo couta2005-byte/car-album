@@ -1,3 +1,4 @@
+# main.py
 from fastapi import FastAPI, Request, Form, UploadFile, File, Cookie, Query
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -123,7 +124,6 @@ def normalize_login_id(s: str) -> Optional[str]:
     if not s:
         return None
     s = s.lower()
-
     if not LOGIN_ID_RE.match(s):
         return None
     if s.startswith(".") or s.endswith("."):
@@ -193,6 +193,18 @@ def get_me_handle(db, me_user_id: Optional[str]) -> Optional[str]:
     finally:
         cur.close()
 
+# ✅ これが無いと nav にアイコン渡せない
+def get_my_icon(db, me_user_id: Optional[str]) -> Optional[str]:
+    if not me_user_id:
+        return None
+    cur = db.cursor()
+    try:
+        cur.execute("SELECT icon FROM profiles WHERE user_id=%s", (me_user_id,))
+        row = cur.fetchone()
+        return row[0] if row and row[0] else None
+    finally:
+        cur.close()
+
 # ======================
 # ✅ DM helpers（ルーム作成/取得）
 # ======================
@@ -216,6 +228,7 @@ def get_or_create_dm_room_id(db, me_user_id: str, other_user_id: str) -> str:
         return rid
     finally:
         cur.close()
+
 # ======================
 # DB init（壊さない段階移行：UUID追加＋既存データ埋め） + ✅DM追加
 # ======================
@@ -427,7 +440,7 @@ def init_db():
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user2_idx ON dm_rooms(user2_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_messages_room_time_idx ON dm_messages(room_id, created_at);")
         # ✅ DM 既読管理（Shell不要）
-        cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP;")           
+        cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP;")
 
     run_db(_do)
 
@@ -438,7 +451,6 @@ def startup():
 # ======================
 # common
 # ======================
-
 def redirect_back(request: Request, fallback: str = "/"):
     next_url = request.query_params.get("next")
     if next_url and next_url.startswith("/"):
@@ -447,14 +459,12 @@ def redirect_back(request: Request, fallback: str = "/"):
     referer = request.headers.get("referer")
     return RedirectResponse(referer or fallback, status_code=303)
 
-
 # ======================
 # ✅ nav DM unread helper
 # ======================
 def has_unread_dm(db, me_user_id: Optional[str]) -> bool:
     if not me_user_id:
         return False
-
     cur = db.cursor()
     try:
         cur.execute("""
@@ -470,39 +480,17 @@ def has_unread_dm(db, me_user_id: Optional[str]) -> bool:
     finally:
         cur.close()
 
-
 # ======================
-# ✅ liked posts helper（★これが無くて落ちてた）
+# ✅ liked posts helper
 # ======================
 def get_liked_posts(db, me_user_id: Optional[str], me_username: Optional[str]):
     if not me_user_id:
         return set()
-
     cur = db.cursor()
     try:
-        cur.execute(
-            "SELECT post_id FROM likes WHERE user_id=%s",
-            (me_user_id,)
-        )
+        cur.execute("SELECT post_id FROM likes WHERE user_id=%s", (me_user_id,))
         rows = cur.fetchall()
         return {r[0] for r in rows}
-    finally:
-        cur.close()
-
-# ======================
-# ✅ nav用：自分のアイコン取得
-# ======================
-def get_my_icon(db, me_user_id: Optional[str]) -> Optional[str]:
-    if not me_user_id:
-        return None
-    cur = db.cursor()
-    try:
-        cur.execute(
-            "SELECT icon FROM profiles WHERE user_id=%s",
-            (me_user_id,)
-        )
-        row = cur.fetchone()
-        return row[0] if row and row[0] else None
     finally:
         cur.close()
 
@@ -559,6 +547,7 @@ def search_users(db, q: str, limit: int = 20) -> List[Dict[str, Any]]:
             "profile_key": profile_key,
         })
     return out
+
 # ======================
 # comments fetch（一覧・ランキング用）
 # ======================
@@ -567,7 +556,6 @@ def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str])
         return {}
 
     placeholders = ",".join(["%s"] * len(post_ids))
-
     cur = db.cursor()
     try:
         if me_user_id:
@@ -623,7 +611,6 @@ def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str])
                 ORDER BY c.id ASC
             """
             cur.execute(sql, tuple(post_ids))
-
         rows = cur.fetchall()
     finally:
         cur.close()
@@ -637,7 +624,6 @@ def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str])
             liked = 0
 
         profile_key = handle if handle else username
-
         out.setdefault(post_id, []).append({
             "id": cid,
             "username": username,
@@ -721,7 +707,6 @@ def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) 
             liked = 0
 
         profile_key = handle if handle else username
-
         out.append({
             "id": cid,
             "username": username,
@@ -787,7 +772,6 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
         display_name = r[2]
         handle = r[3]
         user_id = str(r[4]) if r[4] is not None else None
-
         profile_key = handle if handle else username
 
         post_comments = comments_map.get(pid, [])
@@ -810,6 +794,7 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
             "comment_count": len(post_comments)
         })
     return posts
+
 # ======================
 # top
 # ======================
@@ -819,6 +804,7 @@ def index(request: Request, user: str = Cookie(default=None), uid: str = Cookie(
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)           # ★重要
         unread_dm = has_unread_dm(db, me_user_id)
         posts = fetch_posts(db, me_user_id)
         liked_posts = get_liked_posts(db, me_user_id, me_username)
@@ -831,6 +817,7 @@ def index(request: Request, user: str = Cookie(default=None), uid: str = Cookie(
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
+        "user_icon": user_icon,                           # ★重要
         "unread_dm": unread_dm,
         "liked_posts": liked_posts,
         "mode": "home",
@@ -858,8 +845,8 @@ def login_page(request: Request, user: str = Cookie(default=None), uid: str = Co
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
-        "user_icon": user_icon,      # ★追加
-        "unread_dm": unread_dm,      # ★追加
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
         "error": error,
         "mode": "login"
     })
@@ -870,6 +857,8 @@ def register_page(request: Request, user: str = Cookie(default=None), uid: str =
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
     finally:
         db.close()
 
@@ -879,7 +868,10 @@ def register_page(request: Request, user: str = Cookie(default=None), uid: str =
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
-        "error": error
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
+        "error": error,
+        "mode": "register"
     })
 
 # ======================
@@ -909,6 +901,9 @@ def search(
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
+
         liked_posts = get_liked_posts(db, me_user_id, me_username)
 
         users: List[Dict[str, Any]] = []
@@ -935,6 +930,8 @@ def search(
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
         "liked_posts": liked_posts,
         "q": q,
         "user_q": user_q,
@@ -954,6 +951,7 @@ def following(request: Request, user: str = Cookie(default=None), uid: str = Coo
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
@@ -974,12 +972,14 @@ def following(request: Request, user: str = Cookie(default=None), uid: str = Coo
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
+        "user_icon": user_icon,
         "unread_dm": unread_dm,
         "liked_posts": liked_posts,
         "mode": "home",
         "ranking_title": "",
         "period": ""
     })
+
 # ======================
 # ranking
 # ======================
@@ -994,6 +994,8 @@ def ranking(
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
 
         now_utc = datetime.utcnow()
         if period == "week":
@@ -1023,6 +1025,8 @@ def ranking(
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
         "liked_posts": liked_posts,
         "mode": f"ranking_{period}",
         "ranking_title": title,
@@ -1035,26 +1039,41 @@ def ranking(
 @app.get("/post/{post_id}", response_class=HTMLResponse)
 def post_detail(request: Request, post_id: int, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
-try:
-    me_username, me_user_id = get_me_from_cookies(db, user, uid)
-    me_handle = get_me_handle(db, me_user_id)
-    user_icon = get_my_icon(db, me_user_id)
-    unread_dm = has_unread_dm(db, me_user_id)
-    ...
-finally:
-    db.close()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
 
-return templates.TemplateResponse("post_detail.html", {
-    "request": request,
-    "post": post,
-    "user": me_username,
-    "me_user_id": me_user_id,
-    "me_handle": me_handle,
-    "user_icon": user_icon,    # ★
-    "unread_dm": unread_dm,    # ★
-    "liked_posts": liked_posts,
-    "mode": "post_detail"
-})
+        posts = fetch_posts(
+            db, me_user_id,
+            "WHERE p.id=%s",
+            (post_id,),
+            order_sql="ORDER BY p.id DESC",
+            limit_sql="LIMIT 1"
+        )
+        if not posts:
+            return RedirectResponse("/", status_code=303)
+        post = posts[0]
+
+        # detailではコメントを確実に最新で出したい場合
+        post["comments"] = fetch_comments_for_post_detail(db, post_id, me_user_id)
+        post["comment_count"] = len(post["comments"])
+    finally:
+        db.close()
+
+    return templates.TemplateResponse("post_detail.html", {
+        "request": request,
+        "post": post,
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "me_handle": me_handle,
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
+        "liked_posts": liked_posts,
+        "mode": "post_detail"
+    })
 
 # ======================
 # comment
@@ -1167,10 +1186,10 @@ def api_comment_like(comment_id: int, request: Request, user: str = Cookie(defau
 
         cur.execute("SELECT COUNT(*) FROM comment_likes WHERE comment_id=%s", (comment_id,))
         likes_count = cur.fetchone()[0]
-
         return {"ok": True, "liked": liked, "likes": likes_count}
 
     return JSONResponse(run_db(_do))
+
 # ======================
 # profile（/user/{key} は handle優先で解決）
 # ======================
@@ -1196,6 +1215,8 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
 
         urow = resolve_user_by_key(db, key)
         if not urow:
@@ -1234,6 +1255,8 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
         "target_user_id": target_user_id,
         "is_following": is_following,
         "follow_count": follow_count,
@@ -1564,7 +1587,6 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
 
         cur.execute("SELECT COUNT(*) FROM likes WHERE post_id=%s", (post_id,))
         likes_count = cur.fetchone()[0]
-
         return {"ok": True, "liked": liked, "likes": likes_count}
 
     return JSONResponse(run_db(_do))
@@ -1603,9 +1625,6 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
 # ✅ DM（HTMLで完全に動かす版）
 # ======================
 
-# ======================
-# ✅ DM room（HTML）
-# ======================
 @app.get("/dm/{room_id}", response_class=HTMLResponse)
 def dm_room(
     request: Request,
@@ -1616,14 +1635,14 @@ def dm_room(
     db = get_db()
     cur = db.cursor()
     try:
-        # ログイン判定
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
 
-        # 自分が所属しているルームか確認
         cur.execute("""
             SELECT user1_id, user2_id
             FROM dm_rooms
@@ -1636,7 +1655,6 @@ def dm_room(
         user1_id, user2_id = row
         other_user_id = user2_id if str(user1_id) == me_user_id else user1_id
 
-        # 相手ユーザー情報
         cur.execute("""
             SELECT u.id, u.username, u.display_name, u.handle, p.icon
             FROM users u
@@ -1645,21 +1663,15 @@ def dm_room(
         """, (other_user_id,))
         other = cur.fetchone()
 
-                # ✅ 相手からの未読メッセージを既読にする（ルームを開いた瞬間）
         cur.execute("""
             UPDATE dm_messages
             SET read_at = %s
             WHERE room_id = %s
               AND sender_id <> %s
               AND read_at IS NULL
-        """, (
-            utcnow_naive(),
-            room_id,
-            me_user_id
-        ))
-
+        """, (utcnow_naive(), room_id, me_user_id))
         db.commit()
-     # メッセージ一覧
+
         cur.execute("""
             SELECT
                 m.id,
@@ -1707,6 +1719,8 @@ def dm_room(
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
         "mode": "dm",
     })
 
@@ -1726,26 +1740,16 @@ def dm_start(
         if me_user_id == target_user_id:
             return RedirectResponse("/", status_code=303)
 
-        # 相互フォロー判定①
-        cur.execute(
-            "SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s",
-            (me_user_id, target_user_id),
-        )
+        cur.execute("SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s", (me_user_id, target_user_id))
         if cur.fetchone() is None:
             return RedirectResponse("/", status_code=303)
 
-        # 相互フォロー判定②
-        cur.execute(
-            "SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s",
-            (target_user_id, me_user_id),
-        )
+        cur.execute("SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s", (target_user_id, me_user_id))
         if cur.fetchone() is None:
             return RedirectResponse("/", status_code=303)
 
-        # ✅ DMルーム作成 or 取得
         room_id = get_or_create_dm_room_id(db, me_user_id, target_user_id)
         db.commit()
-
     finally:
         cur.close()
         db.close()
@@ -1771,7 +1775,6 @@ def dm_send(
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        # 所属チェック
         cur.execute("""
             SELECT 1
             FROM dm_rooms
@@ -1783,20 +1786,14 @@ def dm_send(
         cur.execute("""
             INSERT INTO dm_messages (id, room_id, sender_id, body, created_at)
             VALUES (%s, %s, %s, %s, %s)
-        """, (
-            str(uuid.uuid4()),
-            room_id,
-            me_user_id,
-            body,
-            utcnow_naive(),
-        ))
-
+        """, (str(uuid.uuid4()), room_id, me_user_id, body, utcnow_naive()))
         db.commit()
     finally:
         cur.close()
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
+
 @app.get("/dm", response_class=HTMLResponse)
 def dm_list(
     request: Request,
@@ -1811,6 +1808,8 @@ def dm_list(
             return RedirectResponse("/login", status_code=303)
 
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
 
         cur.execute("""
             SELECT
@@ -1873,6 +1872,8 @@ def dm_list(
             "user": me_username,
             "me_user_id": me_user_id,
             "me_handle": me_handle,
+            "user_icon": user_icon,
+            "unread_dm": unread_dm,
             "mode": "dm",
             "timedelta": timedelta,
         }
