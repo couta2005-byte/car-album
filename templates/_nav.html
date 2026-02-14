@@ -12,6 +12,15 @@
       </a>
 
       {% if user %}
+
+        <!-- ======================
+             ランキング
+        ====================== -->
+        <a href="/ranking?period=day"
+           class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
+          ランキング
+        </a>
+
         <!-- ======================
              DM（未読ドット対応）
         ====================== -->
@@ -21,14 +30,6 @@
           {% if unread_dm %}
             <span class="dm-unread-dot"></span>
           {% endif %}
-        </a>
-
-        <!-- ======================
-             ランキング
-        ====================== -->
-        <a href="/ranking?period=day"
-           class="nav-link {% if mode.startswith('ranking') %}active{% endif %}">
-          ランキング
         </a>
 
         <!-- ======================
