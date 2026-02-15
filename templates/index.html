@@ -2,15 +2,19 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-
-  <!-- ===== Title ===== -->
   <title>Carbum｜クルマ好きのSNS</title>
-
-  <!-- ===== Viewport ===== -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ===== CSS ===== -->
-  <link rel="stylesheet" href="/static/style.css?v=20260215">
+  <!-- OGP -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Carbum">
+  <meta property="og:title" content="Carbum｜クルマ好きのSNS">
+  <meta property="og:description" content="愛車を投稿して、クルマ好きとつながろう">
+  <meta property="og:url" content="https://car-album-3.onrender.com/">
+  <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/static/style.css?v=99">
 </head>
 <body>
 
@@ -23,15 +27,15 @@
   ====================== -->
   <div class="home-tabs">
     <a href="/?tab=recommend"
-       class="home-tab {% if tab == 'recommend' %}active{% endif %}">
+       class="home-tab {% if tab=='recommend' %}active{% endif %}">
       おすすめ
     </a>
     <a href="/?tab=new"
-       class="home-tab {% if tab == 'new' %}active{% endif %}">
+       class="home-tab {% if tab=='new' %}active{% endif %}">
       新着
     </a>
     <a href="/?tab=follow"
-       class="home-tab {% if tab == 'follow' %}active{% endif %}">
+       class="home-tab {% if tab=='follow' %}active{% endif %}">
       フォロー中
     </a>
   </div>
@@ -57,7 +61,7 @@
 
     <textarea name="comment" placeholder="コメント（ひとこと）"></textarea>
 
-    <div class="form-row bottom">
+    <div class="form-row">
       <input type="file" name="image">
       <button class="primary-btn">投稿</button>
     </div>
@@ -71,73 +75,61 @@
     {% for post in posts %}
     <article class="post">
 
-      <!-- 投稿上部 -->
+      <!-- Header -->
       <div class="post-top">
-        <div class="post-user-wrap">
+        <div class="post-title">
           {% if post.user_icon %}
-            <a href="/user/{{ post.profile_key | urlencode }}" class="avatar">
-              <img src="{{ post.user_icon }}" alt="icon">
-            </a>
+            <div class="avatar">
+              <a href="/user/{{ post.profile_key | urlencode }}">
+                <img src="{{ post.user_icon }}" alt="icon">
+              </a>
+            </div>
           {% else %}
-            <a href="/user/{{ post.profile_key | urlencode }}" class="avatar placeholder"></a>
+            <a href="/user/{{ post.profile_key | urlencode }}">
+              <span class="avatar-fallback"></span>
+            </a>
           {% endif %}
 
-          <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
+          <a href="/user/{{ post.profile_key | urlencode }}"
+             class="post-user">
             {{ post.display_name }}
           </a>
-
-          {% if post.car %}
-            <span class="post-car">・{{ post.car }}</span>
-          {% endif %}
         </div>
 
         <span class="post-date">{{ post.created_at }}</span>
       </div>
 
-      <!-- コメント -->
+      <!-- Comment -->
       {% if post.comment %}
-        <div class="post-text">{{ post.comment }}</div>
+        <div class="post-comment">{{ post.comment }}</div>
       {% endif %}
 
-      <!-- 画像 -->
+      <!-- Image -->
       {% if post.image %}
         <div class="post-image">
           <img src="{{ post.image }}" alt="投稿画像">
         </div>
       {% endif %}
 
-      <!-- アクション -->
+      <!-- Actions -->
       <div class="post-actions">
-
-        <!-- コメント -->
-        <a href="/post/{{ post.id }}#comments" class="action-btn">
-          💬 {{ post.comment_count }}
-        </a>
-
-        <!-- いいね -->
         {% if user %}
-          <button
-            type="button"
-            class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
-            data-post-id="{{ post.id }}"
-            data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
-            <span class="like-icon">
-              {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
-            </span>
-            <span class="like-count">{{ post.likes }}</span>
+          <button class="like-btn {% if post.id in liked_posts %}active{% endif %}"
+                  data-post-id="{{ post.id }}">
+            {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
+            {{ post.likes }}
           </button>
         {% else %}
           <span>🤍 {{ post.likes }}</span>
         {% endif %}
 
-        <!-- 削除（自分の投稿のみ） -->
-        {% if me_user_id and post.user_id and me_user_id == post.user_id %}
-          <form action="/delete/{{ post.id }}" method="post"
-                onsubmit="return confirm('この投稿を削除しますか？');">
+        {% if me_user_id and me_user_id == post.user_id %}
+          <form action="/delete/{{ post.id }}"
+                method="post"
+                onsubmit="return confirm('削除しますか？');">
             <button type="submit" class="delete-btn">🗑</button>
           </form>
         {% endif %}
-
       </div>
 
     </article>
@@ -146,38 +138,8 @@
 
 </main>
 
-<!-- ======================
-     Like JS
-====================== -->
-<script>
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".js-like");
-  if (!btn) return;
-
-  e.preventDefault();
-
-  const postId = btn.dataset.postId;
-  if (!postId) return;
-
-  const res = await fetch(`/api/like/${postId}`, {
-    method: "POST",
-    credentials: "same-origin"
-  });
-
-  if (res.status === 401) {
-    location.href = "/login";
-    return;
-  }
-
-  const data = await res.json();
-  if (!data.ok) return;
-
-  btn.dataset.liked = data.liked ? "1" : "0";
-  btn.classList.toggle("active", data.liked);
-  btn.querySelector(".like-icon").textContent = data.liked ? "❤️" : "🤍";
-  btn.querySelector(".like-count").textContent = data.likes;
-});
-</script>
+<!-- Like JS -->
+<script src="/static/like.js?v=99" defer></script>
 
 </body>
 </html>
