@@ -1445,3 +1445,21 @@ textarea {
 .nav-avatar.placeholder {
   background: #666;
 }
+.home-tabs {
+  display: flex;
+  gap: 16px;
+  margin: 16px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.home-tab {
+  padding: 8px 0;
+  color: #666;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.home-tab.active {
+  color: #000;
+  border-bottom: 2px solid #000;
+}

@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Car Album</title>
+  <title>Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -12,70 +12,102 @@
 
 <main class="container">
 
-{% if user %}
-<form action="/post" method="post" enctype="multipart/form-data" class="post-form">
-  <div class="form-row">
-    <input name="maker" placeholder="メーカー">
-    <input name="car" placeholder="車名">
-    <input name="region" placeholder="地域">
+  <!-- ======================
+       Home Tabs
+  ====================== -->
+  <div class="home-tabs">
+    <a href="/?tab=recommend"
+       class="home-tab {% if tab=='recommend' %}active{% endif %}">
+      おすすめ
+    </a>
+    <a href="/?tab=new"
+       class="home-tab {% if tab=='new' %}active{% endif %}">
+      新着
+    </a>
+    <a href="/?tab=follow"
+       class="home-tab {% if tab=='follow' %}active{% endif %}">
+      フォロー中
+    </a>
   </div>
-  <textarea name="comment" placeholder="コメント（ひとこと）"></textarea>
-  <div class="form-row bottom">
-    <input type="file" name="image">
-    <button class="primary-btn">投稿</button>
-  </div>
-</form>
-{% endif %}
 
-<div class="posts">
-{% for post in posts %}
-  <article class="post-card">
+  <!-- ======================
+       Home Search
+  ====================== -->
+  <form method="get" action="/search" class="home-search">
+    <input type="text" name="q" placeholder="ユーザー・車名で検索">
+    <button type="submit">検索</button>
+  </form>
 
-    <div class="post-top">
-      <a href="/user/{{ post.username | urlencode }}" class="post-user">
-        {{ post.username }}
-      </a>
-      <span class="post-date">{{ post.created_at }}</span>
+  <!-- ======================
+       Post Form
+  ====================== -->
+  {% if user %}
+  <form action="/post" method="post" enctype="multipart/form-data" class="post-form">
+    <div class="form-row">
+      <input name="maker" placeholder="メーカー">
+      <input name="car" placeholder="車名">
+      <input name="region" placeholder="地域">
     </div>
+    <textarea name="comment" placeholder="コメント（ひとこと）"></textarea>
+    <div class="form-row bottom">
+      <input type="file" name="image">
+      <button class="primary-btn">投稿</button>
+    </div>
+  </form>
+  {% endif %}
 
-    <div class="post-car">{{ post.car }}</div>
+  <!-- ======================
+       Posts
+  ====================== -->
+  <div class="posts">
+    {% for post in posts %}
+    <article class="post-card">
 
-    {% if post.comment %}
-      <div class="post-text">{{ post.comment }}</div>
-    {% endif %}
+      <div class="post-top">
+        <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
+          {{ post.display_name }}
+        </a>
+        <span class="post-date">{{ post.created_at }}</span>
+      </div>
 
-    {% if post.image %}
-      <img src="{{ post.image }}" class="post-image">
-    {% endif %}
+      {% if post.car %}
+        <div class="post-car">{{ post.car }}</div>
+      {% endif %}
 
-    <div class="post-actions">
+      {% if post.comment %}
+        <div class="post-text">{{ post.comment }}</div>
+      {% endif %}
 
-      {% if user %}
-        {% if post.id in liked_posts %}
-          <form action="/unlike/{{ post.id }}" method="post">
-            <button type="submit" class="like-btn">❤️ {{ post.likes }}</button>
-          </form>
+      {% if post.image %}
+        <img src="{{ post.image }}" class="post-image">
+      {% endif %}
+
+      <div class="post-actions">
+
+        {% if user %}
+          <button class="like-btn"
+                  data-post-id="{{ post.id }}">
+            {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
+            {{ post.likes }}
+          </button>
         {% else %}
-          <form action="/like/{{ post.id }}" method="post">
-            <button type="submit" class="like-btn">🤍 {{ post.likes }}</button>
+          <span>🤍 {{ post.likes }}</span>
+        {% endif %}
+
+        {% if user == post.username %}
+          <form action="/delete/{{ post.id }}" method="post"
+                onsubmit="return confirm('この投稿を削除しますか？');">
+            <button type="submit" class="delete-btn">🗑</button>
           </form>
         {% endif %}
-      {% else %}
-        <span>🤍 {{ post.likes }}</span>
-      {% endif %}
 
-      {% if user == post.username %}
-        <form action="/delete/{{ post.id }}" method="post"
-              onsubmit="return confirm('この投稿を削除しますか？');">
-          <button type="submit" class="delete-btn">🗑 削除</button>
-        </form>
-      {% endif %}
-
-    </div>
-  </article>
-{% endfor %}
-</div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
 
 </main>
+
+<script src="/static/like.js" defer></script>
 </body>
 </html>
