@@ -809,6 +809,7 @@ def index(
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)   # ← ★追加
         unread_dm = has_unread_dm(db, me_user_id)
         liked_posts = get_liked_posts(db, me_user_id, me_username)
 
@@ -822,7 +823,6 @@ def index(
         elif tab == "new":
             posts = fetch_posts(db, me_user_id, order_sql="ORDER BY p.created_at DESC")
         else:
-            # recommend（今は最新でOK）
             posts = fetch_posts(db, me_user_id)
 
     finally:
@@ -834,6 +834,7 @@ def index(
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
+        "user_icon": user_icon,      # ← ★追加
         "unread_dm": unread_dm,
         "liked_posts": liked_posts,
         "mode": "home",
