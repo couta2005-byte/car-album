@@ -1463,3 +1463,126 @@ textarea {
   color: #000;
   border-bottom: 2px solid #000;
 }
+/* =========================
+   Home Tabs
+========================= */
+.home-tabs {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin: 24px 0 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.home-tab {
+  padding: 8px 4px 12px;
+  font-size: 14px;
+  color: #6b7280;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+}
+
+.home-tab.active {
+  color: #111827;
+  font-weight: 600;
+  border-bottom-color: #111827;
+}
+
+/* =========================
+   Home Search
+========================= */
+.home-search {
+  max-width: 600px;
+  margin: 0 auto 24px;
+  display: flex;
+  gap: 8px;
+}
+
+.home-search input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.home-search button {
+  padding: 0 18px;
+  border-radius: 999px;
+  border: none;
+  background: #111827;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* =========================
+   Post Layout Fix
+========================= */
+.post {
+  max-width: 600px;
+  margin: 0 auto 28px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.post-image img {
+  width: 100%;
+  height: auto;
+  border-radius: 14px;
+  display: block;
+}
+
+/* =========================
+   Post Header
+========================= */
+.post-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.post-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar img {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: inline-block;
+}
+
+/* =========================
+   Actions
+========================= */
+.post-actions {
+  margin-top: 10px;
+}
+
+.like-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.like-btn.active {
+  color: #e11d48;
+}
