@@ -351,6 +351,9 @@ textarea {
   gap: 10px;
   margin-top: 10px;
   flex-wrap: wrap;
+
+  /* ✅ 右寄せ（要望） */
+  justify-content: flex-end;
 }
 
 .post-actions form { margin: 0; }
@@ -424,8 +427,15 @@ textarea {
 .like-btn:hover { background:#f7f7f8; }
 .like-btn:active { transform: scale(0.985); }
 
-/* ✅ 新仕様：liked でハートON表示 */
+/* ✅ 新仕様：liked でハートON表示（旧互換） */
 .like-btn.liked{
+  background: #ffe7ef;
+  border-color: #ffb3cc;
+  color: #be123c;
+}
+
+/* ✅ 今のホームJSは active を付けてるので両対応（ここがホームで効く） */
+.like-btn.active{
   background: #ffe7ef;
   border-color: #ffb3cc;
   color: #be123c;
@@ -841,3 +851,4 @@ textarea {
   max-height:100%;
   border-radius:16px;
 }
+
