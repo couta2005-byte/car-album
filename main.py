@@ -907,7 +907,12 @@ def index(
             posts = fetch_posts(db, me_user_id, order_sql="ORDER BY p.created_at DESC")
 
         else:
-            posts = fetch_posts(db, me_user_id)
+    # おすすめ：いいね多い × 新しさ
+    posts = fetch_posts(
+        db,
+        me_user_id,
+        order_sql="ORDER BY COUNT(l.post_id) DESC, p.created_at DESC"
+    )
 
     finally:
         db.close()
