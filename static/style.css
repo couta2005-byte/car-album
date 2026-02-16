@@ -127,7 +127,7 @@ button { font-family: inherit; }
 main.container { margin-top: 16px; }
 
 /* =========================
-   Forms（共通）
+   Forms
 ========================= */
 .post-form { margin-bottom: 16px; }
 
@@ -149,8 +149,6 @@ input, textarea {
   border: 2px solid #cfd9de;
   font-size: 14px;
   margin-bottom: 10px;
-  background: #fff;
-  color: #0f1419;
 }
 
 input:focus, textarea:focus {
@@ -239,14 +237,13 @@ textarea {
 }
 
 /* =========================
-   Avatar（ユーザーアイコン）
+   Avatar
 ========================= */
 .avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
   overflow: hidden;
-  flex: 0 0 auto;
   background: #e5e7eb;
   border: 1px solid rgba(15,20,25,0.06);
 }
@@ -255,23 +252,12 @@ textarea {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-}
-
-.avatar-fallback {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  border: 1px solid rgba(15,20,25,0.06);
-  display: inline-block;
 }
 
 /* =========================
-   Post Card（共通）
+   Post Card
 ========================= */
-.post, .post-card {
-  position: relative;
+.post {
   background: #fff;
   border-radius: 16px;
   padding: 14px;
@@ -279,576 +265,145 @@ textarea {
   box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-.post-top, .post-header {
+.post-top {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
   align-items: center;
-  margin-bottom: 8px;
 }
 
 .post-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 0;
 }
 
 .post-user {
   font-weight: 900;
   text-decoration: none;
-  color: #0f1419;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 240px;
 }
 
-.post-user:hover { text-decoration: underline; }
-
-.post-date, .post-time {
+.post-date {
   font-size: 12px;
   color: #536471;
-  white-space: nowrap;
 }
 
-.post-text, .post-comment {
-  font-size: 14px;
-  line-height: 1.65;
+.post-comment {
   margin-top: 6px;
-  word-break: break-word;
+  font-size: 14px;
   white-space: pre-wrap;
 }
 
 /* =========================
-   Image（暴走防止）
+   Image
 ========================= */
 .post-image {
-  position: relative;
-  z-index: 1;
   margin-top: 10px;
-  width: 100%;
   border-radius: 14px;
   overflow: hidden;
-  background: #f3f4f6;
 }
 
 .post-image img {
   width: 100%;
-  height: auto;
   display: block;
+  cursor: zoom-in;
 }
 
 /* =========================
-   Actions（統一）
+   Actions（右寄せ）
 ========================= */
 .post-actions,
 .ranking-actions {
-  position: relative;
-  z-index: 5;
   display: flex;
-  align-items: center;
   gap: 10px;
   margin-top: 10px;
-  flex-wrap: wrap;
-
-  /* ✅ 右寄せ（要望） */
   justify-content: flex-end;
 }
 
-.post-actions form { margin: 0; }
-
 /* =========================
-   Buttons（統一デザイン）
+   Action Buttons
 ========================= */
 .action-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-
   height: 38px;
   padding: 0 14px;
-
   border-radius: 999px;
   border: 1px solid #e5e7eb;
-  background: #fff;
-
-  color: #111827;
+  background: #f7f7f8;
+  color: #6b7280;
   font-size: 14px;
-  font-weight: 800;
-  line-height: 1;
-  text-decoration: none;
-
+  font-weight: 900;
   cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-
-  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
 }
 
-.action-btn:hover { background: #f7f7f8; }
-.action-btn:active { transform: scale(0.985); }
-
-.action-btn .count {
-  font-weight: 900;
-  min-width: 10px;
-  text-align: center;
+.action-btn:hover {
+  background: #f1f5f9;
 }
 
 /* =========================
-   Like Button（統一）
+   Like Button（ランキング完全一致）
 ========================= */
 .like-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 6px;
-
   height: 38px;
   padding: 0 14px;
-
   border-radius: 999px;
   border: 1px solid #e5e7eb;
-  background: #fff;
-
-  color: #111827;
+  background: #f7f7f8;
+  color: #6b7280;
   font-size: 14px;
   font-weight: 900;
-  line-height: 1;
-
   cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-
-  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
+  transition: background .12s ease, border-color .12s ease, color .12s ease, transform .06s ease;
 }
 
-.like-btn:hover { background:#f7f7f8; }
-.like-btn:active { transform: scale(0.985); }
+.like-btn:hover { background: #f1f5f9; }
+.like-btn:active { transform: scale(0.97); }
 
-/* ✅ 新仕様：liked でハートON表示（旧互換） */
-.like-btn.liked{
+/* ❤️ いいねON（HOME / ランキング / 詳細 共通） */
+.like-btn.active,
+.like-btn.liked {
   background: #ffe7ef;
   border-color: #ffb3cc;
   color: #be123c;
 }
 
-/* ✅ 今のホームJSは active を付けてるので両対応（ここがホームで効く） */
-.like-btn.active{
-  background: #ffe7ef;
-  border-color: #ffb3cc;
-  color: #be123c;
-}
-
-.like-btn:disabled{
-  opacity: 0.6;
-  cursor: not-allowed;
+.like-btn.active:hover,
+.like-btn.liked:hover {
+  background: #ffdce7;
 }
 
 /* =========================
-   Delete / Follow Buttons
+   Delete Button
 ========================= */
-.delete-btn, .follow-btn {
-  height: 38px;
-  border-radius: 999px;
-  padding: 0 14px;
-  font-size: 14px;
-  font-weight: 900;
-  cursor: pointer;
-  border: 1px solid #cfd9de;
-  background: #fff;
-  color: #0f1419;
+.delete-btn {
+  border-color: rgba(244,63,94,0.35);
 }
 
-.delete-btn:hover, .follow-btn:hover { background: #f6f7f8; }
-
-.delete-btn { border-color: rgba(244,63,94,0.35); }
-.delete-btn:hover { background: rgba(244,63,94,0.08); }
-
-/* =========================
-   Back link
-========================= */
-.back-link {
-  display: inline-block;
-  margin: 6px 0 12px;
-  color: #0f1419;
-  text-decoration: none;
-  font-weight: 800;
-}
-
-.back-link:hover { text-decoration: underline; }
-
-/* =========================
-   Ranking Tabs（必要な時だけ使う）
-========================= */
-.ranking-tabs {
-  display: flex;
-  gap: 10px;
-  margin: 8px 0 16px;
-}
-
-.ranking-tab {
-  flex: 1;
-  text-align: center;
-  padding: 11px 0;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 900;
-  text-decoration: none;
-  background: #f3f4f6;
-  color: #333;
-  border: none;
-}
-
-.ranking-tab:hover { opacity: 0.92; }
-
-.ranking-tab.active {
-  background: #000;
-  color: #fff;
+.delete-btn:hover {
+  background: rgba(244,63,94,0.08);
 }
 
 /* =========================
-   Search Page（使ってる分だけ）
+   Image Modal
 ========================= */
-.search-hero {
-  background: #fff;
-  border-radius: 18px;
-  padding: 14px;
-  margin: 8px 0 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-}
-
-.search-title {
-  font-size: 26px;
-  font-weight: 900;
-  margin: 2px 0 12px;
-}
-
-.search-bar {
-  display: flex;
-  gap: 10px;
+.img-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.86);
+  display: none;
   align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
 
-.search-input { width: 100%; margin: 0; }
+.img-modal.open { display: flex; }
 
-.search-btn {
-  border: none;
-  background: #1d9bf0;
-  color: #fff;
-  font-weight: 900;
-  border-radius: 999px;
-  padding: 12px 18px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.search-btn:hover { opacity: 0.92; }
-
-.search-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.search-section { margin: 14px 0 22px; }
-
-.section-title {
-  font-size: 16px;
-  font-weight: 900;
-  margin: 0 0 10px;
-  color: #0f1419;
-}
-
-.search-section .user-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.search-section .user-pill {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+.img-modal img {
+  max-width: 100%;
+  max-height: 100%;
   border-radius: 16px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  text-decoration: none;
 }
-
-.search-section .user-pill:hover { background: #f7f7f8; }
-
-.user-pill-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-  min-width: 0;
-}
-
-.user-name {
-  font-size: 15px;
-  font-weight: 900;
-  color: #0f1419;
-}
-
-.user-handle {
-  font-size: 13px;
-  font-weight: 800;
-  color: #536471;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.empty-note { color: #8899a6; margin: 0; font-size: 14px; }
-
-@media (max-width: 600px) {
-  .search-bar { flex-direction: column; align-items: stretch; }
-  .search-grid { grid-template-columns: 1fr; }
-  .search-btn { width: 100%; }
-}
-
-/* =========================
-   Profile（必要最低限）
-========================= */
-.inline-form { margin: 0; }
-
-.profile-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin: 10px 0 12px;
-}
-
-.profile-left{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  min-width: 0;
-}
-
-.profile-avatar{
-  width:54px;
-  height:54px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  overflow:hidden;
-  background:#e5e7eb;
-}
-
-.profile-avatar img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-
-.profile-idblock{ min-width:0; }
-
-.profile-name{
-  margin:0;
-  font-size:18px;
-  font-weight:900;
-  letter-spacing: .2px;
-  line-height: 1.15;
-}
-
-.profile-handle{
-  color:#536471;
-  font-size:13px;
-  margin-top:4px;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.profile-actions{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-.profile-box{
-  margin:12px 0;
-  background:#fff;
-  border-radius:18px;
-  padding:14px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.08);
-}
-
-.profile-stats{
-  display:flex;
-  justify-content:center;
-  gap:28px;
-  margin-top:14px;
-}
-
-.profile-stats .stat{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-size:13px;
-  font-weight:700;
-  color:#536471;
-}
-
-.profile-stats .stat-num{
-  font-size:17px;
-  font-weight:900;
-  color:#0f1419;
-  letter-spacing:.2px;
-}
-
-.profile-bio{
-  margin:12px 0 0;
-  white-space:pre-wrap;
-  color:#111827;
-  font-size:14px;
-  line-height:1.55;
-}
-
-/* DM button（任意） */
-.dm-btn{
-  height:38px;
-  padding:0 18px;
-  border-radius:999px;
-  border:none;
-  background: linear-gradient(135deg, #1d9bf0, #0a85d1);
-  color:#fff;
-  font-size:14px;
-  font-weight:900;
-  cursor:pointer;
-  box-shadow: 0 4px 12px rgba(29,155,240,0.35);
-}
-
-.dm-btn:hover{ opacity:.95; }
-
-/* =========================
-   DM List（最低限）
-========================= */
-.dm-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.dm-item {
-  display: flex;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 12px;
-  text-decoration: none;
-  color: inherit;
-  transition: background .15s;
-}
-
-.dm-item:hover { background: #f5f5f5; }
-
-.dm-icon img,
-.icon-placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #ddd;
-  object-fit: cover;
-}
-
-.dm-body { flex: 1; min-width: 0; }
-
-.dm-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dm-name { font-weight: 800; }
-
-.dm-time { font-size: 12px; color: #777; }
-
-.dm-preview {
-  font-size: 14px;
-  color: #555;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* =========================
-   Comment（最低限）
-========================= */
-.comment-section {
-  margin-top: 36px;
-  padding-top: 24px;
-  border-top: 1px solid #e6ecf0;
-}
-
-.comment-item {
-  background: #f7f9fb;
-  border-radius: 16px;
-  padding: 12px 14px;
-  margin-bottom: 12px;
-  color: #0f1419;
-  border: 1px solid rgba(15,20,25,0.06);
-}
-
-.comment-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-
-.comment-time {
-  font-size: 12px;
-  color: #8899a6;
-  white-space: nowrap;
-}
-
-.comment-body {
-  font-size: 14px;
-  line-height: 1.65;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.comment-del-btn{
-  border:1px solid #ddd;
-  background:#fff;
-  border-radius:12px;
-  padding:6px 10px;
-  font-weight:900;
-  cursor:pointer;
-}
-
-/* =========================
-   Image Modal（任意）
-========================= */
-.post-image img{ cursor: zoom-in; }
-
-.img-modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.86);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  z-index:9999;
-  padding:18px;
-}
-.img-modal.open{ display:flex; }
-
-.img-modal-inner{ max-width:100%; max-height:100%; }
-
-.img-modal img{
-  max-width:100%;
-  max-height:100%;
-  border-radius:16px;
-}
-
