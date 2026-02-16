@@ -5,7 +5,7 @@
   <title>Carbum｜クルマ好きのSNS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ===== OGP ===== -->
+  <!-- OGP -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Carbum">
   <meta property="og:title" content="Carbum｜クルマ好きのSNS">
@@ -13,8 +13,7 @@
   <meta property="og:url" content="https://car-album-3.onrender.com/">
   <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
 
-  <!-- ===== CSS ===== -->
-  <link rel="stylesheet" href="/static/style.css?v=101">
+  <link rel="stylesheet" href="/static/style.css?v=102">
 </head>
 <body>
 
@@ -22,26 +21,20 @@
 
 <main class="container">
 
-  <!-- ======================
-       Home Tabs
-  ====================== -->
+  <!-- Tabs -->
   <div class="home-tabs">
     <a href="/?tab=recommend" class="home-tab {% if tab=='recommend' %}active{% endif %}">おすすめ</a>
     <a href="/?tab=new" class="home-tab {% if tab=='new' %}active{% endif %}">新着</a>
     <a href="/?tab=follow" class="home-tab {% if tab=='follow' %}active{% endif %}">フォロー中</a>
   </div>
 
-  <!-- ======================
-       Home Search
-  ====================== -->
+  <!-- Search -->
   <form method="get" action="/search" class="home-search">
     <input type="text" name="q" placeholder="ユーザー・車名で検索">
     <button type="submit">検索</button>
   </form>
 
-  <!-- ======================
-       Post Form
-  ====================== -->
+  <!-- Post form -->
   {% if user %}
   <form action="/post" method="post" enctype="multipart/form-data" class="post-form">
     <div class="form-row">
@@ -49,34 +42,25 @@
       <input name="car" placeholder="車名">
       <input name="region" placeholder="地域">
     </div>
-
     <textarea name="comment" placeholder="コメント（ひとこと）"></textarea>
-
     <div class="form-row">
       <input type="file" name="image">
-      <button class="primary-btn" type="submit">投稿</button>
+      <button class="primary-btn">投稿</button>
     </div>
   </form>
   {% endif %}
 
-  <!-- ======================
-       Posts
-  ====================== -->
+  <!-- Posts -->
   <div class="posts">
     {% for post in posts %}
-    <article class="post"
-             role="link"
-             tabindex="0"
-             onclick="location.href='/post/{{ post.id }}';"
-             style="position:relative;">
+    <article class="post" data-href="/post/{{ post.id }}">
 
-      <!-- ===== Header ===== -->
       <div class="post-top">
         <div class="post-title">
           {% if post.user_icon %}
             <div class="avatar">
               <a href="/user/{{ post.profile_key | urlencode }}">
-                <img src="{{ post.user_icon }}" alt="icon">
+                <img src="{{ post.user_icon }}">
               </a>
             </div>
           {% else %}
@@ -85,63 +69,42 @@
             </a>
           {% endif %}
 
-          <div class="post-title-main">
-            <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
-              {{ post.display_name }}
-            </a>
-            {% if post.car %}
-              <span class="post-sep">：</span>
-              <span class="post-car">{{ post.car }}</span>
-            {% endif %}
-          </div>
+          <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
+            {{ post.display_name }}
+          </a>
         </div>
-
         <span class="post-date">{{ post.created_at }}</span>
       </div>
 
-      <!-- ===== Comment ===== -->
       {% if post.comment %}
         <div class="post-comment">{{ post.comment }}</div>
       {% endif %}
 
-      <!-- ===== Image ===== -->
       {% if post.image %}
         <div class="post-image">
-          <img src="{{ post.image }}" alt="投稿画像">
+          <img src="{{ post.image }}">
         </div>
       {% endif %}
 
-      <!-- ===== Actions ===== -->
-      <div class="post-actions" onclick="event.stopPropagation();">
-
-        {% if me_user_id and post.user_id == me_user_id %}
-          <form action="/delete/{{ post.id }}" method="post"
-                onsubmit="return confirm('削除しますか？');">
-            <button class="action-btn delete-btn" type="submit">🗑</button>
-          </form>
-        {% endif %}
-
+      <div class="post-actions">
         <a href="/post/{{ post.id }}#comments" class="action-btn">
-          💬 <span class="comment-count">{{ post.comment_count }}</span>
+          💬 {{ post.comment_count }}
         </a>
 
-        <button
-          type="button"
-          class="action-btn like-btn {% if post.id in liked_posts %}active{% endif %}"
-          data-post-id="{{ post.id }}">
+        <button type="button"
+                class="action-btn like-btn {% if post.id in liked_posts %}active{% endif %}"
+                data-post-id="{{ post.id }}">
           🤍 <span class="like-count">{{ post.likes }}</span>
         </button>
-
       </div>
+
     </article>
     {% endfor %}
   </div>
 
 </main>
 
-<!-- ======================
-     Like JS（HOME完全対応）
-====================== -->
+<!-- Like -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".like-btn");
@@ -165,6 +128,18 @@ document.addEventListener("click", async (e) => {
   const data = await res.json();
   btn.classList.toggle("active", data.liked);
   btn.querySelector(".like-count").textContent = data.likes;
+});
+</script>
+
+<!-- Post click -->
+<script>
+document.addEventListener("click", (e) => {
+  const post = e.target.closest(".post");
+  if (!post) return;
+
+  if (e.target.closest(".like-btn, .action-btn, a, button, form")) return;
+
+  location.href = post.dataset.href;
 });
 </script>
 
