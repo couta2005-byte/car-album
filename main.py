@@ -795,7 +795,7 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
         })
     return posts
 # ======================
-# ★ recommend fetch（スコア順）
+# ★ recommend fetch（修正版）
 # ======================
 def fetch_posts_recommend(db, me_user_id: Optional[str]):
     cur = db.cursor()
@@ -811,8 +811,7 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
                 p.comment, p.image, p.created_at,
                 COUNT(DISTINCT l.user_id) AS like_count,
                 COUNT(DISTINCT c.id) AS comment_count,
-                pr.icon AS user_icon,
-                EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600 AS hours_ago
+                pr.icon AS user_icon
             FROM posts p
             LEFT JOIN users u
               ON (p.user_id IS NOT NULL AND p.user_id = u.id)
@@ -821,7 +820,11 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
             LEFT JOIN comments c ON c.post_id = p.id
             LEFT JOIN profiles pr ON pr.user_id = COALESCE(u.id, p.user_id)
             GROUP BY
-                p.id, username, display_name, u.handle, user_id,
+                p.id,
+                COALESCE(u.username, p.username),
+                COALESCE(u.display_name, COALESCE(u.username, p.username)),
+                u.handle,
+                COALESCE(p.user_id, u.id),
                 p.maker, p.region, p.car,
                 p.comment, p.image, p.created_at,
                 pr.icon
@@ -871,9 +874,6 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
         })
     return posts
 
-# ======================
-# top
-# ======================
 # ======================
 # top
 # ======================
