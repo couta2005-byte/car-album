@@ -393,6 +393,9 @@ textarea {
   text-align: center;
 }
 
+/* =========================
+   Like Button（統一）
+========================= */
 .like-btn {
   display: inline-flex;
   align-items: center;
@@ -421,7 +424,8 @@ textarea {
 .like-btn:hover { background:#f7f7f8; }
 .like-btn:active { transform: scale(0.985); }
 
-.like-btn.active{
+/* ✅ 新仕様：liked でハートON表示 */
+.like-btn.liked{
   background: #ffe7ef;
   border-color: #ffb3cc;
   color: #be123c;
@@ -432,6 +436,9 @@ textarea {
   cursor: not-allowed;
 }
 
+/* =========================
+   Delete / Follow Buttons
+========================= */
 .delete-btn, .follow-btn {
   height: 38px;
   border-radius: 999px;

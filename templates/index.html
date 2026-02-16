@@ -5,7 +5,7 @@
   <title>Carbum｜クルマ好きのSNS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- OGP -->
+  <!-- ===== OGP ===== -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Carbum">
   <meta property="og:title" content="Carbum｜クルマ好きのSNS">
@@ -13,8 +13,8 @@
   <meta property="og:url" content="https://car-album-3.onrender.com/">
   <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="/static/style.css?v=99">
+  <!-- ===== CSS ===== -->
+  <link rel="stylesheet" href="/static/style.css?v=100">
 </head>
 <body>
 
@@ -63,7 +63,7 @@
 
     <div class="form-row">
       <input type="file" name="image">
-      <button class="primary-btn">投稿</button>
+      <button class="primary-btn" type="submit">投稿</button>
     </div>
   </form>
   {% endif %}
@@ -73,9 +73,13 @@
   ====================== -->
   <div class="posts">
     {% for post in posts %}
-    <article class="post">
+    <article class="post"
+             role="link"
+             tabindex="0"
+             onclick="location.href='/post/{{ post.id }}';"
+             style="position:relative;">
 
-      <!-- Header -->
+      <!-- ===== Header ===== -->
       <div class="post-top">
         <div class="post-title">
           {% if post.user_icon %}
@@ -90,46 +94,54 @@
             </a>
           {% endif %}
 
-          <a href="/user/{{ post.profile_key | urlencode }}"
-             class="post-user">
-            {{ post.display_name }}
-          </a>
+          <div class="post-title-main">
+            <a href="/user/{{ post.profile_key | urlencode }}"
+               class="post-user">
+              {{ post.display_name }}
+            </a>
+            {% if post.car %}
+              <span class="post-sep">：</span>
+              <span class="post-car">{{ post.car }}</span>
+            {% endif %}
+          </div>
         </div>
 
         <span class="post-date">{{ post.created_at }}</span>
       </div>
 
-      <!-- Comment -->
+      <!-- ===== Comment ===== -->
       {% if post.comment %}
         <div class="post-comment">{{ post.comment }}</div>
       {% endif %}
 
-      <!-- Image -->
+      <!-- ===== Image ===== -->
       {% if post.image %}
         <div class="post-image">
           <img src="{{ post.image }}" alt="投稿画像">
         </div>
       {% endif %}
 
-      <!-- Actions -->
-      <div class="post-actions">
-        {% if user %}
-          <button class="like-btn {% if post.id in liked_posts %}active{% endif %}"
-                  data-post-id="{{ post.id }}">
-            {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
-            {{ post.likes }}
-          </button>
-        {% else %}
-          <span>🤍 {{ post.likes }}</span>
-        {% endif %}
+      <!-- ===== Actions（新基準）===== -->
+      <div class="post-actions" onclick="event.stopPropagation();">
 
-        {% if me_user_id and me_user_id == post.user_id %}
+        {% if me_user_id and post.user_id == me_user_id %}
           <form action="/delete/{{ post.id }}"
                 method="post"
                 onsubmit="return confirm('削除しますか？');">
-            <button type="submit" class="delete-btn">🗑</button>
+            <button class="action-btn delete-btn" type="submit">🗑</button>
           </form>
         {% endif %}
+
+        <a href="/post/{{ post.id }}#comments" class="action-btn">
+          💬 <span class="comment-count">{{ post.comment_count }}</span>
+        </a>
+
+        <button type="button"
+                class="action-btn like-btn {% if post.liked %}liked{% endif %}"
+                data-post-id="{{ post.id }}">
+          🤍 <span class="like-count">{{ post.like_count }}</span>
+        </button>
+
       </div>
 
     </article>
@@ -138,8 +150,35 @@
 
 </main>
 
-<!-- Like JS -->
-<script src="/static/like.js?v=99" defer></script>
+<!-- ======================
+     Like JS（新仕様）
+====================== -->
+<script>
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".like-btn");
+  if (!btn) return;
+
+  e.preventDefault();
+
+  const postId = btn.dataset.postId;
+
+  const res = await fetch("/like", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ post_id: postId })
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) location.href = "/login";
+    return;
+  }
+
+  const data = await res.json();
+
+  btn.classList.toggle("liked", data.liked);
+  btn.querySelector(".like-count").textContent = data.like_count;
+});
+</script>
 
 </body>
 </html>

@@ -35,7 +35,7 @@
   {% endif %}
 
   <!-- ===== CSS ===== -->
-  <link rel="stylesheet" href="/static/style.css?v=12">
+  <link rel="stylesheet" href="/static/style.css?v=13">
 </head>
 <body>
 
@@ -106,7 +106,6 @@
       {% endif %}
     </div>
 
-    <!-- ★ 表示修正ここ -->
     <div class="profile-stats">
       <div class="stat">
         <span class="stat-label">フォロー</span>
@@ -131,8 +130,8 @@
       <summary class="profile-edit-summary">プロフィール編集</summary>
 
       <form action="/profile/edit" method="post" enctype="multipart/form-data" class="profile-edit-form">
-
         <div class="form-grid">
+
           <label class="field">
             <span class="field-label">表示名</span>
             <input name="display_name"
@@ -165,7 +164,8 @@
 
           <label class="field field-wide">
             <span class="field-label">ひとこと</span>
-            <textarea name="bio" placeholder="例：深夜ドライブ好き。雪溶けたら走る！">{{ profile[3] if profile else '' }}</textarea>
+            <textarea name="bio"
+              placeholder="例：深夜ドライブ好き。雪溶けたら走る！">{{ profile[3] if profile else '' }}</textarea>
           </label>
 
           <label class="field field-wide">
@@ -173,6 +173,7 @@
             <input type="file" name="icon" accept="image/*">
             <span class="field-help">※ 画像を選ばなければ変更されません</span>
           </label>
+
         </div>
 
         <button class="primary-btn" type="submit">保存</button>
@@ -230,32 +231,25 @@
           </div>
         {% endif %}
 
+        <!-- ===== Actions（新基準）===== -->
         <div class="post-actions" onclick="event.stopPropagation();">
-          <div style="margin-left:auto; display:flex; gap:10px;">
 
-            {% if me_user_id and post.user_id == me_user_id %}
-              <form action="/delete/{{ post.id }}" method="post">
-                <button class="delete-btn" type="submit">🗑</button>
-              </form>
-            {% endif %}
+          {% if me_user_id and post.user_id == me_user_id %}
+            <form action="/delete/{{ post.id }}" method="post">
+              <button class="action-btn delete-btn" type="submit">🗑</button>
+            </form>
+          {% endif %}
 
-            <a href="/post/{{ post.id }}#comments" class="action-btn">
-              💬 {{ post.comment_count }}
-            </a>
+          <a href="/post/{{ post.id }}#comments" class="action-btn">
+            💬 <span class="comment-count">{{ post.comment_count }}</span>
+          </a>
 
-            {% if me_user_id %}
-              <button type="button"
-                      class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
-                      data-post-id="{{ post.id }}">
-                <span class="like-icon">
-                  {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
-                </span>
-                <span class="like-count">{{ post.likes }}</span>
-              </button>
-            {% else %}
-              🤍 {{ post.likes }}
-            {% endif %}
-          </div>
+          <button type="button"
+                  class="action-btn like-btn {% if post.liked %}liked{% endif %}"
+                  data-post-id="{{ post.id }}">
+            🤍 <span class="like-count">{{ post.like_count }}</span>
+          </button>
+
         </div>
       </article>
     {% endfor %}
@@ -263,29 +257,34 @@
 
 </main>
 
+<!-- ======================
+     Like JS（新仕様）
+====================== -->
 <script>
-(function(){
-  async function postJson(url){
-    const res = await fetch(url,{method:"POST",credentials:"same-origin"});
-    return res.json();
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".like-btn");
+  if (!btn) return;
+
+  e.preventDefault();
+
+  const postId = btn.dataset.postId;
+
+  const res = await fetch("/like", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ post_id: postId })
+  });
+
+  if (!res.ok) {
+    if (res.status === 401) location.href = "/login";
+    return;
   }
 
-  document.addEventListener("click", async e=>{
-    const btn = e.target.closest(".js-like");
-    if(!btn) return;
+  const data = await res.json();
 
-    e.preventDefault();
-    const postId = btn.dataset.postId;
-    const r = await postJson(`/api/like/${postId}`);
-    if(!r || !r.ok){
-      if(r && r.error==="login_required") location.href="/login";
-      return;
-    }
-    btn.classList.toggle("active", r.liked);
-    btn.querySelector(".like-icon").textContent = r.liked ? "❤️" : "🤍";
-    btn.querySelector(".like-count").textContent = r.likes;
-  });
-})();
+  btn.classList.toggle("liked", data.liked);
+  btn.querySelector(".like-count").textContent = data.like_count;
+});
 </script>
 
 </body>

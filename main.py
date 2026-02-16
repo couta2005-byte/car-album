@@ -794,7 +794,86 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
             "comment_count": len(post_comments)
         })
     return posts
+# ======================
+# ★ recommend fetch（スコア順）
+# ======================
+def fetch_posts_recommend(db, me_user_id: Optional[str]):
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            SELECT
+                p.id,
+                COALESCE(u.username, p.username) AS username,
+                COALESCE(u.display_name, COALESCE(u.username, p.username)) AS display_name,
+                u.handle AS handle,
+                COALESCE(p.user_id, u.id) AS user_id,
+                p.maker, p.region, p.car,
+                p.comment, p.image, p.created_at,
+                COUNT(DISTINCT l.user_id) AS like_count,
+                COUNT(DISTINCT c.id) AS comment_count,
+                pr.icon AS user_icon,
+                EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600 AS hours_ago
+            FROM posts p
+            LEFT JOIN users u
+              ON (p.user_id IS NOT NULL AND p.user_id = u.id)
+              OR (p.user_id IS NULL AND p.username = u.username)
+            LEFT JOIN likes l ON l.post_id = p.id
+            LEFT JOIN comments c ON c.post_id = p.id
+            LEFT JOIN profiles pr ON pr.user_id = COALESCE(u.id, p.user_id)
+            GROUP BY
+                p.id, username, display_name, u.handle, user_id,
+                p.maker, p.region, p.car,
+                p.comment, p.image, p.created_at,
+                pr.icon
+            ORDER BY
+                (COUNT(DISTINCT l.user_id) * 3)
+              + (COUNT(DISTINCT c.id) * 2)
+              - (EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600) * 0.15
+                DESC,
+                p.id DESC
+            LIMIT 50
+        """)
+        rows = cur.fetchall()
+    finally:
+        cur.close()
 
+    post_ids = [r[0] for r in rows]
+    comments_map = fetch_comments_for_posts(db, post_ids, me_user_id)
+
+    posts = []
+    for r in rows:
+        pid = r[0]
+        username = r[1]
+        display_name = r[2]
+        handle = r[3]
+        user_id = str(r[4]) if r[4] else None
+        profile_key = handle if handle else username
+
+        post_comments = comments_map.get(pid, [])
+
+        posts.append({
+            "id": pid,
+            "username": username,
+            "display_name": display_name,
+            "handle": handle,
+            "profile_key": profile_key,
+            "user_id": user_id,
+            "maker": r[5],
+            "region": r[6],
+            "car": r[7],
+            "comment": r[8],
+            "image": r[9],
+            "created_at": fmt_jst(r[10]),
+            "likes": r[11],
+            "comment_count": len(post_comments),
+            "user_icon": r[13],
+            "comments": post_comments,
+        })
+    return posts
+
+# ======================
+# top
+# ======================
 # ======================
 # top
 # ======================
@@ -809,19 +888,24 @@ def index(
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
-        user_icon = get_my_icon(db, me_user_id)   # ← ★追加
+        user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
         liked_posts = get_liked_posts(db, me_user_id, me_username)
 
-        if tab == "follow" and me_user_id:
+        if tab == "recommend":
+            posts = fetch_posts_recommend(db, me_user_id)
+
+        elif tab == "follow" and me_user_id:
             posts = fetch_posts(
                 db,
                 me_user_id,
                 "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
                 (me_user_id,),
             )
+
         elif tab == "new":
             posts = fetch_posts(db, me_user_id, order_sql="ORDER BY p.created_at DESC")
+
         else:
             posts = fetch_posts(db, me_user_id)
 
@@ -834,7 +918,7 @@ def index(
         "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
-        "user_icon": user_icon,      # ← ★追加
+        "user_icon": user_icon,
         "unread_dm": unread_dm,
         "liked_posts": liked_posts,
         "mode": "home",
