@@ -893,27 +893,30 @@ def index(
         liked_posts = get_liked_posts(db, me_user_id, me_username)
 
         if tab == "recommend":
-            posts = fetch_posts_recommend(db, me_user_id)
+    posts = fetch_posts_recommend(db, me_user_id)
 
-        elif tab == "follow" and me_user_id:
-            posts = fetch_posts(
-                db,
-                me_user_id,
-                "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
-                (me_user_id,),
-            )
-
-        elif tab == "new":
-            posts = fetch_posts(db, me_user_id, order_sql="ORDER BY p.created_at DESC")
-
-        else:
-    # おすすめ：いいね多い × 新しさ
+elif tab == "follow" and me_user_id:
     posts = fetch_posts(
         db,
         me_user_id,
-        order_sql="ORDER BY COUNT(l.post_id) DESC, p.created_at DESC"
+        "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
+        (me_user_id,),
     )
 
+elif tab == "new":
+    posts = fetch_posts(
+        db,
+        me_user_id,
+        order_sql="ORDER BY p.created_at DESC"
+    )
+
+else:
+    # フォールバック（基本ここには来ない）
+    posts = fetch_posts(
+        db,
+        me_user_id,
+        order_sql="ORDER BY p.id DESC"
+    )
     finally:
         db.close()
 
