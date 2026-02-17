@@ -427,44 +427,6 @@ textarea {
   text-align: center;
 }
 
-/* =========================
-   Like Button（ランキングのハートと一致）
-========================= */
-.like-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  height: 38px;
-  padding: 0 14px;
-
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-
-  color: #111827;
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1;
-
-  cursor: pointer;
-  user-select: none;
-  -webkit-tap-highlight-color: transparent;
-
-  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
-}
-
-.like-btn:hover { background:#f7f7f8; }
-.like-btn:active { transform: scale(0.985); }
-
-/* ✅ HOMEは active / ランキングは liked の場合があるので両対応 */
-.like-btn.active,
-.like-btn.liked{
-  background: #ffe7ef;
-  border-color: #ffb3cc;
-  color: #be123c;
-}
 
 .like-btn:disabled{
   opacity: 0.6;
