@@ -877,6 +877,7 @@ textarea {
   position: relative;
   width: 14px;
   height: 14px;
+  font-size: 0;            /* ← 超重要 */
   transform: rotate(-45deg);
   background: currentColor;
 }
