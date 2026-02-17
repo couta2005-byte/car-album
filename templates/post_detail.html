@@ -3,41 +3,22 @@
 <head>
   <meta charset="UTF-8">
 
-  <!-- ===== Title ===== -->
   <title>{{ post.car }} | {{ post.display_name }} | Carbum</title>
 
-  <!-- ===== Viewport ===== -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ===== OGP (Post Detail) ===== -->
+  <!-- ===== OGP ===== -->
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="Carbum">
   <meta property="og:title" content="{{ post.car }} | {{ post.display_name }}">
   <meta property="og:description"
         content="{{ post.comment | striptags | truncate(80, True, '…') if post.comment else 'Carbumの投稿を見る' }}">
   <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:image"
+        content="{{ post.image if post.image else 'https://car-album-3.onrender.com/static/ogp.png' }}">
 
-  {% if post.image %}
-    <meta property="og:image" content="{{ post.image }}">
-  {% else %}
-    <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
-  {% endif %}
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-
-  <!-- ===== Twitter Card ===== -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ post.car }} | {{ post.display_name }}">
-  <meta name="twitter:description"
-        content="{{ post.comment | striptags | truncate(80, True, '…') if post.comment else 'Carbumの投稿を見る' }}">
-  <meta name="twitter:url" content="{{ request.url }}">
-  {% if post.image %}
-    <meta name="twitter:image" content="{{ post.image }}">
-  {% else %}
-    <meta name="twitter:image" content="https://car-album-3.onrender.com/static/ogp.png">
-  {% endif %}
 
-  <!-- ===== CSS ===== -->
   <link rel="stylesheet" href="/static/style.css?v=16">
 </head>
 <body>
@@ -57,7 +38,7 @@
         {% if post.user_icon %}
           <div class="avatar">
             <a href="/user/{{ post.profile_key | urlencode }}">
-              <img src="{{ post.user_icon }}" alt="icon">
+              <img src="{{ post.user_icon }}">
             </a>
           </div>
         {% else %}
@@ -66,13 +47,10 @@
           </a>
         {% endif %}
 
-        <div class="post-title-main">
-          <a href="/user/{{ post.profile_key | urlencode }}"
-             class="post-user"
-             style="text-decoration:none;">
-            <strong>{{ post.display_name }}</strong>
-          </a>
-        </div>
+        <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
+          <strong>{{ post.display_name }}</strong>
+        </a>
+
       </div>
 
       <span class="post-date">{{ post.created_at }}</span>
@@ -86,12 +64,22 @@
 
     {% if post.image %}
       <div class="post-image">
-        <img src="{{ post.image }}" alt="投稿画像">
+        <img src="{{ post.image }}">
       </div>
     {% endif %}
 
-    <!-- ===== Post Like ===== -->
-    <div class="post-actions" style="margin-top:10px;">
+    <!-- ===== Actions ===== -->
+    <div class="post-actions"
+         style="margin-top:10px; display:flex; gap:12px; align-items:center;">
+
+      <!-- 削除（投稿者のみ） -->
+      {% if me_user_id == post.user_id %}
+        <form method="post" action="/delete/{{ post.id }}" class="inline-form">
+          <button type="submit" class="delete-btn">削除</button>
+        </form>
+      {% endif %}
+
+      <!-- いいね -->
       {% if user %}
         <button type="button"
                 class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
@@ -104,6 +92,7 @@
       {% else %}
         <span>🤍 {{ post.likes }}</span>
       {% endif %}
+
     </div>
 
   </div>
@@ -117,13 +106,13 @@
         <div class="comment-item">
 
           <div class="comment-header"
-               style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+               style="display:flex; justify-content:space-between; align-items:center;">
 
-            <div style="display:flex; align-items:center; gap:10px;">
+            <div style="display:flex; gap:10px; align-items:center;">
               {% if c.user_icon %}
                 <div class="avatar">
                   <a href="/user/{{ c.profile_key | urlencode }}">
-                    <img src="{{ c.user_icon }}" alt="icon">
+                    <img src="{{ c.user_icon }}">
                   </a>
                 </div>
               {% else %}
@@ -131,18 +120,14 @@
                   <span class="avatar-fallback"></span>
                 </a>
               {% endif %}
-
               <strong>{{ c.display_name }}</strong>
               <span class="comment-time">{{ c.created_at }}</span>
             </div>
 
             <div style="display:flex; gap:10px; align-items:center;">
 
-              {% if user and (
-                    (me_user_id and c.user_id and me_user_id == c.user_id)
-                    or (c.user_id is none and c.username == user)
-                  ) %}
-                <form action="/comment_delete/{{ c.id }}" method="post" style="margin:0;">
+              {% if me_user_id == c.user_id %}
+                <form action="/comment_delete/{{ c.id }}" method="post">
                   <button type="submit" class="comment-del-btn">削除</button>
                 </form>
               {% endif %}
@@ -166,17 +151,13 @@
         </div>
       {% endfor %}
     {% else %}
-      <p class="no-comment">
-        まだコメントはありません。<br>
-        最初のコメントをしてみよう 💬
-      </p>
+      <p class="no-comment">まだコメントはありません</p>
     {% endif %}
   </section>
 
   <!-- ===== Comment Form ===== -->
   {% if user %}
     <section class="comment-form">
-      <h4>この投稿にコメントする</h4>
       <form action="/comment/{{ post.id }}" method="post">
         <textarea name="comment" required></textarea>
         <button type="submit">コメント</button>
@@ -186,72 +167,30 @@
 
 </main>
 
-<!-- ===== Image Modal ===== -->
-<div id="imgModal" class="img-modal" aria-hidden="true">
-  <div class="img-modal-inner">
-    <img id="imgModalImg" alt="">
-  </div>
-</div>
-
-<!-- ===== Like & Modal JS ===== -->
+<!-- ===== Like JS ===== -->
 <script>
-(function(){
+(async()=>{
   async function postJson(url){
-    const res = await fetch(url, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "Content-Type": "application/json" }
-    });
-    const data = await res.json().catch(()=>null);
-    return { ok: res.ok, status: res.status, data };
+    const r = await fetch(url,{method:"POST",credentials:"same-origin"});
+    return r.json();
   }
 
-  function setBtn(btn, liked, likes){
-    btn.classList.toggle("active", liked);
-    btn.querySelector(".like-icon").textContent = liked ? "❤️" : "🤍";
-    btn.querySelector(".like-count").textContent = String(likes);
-  }
-
-  document.addEventListener("click", async (e) => {
-
-    const postBtn = e.target.closest(".js-like");
-    if(postBtn){
-      e.preventDefault();
-      const id = postBtn.dataset.postId;
-      const r = await postJson(`/api/like/${id}`);
-      if(r.ok && r.data?.ok){
-        setBtn(postBtn, r.data.liked, r.data.likes);
-      }
-      return;
+  document.addEventListener("click", async e=>{
+    const p = e.target.closest(".js-like");
+    if(p){
+      const d = await postJson(`/api/like/${p.dataset.postId}`);
+      p.classList.toggle("active", d.liked);
+      p.querySelector(".like-icon").textContent = d.liked ? "❤️" : "🤍";
+      p.querySelector(".like-count").textContent = d.likes;
     }
 
-    const cBtn = e.target.closest(".js-comment-like");
-    if(cBtn){
-      e.preventDefault();
-      const id = cBtn.dataset.commentId;
-      const r = await postJson(`/api/comment_like/${id}`);
-      if(r.ok && r.data?.ok){
-        setBtn(cBtn, r.data.liked, r.data.likes);
-      }
+    const c = e.target.closest(".js-comment-like");
+    if(c){
+      const d = await postJson(`/api/comment_like/${c.dataset.commentId}`);
+      c.classList.toggle("active", d.liked);
+      c.querySelector(".like-icon").textContent = d.liked ? "❤️" : "🤍";
+      c.querySelector(".like-count").textContent = d.likes;
     }
-  });
-
-  const modal = document.getElementById("imgModal");
-  const modalImg = document.getElementById("imgModalImg");
-
-  document.addEventListener("click", e=>{
-    const img = e.target.closest(".post-image img");
-    if(!img) return;
-    e.preventDefault();
-    modalImg.src = img.src;
-    modal.classList.add("open");
-    modal.setAttribute("aria-hidden","false");
-  });
-
-  modal.addEventListener("click", ()=>{
-    modal.classList.remove("open");
-    modal.setAttribute("aria-hidden","true");
-    modalImg.src = "";
   });
 })();
 </script>
