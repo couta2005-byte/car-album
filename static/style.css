@@ -3,7 +3,11 @@
 ========================= */
 * { box-sizing: border-box; }
 
-html, body { height: 100%; width: 100%; overflow-x: hidden; }
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
 
 body {
   margin: 0;
@@ -14,13 +18,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-a { color: inherit; }
+a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 
 /* =========================
    Header / Nav
 ========================= */
-.header { background: #000; position: sticky; top: 0; z-index: 1000; }
+.header {
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
 
 .header-inner {
   display: flex;
@@ -34,8 +43,6 @@ button { font-family: inherit; }
   color: #fff;
   font-size: 22px;
   font-weight: 900;
-  text-decoration: none;
-  letter-spacing: 0.2px;
   white-space: nowrap;
 }
 
@@ -43,14 +50,11 @@ button { font-family: inherit; }
   display: flex;
   gap: 14px;
   align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
 }
 
 .nav-link {
   color: #bbb;
   font-size: 14px;
-  text-decoration: none;
   padding: 6px 8px;
   border-radius: 10px;
 }
@@ -76,45 +80,6 @@ button { font-family: inherit; }
   cursor: pointer;
 }
 
-.logout-btn:hover { opacity: 0.92; }
-
-/* --- Nav Avatar --- */
-.nav-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.nav-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-}
-
-.nav-avatar.placeholder {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: block;
-  background: #666;
-}
-
-/* --- Nav DM unread dot --- */
-.dm-nav { position: relative; }
-
-.dm-unread-dot {
-  position: absolute;
-  top: 2px;
-  right: -6px;
-  width: 8px;
-  height: 8px;
-  background: #ff3b30;
-  border-radius: 50%;
-}
-
 /* =========================
    Layout
 ========================= */
@@ -135,8 +100,6 @@ main.container { margin-top: 16px; }
   display: flex;
   gap: 10px;
 }
-
-.form-row.bottom { align-items: center; }
 
 @media (max-width: 600px) {
   .form-row { flex-direction: column; }
@@ -173,8 +136,6 @@ textarea {
   cursor: pointer;
 }
 
-.primary-btn:hover { opacity: 0.92; }
-
 /* =========================
    Home Tabs
 ========================= */
@@ -191,10 +152,11 @@ textarea {
   font-weight: 600;
   color: #888;
   position: relative;
-  text-decoration: none;
 }
 
-.home-tab.active { color: #000; }
+.home-tab.active {
+  color: #000;
+}
 
 .home-tab.active::after {
   content: "";
@@ -204,36 +166,6 @@ textarea {
   bottom: -1px;
   height: 2px;
   background: #000;
-  border-radius: 2px;
-}
-
-/* =========================
-   Home Search
-========================= */
-.home-search {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.home-search input { flex: 1; margin: 0; }
-
-.home-search button {
-  padding: 0 18px;
-  border-radius: 999px;
-  border: none;
-  background: #111827;
-  color: #fff;
-  font-size: 13px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.home-search button:hover { opacity: 0.92; }
-
-@media (max-width: 600px) {
-  .home-search { flex-direction: column; }
-  .home-search button { height: 44px; }
 }
 
 /* =========================
@@ -245,7 +177,6 @@ textarea {
   border-radius: 50%;
   overflow: hidden;
   background: #e5e7eb;
-  border: 1px solid rgba(15,20,25,0.06);
 }
 
 .avatar img {
@@ -279,7 +210,6 @@ textarea {
 
 .post-user {
   font-weight: 900;
-  text-decoration: none;
 }
 
 .post-date {
@@ -309,41 +239,28 @@ textarea {
 }
 
 /* =========================
-   Actions（右寄せ）
+   Actions
 ========================= */
-.post-actions,
-.ranking-actions {
+/* 投稿：右寄せ */
+.post-actions {
   display: flex;
   gap: 10px;
   margin-top: 10px;
   justify-content: flex-end;
 }
 
-/* =========================
-   Action Buttons
-========================= */
-.action-btn {
-  display: inline-flex;
-  align-items: center;
+/* ランキング：均等配置 */
+.ranking-actions {
+  display: flex;
   gap: 6px;
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #f7f7f8;
-  color: #6b7280;
-  font-size: 14px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.action-btn:hover {
-  background: #f1f5f9;
+  margin-top: 8px;
+  justify-content: space-between;
 }
 
 /* =========================
-   Like Button（ランキング完全一致）
+   Buttons
 ========================= */
+.action-btn,
 .like-btn {
   display: inline-flex;
   align-items: center;
@@ -360,10 +277,16 @@ textarea {
   transition: background .12s ease, border-color .12s ease, color .12s ease, transform .06s ease;
 }
 
-.like-btn:hover { background: #f1f5f9; }
-.like-btn:active { transform: scale(0.97); }
+.action-btn:hover,
+.like-btn:hover {
+  background: #f1f5f9;
+}
 
-/* ❤️ いいねON（HOME / ランキング / 詳細 共通） */
+.like-btn:active {
+  transform: scale(0.97);
+}
+
+/* ❤️ Like ON（HOME / ランキング / 詳細 共通） */
 .like-btn.active,
 .like-btn.liked {
   background: #ffe7ef;
@@ -371,13 +294,8 @@ textarea {
   color: #be123c;
 }
 
-.like-btn.active:hover,
-.like-btn.liked:hover {
-  background: #ffdce7;
-}
-
 /* =========================
-   Delete Button
+   Delete
 ========================= */
 .delete-btn {
   border-color: rgba(244,63,94,0.35);
@@ -385,6 +303,31 @@ textarea {
 
 .delete-btn:hover {
   background: rgba(244,63,94,0.08);
+}
+
+/* =========================
+   DM（専用上書き）
+========================= */
+.dm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dm-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.dm-list .action-btn {
+  height: auto;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-size: 13px;
+  background: #fff;
+  color: #111827;
 }
 
 /* =========================
@@ -400,7 +343,9 @@ textarea {
   z-index: 9999;
 }
 
-.img-modal.open { display: flex; }
+.img-modal.open {
+  display: flex;
+}
 
 .img-modal img {
   max-width: 100%;
