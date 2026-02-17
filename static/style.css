@@ -850,7 +850,7 @@ textarea {
   border-radius:16px;
 }
 /* =========================
-   Like Button (Ranking Design as Standard)
+   Like Button (Ranking Design as Standard) ✅FIX
 ========================= */
 .like-btn {
   display: inline-flex;
@@ -869,6 +869,7 @@ textarea {
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* count */
@@ -877,19 +878,21 @@ textarea {
   color: inherit;
 }
 
-/* heart icon */
+/* heart icon ✅ここが白くなるバグの修正 */
 .like-btn .heart {
   font-size: 16px;
   line-height: 1;
+  color: currentColor;     /* ✅ 親の色を確実に継承 */
+  font-family: inherit;    /* ✅ 絵文字フォント暴走保険 */
 }
 
 /* ✅ liked（ランキングのピンク） */
 .like-btn.liked {
   background: #ffe3ec;   /* 薄ピンク */
   border-color: #ff5a8a; /* ピンク枠 */
-  color: #ff5a8a;        /* 数字もピンク */
+  color: #ff5a8a;        /* 数字もハートもピンクになる */
 }
 
 .like-btn.liked .heart {
-  color: #ff5a8a;
+  color: currentColor;   /* ✅ ここも保険で統一 */
 }
