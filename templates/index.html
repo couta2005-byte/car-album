@@ -86,21 +86,11 @@
         </div>
       {% endif %}
 
-      <div class="post-actions">
-        <a href="/post/{{ post.id }}#comments" class="action-btn">
-          💬 {{ post.comment_count }}
-        </a>
-
-        <button type="button"
-                class="action-btn like-btn {% if post.id in liked_posts %}active{% endif %}"
-                data-post-id="{{ post.id }}">
-          🤍 <span class="like-count">{{ post.likes }}</span>
-        </button>
-      </div>
-
-    </article>
-    {% endfor %}
-  </div>
+      <button type="button"
+        class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
+        data-post-id="{{ post.id }}">
+  <span class="like-count">{{ post.likes }}</span>
+</button>
 
 </main>
 
@@ -126,7 +116,7 @@ document.addEventListener("click", async (e) => {
   }
 
   const data = await res.json();
-  btn.classList.toggle("active", data.liked);
+  btn.classList.toggle("liked", data.liked);
   btn.querySelector(".like-count").textContent = data.likes;
 });
 </script>

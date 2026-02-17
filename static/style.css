@@ -850,86 +850,12 @@ textarea {
   border-radius:16px;
 }
 /* =========================
-   Like Button (NUCLEAR FIX)
+   Like Button (FINAL)
 ========================= */
-.like-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  min-width: 88px;
-  padding: 10px 16px;
-  border-radius: 999px;
-
-  background: #fff;
-  border: 1px solid #e5e5e5;
-
-  color: #333;
-  font-size: 14px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* 🔥 中のハート要素は完全無効化 */
-.like-btn .heart {
-  display: none !important;
-}
-
-/* ❤️ ボタン自身にハートを描く */
-.like-btn::before {
-  content: "";
-  width: 14px;
-  height: 14px;
-  margin-right: 8px;
-
-  transform: rotate(-45deg);
-  background: currentColor;
-  position: relative;
-  top: 0;
-}
-
-.like-btn::before,
-.like-btn::after {
-  box-sizing: border-box;
-}
-
-.like-btn::before::before,
-.like-btn::before::after {
-  content: "";
-}
-
-/* 丸部分 */
-.like-btn::before {
-  box-shadow:
-    7px 0 0 currentColor,
-    0 -7px 0 currentColor;
-  border-radius: 0;
-}
-
-/* count */
-.like-btn .like-count {
-  font-size: 14px;
-  font-weight: 900;
-  color: inherit;
-}
-
-/* liked（ランキングのピンク） */
-.like-btn.liked {
-  background: #ffe3ec;
-  border-color: #ff5a8a;
-  color: #ff5a8a;
-}
-/* =========================
-   Like Button (CLEAN FINAL)
-========================= */
-
-/* いいねボタン本体（ホーム/ランキング/詳細 共通でこれに寄せる） */
 .like-btn{
   display:inline-flex;
   align-items:center;
-  justify-content:center;
-  gap:8px;
+  gap:6px;
 
   height:38px;
   padding:0 14px;
@@ -938,35 +864,12 @@ textarea {
   background:#fff;
   border:1px solid #e5e7eb;
 
-  color:#111827;
   font-size:14px;
   font-weight:900;
   cursor:pointer;
-  -webkit-tap-highlight-color: transparent;
 }
 
-/* 既存アイコン（SVG/フォント/絵文字）を全部消す */
-.like-btn svg,
-.like-btn i,
-.like-btn .icon,
-.like-btn .icon-heart,
-.like-btn .heart{
-  display:none !important;
-}
-
-/* ✅ CSSで描くハート（これが見える唯一のハート） */
-.like-btn::before{
-  content:"";
-  width:14px;
-  height:14px;
-  transform:rotate(-45deg);
-  background:currentColor;
-  box-shadow:7px 0 0 currentColor, 0 -7px 0 currentColor;
-}
-
-/* liked（ピンク） */
 .like-btn.liked{
   background:#ffe3ec;
   border-color:#ff5a8a;
-  color:#ff5a8a;
 }
