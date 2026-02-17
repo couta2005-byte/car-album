@@ -105,11 +105,11 @@
   </button>
 
   <!-- 削除（投稿者のみ表示） -->
-  {% if user and user.id == post.user_id %}
+  {% if user and user.profile_key == post.profile_key %}
   <form method="post" action="/post/{{ post.id }}/delete" class="inline-form">
     <button type="submit" class="delete-btn">削除</button>
   </form>
-  {% endif %}
+{% endif %}
 
 </div>
 
