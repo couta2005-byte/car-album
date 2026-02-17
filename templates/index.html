@@ -86,13 +86,17 @@
         </div>
       {% endif %}
 
-      <button type="button"
-        class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
-        data-post-id="{{ post.id }}">
-  <span class="like-count">{{ post.likes }}</span>
-</button>
+      <div class="post-actions">
+        <button type="button"
+          class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
+          data-post-id="{{ post.id }}">
+          <span class="like-count">{{ post.likes }}</span>
+        </button>
+      </div>
 
-</main>
+    </article>
+    {% endfor %}
+  </div>
 
 <!-- Like -->
 <script>
