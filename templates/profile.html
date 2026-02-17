@@ -2,14 +2,10 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-
-  <!-- ===== Title ===== -->
   <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
-
-  <!-- ===== Viewport ===== -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ===== OGP (Profile) ===== -->
+  <!-- OGP -->
   <meta property="og:site_name" content="Carbum">
   <meta property="og:type" content="profile">
   <meta property="og:title"
@@ -17,25 +13,10 @@
   <meta property="og:description"
         content="{{ profile[3] if profile and profile[3] else 'Carbumのプロフィールを見る' }}">
   <meta property="og:url" content="{{ request.url }}">
-  {% if profile and profile[4] %}
-    <meta property="og:image" content="{{ profile[4] }}">
-  {% else %}
-    <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
-  {% endif %}
+  <meta property="og:image"
+        content="{{ profile[4] if profile and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
 
-  <!-- ===== Twitter Card ===== -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ display_name if display_name else username }} | Carbum">
-  <meta name="twitter:description"
-        content="{{ profile[3] if profile and profile[3] else 'Carbumのプロフィールを見る' }}">
-  {% if profile and profile[4] %}
-    <meta name="twitter:image" content="{{ profile[4] }}">
-  {% else %}
-    <meta name="twitter:image" content="https://car-album-3.onrender.com/static/ogp.png">
-  {% endif %}
-
-  <!-- ===== CSS ===== -->
-  <link rel="stylesheet" href="/static/style.css?v=13">
+  <link rel="stylesheet" href="/static/style.css?v=999">
 </head>
 <body>
 
@@ -43,9 +24,7 @@
 
 <main class="container">
 
-  <!-- ======================
-       Profile Header
-  ====================== -->
+  <!-- ===== Profile Header ===== -->
   <section class="profile-header">
     <div class="profile-left">
       {% if profile and profile[4] %}
@@ -57,47 +36,33 @@
       {% endif %}
 
       <div class="profile-idblock">
-        <h2 class="profile-name">
-          {{ display_name if display_name else username }}
-        </h2>
-        <div class="profile-handle">
-          @{{ handle if handle else username }}
-        </div>
+        <h2 class="profile-name">{{ display_name if display_name else username }}</h2>
+        <div class="profile-handle">@{{ handle if handle else username }}</div>
       </div>
     </div>
 
     <div class="profile-actions">
       {% if me_user_id and target_user_id and me_user_id != target_user_id %}
-
         {% if is_following %}
-          <form action="/unfollow/{{ (handle if handle else username) | urlencode }}"
-                method="post" class="inline-form">
-            <button class="follow-btn" type="submit">フォロー解除</button>
+          <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
+            <button class="follow-btn">フォロー解除</button>
           </form>
         {% else %}
-          <form action="/follow/{{ (handle if handle else username) | urlencode }}"
-                method="post" class="inline-form">
-            <button class="follow-btn" type="submit">フォローする</button>
+          <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
+            <button class="follow-btn">フォローする</button>
           </form>
         {% endif %}
-
-        <form action="/dm/start/{{ target_user_id }}" method="post" class="inline-form">
-          <button class="dm-btn" type="submit">DMする</button>
+        <form action="/dm/start/{{ target_user_id }}" method="post">
+          <button class="dm-btn">DMする</button>
         </form>
-
-      {% endif %}
-
-      {% if me_user_id and target_user_id and me_user_id == target_user_id %}
+      {% elif me_user_id == target_user_id %}
         <a href="/dm" class="dm-btn">DM一覧</a>
       {% endif %}
     </div>
   </section>
 
-  <!-- ======================
-       Profile Info
-  ====================== -->
+  <!-- ===== Profile Info ===== -->
   <section class="profile-box">
-
     <div class="profile-badges">
       {% if profile %}
         {% if profile[0] %}<span class="badge">メーカー：{{ profile[0] }}</span>{% endif %}
@@ -107,14 +72,8 @@
     </div>
 
     <div class="profile-stats">
-      <div class="stat">
-        <span class="stat-label">フォロー</span>
-        <strong class="stat-num">{{ follow_count }}</strong>
-      </div>
-      <div class="stat">
-        <span class="stat-label">フォロワー</span>
-        <strong class="stat-num">{{ follower_count }}</strong>
-      </div>
+      <div class="stat"><span>フォロー</span><strong>{{ follow_count }}</strong></div>
+      <div class="stat"><span>フォロワー</span><strong>{{ follower_count }}</strong></div>
     </div>
 
     {% if profile and profile[3] %}
@@ -122,144 +81,67 @@
     {% endif %}
   </section>
 
-  <!-- ======================
-       Profile Edit (Me)
-  ====================== -->
-  {% if me_user_id and target_user_id and me_user_id == target_user_id %}
-    <details class="profile-edit">
-      <summary class="profile-edit-summary">プロフィール編集</summary>
-
-      <form action="/profile/edit" method="post" enctype="multipart/form-data" class="profile-edit-form">
-        <div class="form-grid">
-
-          <label class="field">
-            <span class="field-label">表示名</span>
-            <input name="display_name"
-                   placeholder="表示名"
-                   value="{{ display_name if display_name else username }}">
-          </label>
-
-          <label class="field">
-            <span class="field-label">アカウントID（英数字/._）</span>
-            <input name="handle"
-                   placeholder="例：kumax / kumax_86 / kumax.86"
-                   value="{{ handle if handle else '' }}">
-            <span class="field-help">※ ひらがな・漢字は使えません</span>
-          </label>
-
-          <label class="field">
-            <span class="field-label">メーカー</span>
-            <input name="maker" placeholder="トヨタ" value="{{ profile[0] if profile else '' }}">
-          </label>
-
-          <label class="field">
-            <span class="field-label">車名</span>
-            <input name="car" placeholder="マークX" value="{{ profile[1] if profile else '' }}">
-          </label>
-
-          <label class="field">
-            <span class="field-label">地域</span>
-            <input name="region" placeholder="北海道" value="{{ profile[2] if profile else '' }}">
-          </label>
-
-          <label class="field field-wide">
-            <span class="field-label">ひとこと</span>
-            <textarea name="bio"
-              placeholder="例：深夜ドライブ好き。雪溶けたら走る！">{{ profile[3] if profile else '' }}</textarea>
-          </label>
-
-          <label class="field field-wide">
-            <span class="field-label">ユーザーアイコン</span>
-            <input type="file" name="icon" accept="image/*">
-            <span class="field-help">※ 画像を選ばなければ変更されません</span>
-          </label>
-
-        </div>
-
-        <button class="primary-btn" type="submit">保存</button>
-      </form>
-    </details>
-  {% endif %}
-
-  <!-- ======================
-       Posts
-  ====================== -->
+  <!-- ===== Posts ===== -->
   <h3 class="profile-section-title">投稿</h3>
 
   <div class="posts">
     {% for post in posts %}
-      <article class="post"
-               role="link"
-               tabindex="0"
-               onclick="location.href='/post/{{ post.id }}';"
-               style="position:relative;">
+    <article class="post" onclick="location.href='/post/{{ post.id }}'">
 
-        <div class="post-top">
-          <div class="post-title">
-
-            {% if post.user_icon %}
-              <div class="avatar">
-                <a href="/user/{{ post.profile_key | urlencode }}">
-                  <img src="{{ post.user_icon }}" alt="icon">
-                </a>
-              </div>
-            {% else %}
-              <a href="/user/{{ post.profile_key | urlencode }}">
-                <span class="avatar-fallback"></span>
-              </a>
-            {% endif %}
-
-            <div class="post-title-main">
-              <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
-                {{ post.display_name }}
-              </a>
-              <span class="post-sep">：</span>
-              <span class="post-car">{{ post.car }}</span>
+      <div class="post-top">
+        <div class="post-title">
+          {% if post.user_icon %}
+            <div class="avatar">
+              <img src="{{ post.user_icon }}">
             </div>
-          </div>
-
-          <span class="post-date">{{ post.created_at }}</span>
-        </div>
-
-        {% if post.comment %}
-          <div class="post-comment">{{ post.comment }}</div>
-        {% endif %}
-
-        {% if post.image %}
-          <div class="post-image">
-            <img src="{{ post.image }}" alt="投稿画像">
-          </div>
-        {% endif %}
-
-        <!-- ===== Actions（新基準）===== -->
-        <div class="post-actions" onclick="event.stopPropagation();">
-
-          {% if me_user_id and post.user_id == me_user_id %}
-            <form action="/delete/{{ post.id }}" method="post">
-              <button class="action-btn delete-btn" type="submit">🗑</button>
-            </form>
+          {% else %}
+            <span class="avatar-fallback"></span>
           {% endif %}
 
-          <a href="/post/{{ post.id }}#comments" class="action-btn">
-            💬 <span class="comment-count">{{ post.comment_count }}</span>
-          </a>
-
-          <button type="button"
-                  class="action-btn like-btn {% if post.liked %}liked{% endif %}"
-                  data-post-id="{{ post.id }}">
-            🤍 <span class="like-count">{{ post.like_count }}</span>
-          </button>
-
+          <span class="post-user">{{ post.display_name }}</span>
+          <span class="post-car">：{{ post.car }}</span>
         </div>
-      </article>
+        <span class="post-date">{{ post.created_at }}</span>
+      </div>
+
+      {% if post.comment %}
+        <div class="post-comment">{{ post.comment }}</div>
+      {% endif %}
+
+      {% if post.image %}
+        <div class="post-image">
+          <img src="{{ post.image }}">
+        </div>
+      {% endif %}
+
+      <!-- ===== Actions ===== -->
+      <div class="post-actions" onclick="event.stopPropagation();">
+
+        {% if me_user_id == post.user_id %}
+        <form action="/delete/{{ post.id }}" method="post">
+          <button class="action-btn delete-btn" type="submit">🗑</button>
+        </form>
+        {% endif %}
+
+        <a href="/post/{{ post.id }}#comments" class="action-btn">
+          💬 <span class="comment-count">{{ post.comment_count }}</span>
+        </a>
+
+        <button type="button"
+                class="action-btn like-btn {% if post.id in liked_posts %}liked{% endif %}"
+                data-post-id="{{ post.id }}">
+          <span class="heart">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+          <span class="like-count">{{ post.likes }}</span>
+        </button>
+
+      </div>
+    </article>
     {% endfor %}
   </div>
 
 </main>
 
-<!-- ======================
-     Like JS（新仕様）
-====================== -->
+<!-- ===== Like JS（完全統一）===== -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".like-btn");
@@ -269,10 +151,9 @@ document.addEventListener("click", async (e) => {
 
   const postId = btn.dataset.postId;
 
-  const res = await fetch("/like", {
+  const res = await fetch(`/api/like/${postId}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ post_id: postId })
+    credentials: "same-origin"
   });
 
   if (!res.ok) {
@@ -281,9 +162,9 @@ document.addEventListener("click", async (e) => {
   }
 
   const data = await res.json();
-
   btn.classList.toggle("liked", data.liked);
-  btn.querySelector(".like-count").textContent = data.like_count;
+  btn.querySelector(".heart").textContent = data.liked ? "❤️" : "🤍";
+  btn.querySelector(".like-count").textContent = data.likes;
 });
 </script>
 
