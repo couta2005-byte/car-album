@@ -873,3 +873,39 @@ textarea {
   background:#ffe3ec;
   border-color:#ff5a8a;
 }
+/* =========================
+   Like Heart Toggle（最終）
+========================= */
+
+/* 共通 */
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ハート制御 */
+.like-btn .heart {
+  line-height: 1;
+  font-size: 16px;
+}
+
+.like-btn .heart-on {
+  display: none;            /* 通常は赤を隠す */
+}
+
+.like-btn.liked .heart-off {
+  display: none;            /* liked時は白を隠す */
+}
+
+.like-btn.liked .heart-on {
+  display: inline;          /* liked時は赤を表示 */
+}
+
+/* 色も連動 */
+.like-btn { color: #111827; }
+.like-btn.liked { color: #ff5a8a; }
+
+.like-btn .like-count {
+  font-weight: 900;
+}
