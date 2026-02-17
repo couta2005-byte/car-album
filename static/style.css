@@ -887,3 +887,44 @@ textarea {
   max-height:100%;
   border-radius:16px;
 }
+/* =========================
+   Like Button（HOME / Ranking 共通デザイン）
+========================= */
+
+/* 押す前 */
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  height: 38px;
+  padding: 0 14px;
+
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+
+  color: #111827;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ✅ 押した後（HOMEもランキングも同じ見た目） */
+.like-btn.active,
+.like-btn.liked {
+  background: #ffe7ef;
+  border-color: #ffb3cc;
+  color: #be123c;
+}
+
+/* hover時も色が戻らないようにする */
+.like-btn.active:hover,
+.like-btn.liked:hover {
+  background: #ffe7ef;
+}
