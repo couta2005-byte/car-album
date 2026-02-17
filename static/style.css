@@ -887,3 +887,47 @@ textarea {
   max-height:100%;
   border-radius:16px;
 }
+/* =========================
+   Like Button (Ranking Design as Standard)
+========================= */
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-width: 88px;
+  padding: 10px 16px;
+  border-radius: 999px;
+
+  background: #fff;
+  border: 1px solid #e5e5e5;
+
+  color: #333;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* count */
+.like-btn .like-count {
+  font-size: 14px;
+  color: inherit;
+}
+
+/* heart icon */
+.like-btn .heart {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ✅ liked（ランキングのピンク） */
+.like-btn.liked {
+  background: #ffe3ec;   /* 薄ピンク */
+  border-color: #ff5a8a; /* ピンク枠 */
+  color: #ff5a8a;        /* 数字もピンク */
+}
+
+.like-btn.liked .heart {
+  color: #ff5a8a;
+}
