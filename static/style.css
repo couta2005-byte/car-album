@@ -3,7 +3,11 @@
 ========================= */
 * { box-sizing: border-box; }
 
-html, body { height: 100%; width: 100%; overflow-x: hidden; }
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
 
 body {
   margin: 0;
@@ -20,7 +24,12 @@ button { font-family: inherit; }
 /* =========================
    Header / Nav
 ========================= */
-.header { background: #000; position: sticky; top: 0; z-index: 1000; }
+.header {
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
 
 .header-inner {
   display: flex;
@@ -30,6 +39,7 @@ button { font-family: inherit; }
   gap: 12px;
 }
 
+/* ロゴ */
 .logo {
   color: #fff;
   font-size: 22px;
@@ -39,6 +49,7 @@ button { font-family: inherit; }
   white-space: nowrap;
 }
 
+/* ナビ */
 .nav {
   display: flex;
   gap: 14px;
@@ -78,12 +89,19 @@ button { font-family: inherit; }
 
 .logout-btn:hover { opacity: 0.92; }
 
-/* --- Nav Avatar --- */
+/* --- Nav Avatar（クラスがあっても無くても効く保険） --- */
 .nav-icon {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+}
+
+/* これが無いとヘッダーで画像が巨大化する事故が出る */
+.header .nav img,
+.header-inner img {
+  max-width: 34px;
+  max-height: 34px;
 }
 
 .nav-avatar {
@@ -337,12 +355,28 @@ textarea {
   width: 100%;
   height: auto;
   display: block;
+  cursor: zoom-in;
 }
 
 /* =========================
-   Actions（統一）
+   Actions（重要）
 ========================= */
-.post-actions,
+/* ✅ これで「コメントといいね」を右寄せに固定 */
+.post-actions {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;  /* ← 右寄せ */
+  width: 100%;               /* ← 念のため */
+}
+
+.post-actions form { margin: 0; }
+
+/* Ranking側も右寄せに寄せたいならこれ */
 .ranking-actions {
   position: relative;
   z-index: 5;
@@ -351,12 +385,12 @@ textarea {
   gap: 10px;
   margin-top: 10px;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
 }
 
-.post-actions form { margin: 0; }
-
 /* =========================
-   Buttons（統一デザイン）
+   Buttons（統一）
 ========================= */
 .action-btn {
   display: inline-flex;
@@ -394,7 +428,7 @@ textarea {
 }
 
 /* =========================
-   Like Button（統一）
+   Like Button（ランキングのハートと一致）
 ========================= */
 .like-btn {
   display: inline-flex;
@@ -424,7 +458,8 @@ textarea {
 .like-btn:hover { background:#f7f7f8; }
 .like-btn:active { transform: scale(0.985); }
 
-/* ✅ 新仕様：liked でハートON表示 */
+/* ✅ HOMEは active / ランキングは liked の場合があるので両対応 */
+.like-btn.active,
 .like-btn.liked{
   background: #ffe7ef;
   border-color: #ffb3cc;
@@ -470,7 +505,7 @@ textarea {
 .back-link:hover { text-decoration: underline; }
 
 /* =========================
-   Ranking Tabs（必要な時だけ使う）
+   Ranking Tabs
 ========================= */
 .ranking-tabs {
   display: flex;
@@ -499,7 +534,7 @@ textarea {
 }
 
 /* =========================
-   Search Page（使ってる分だけ）
+   Search Page（必要分）
 ========================= */
 .search-hero {
   background: #fff;
@@ -703,7 +738,7 @@ textarea {
   line-height:1.55;
 }
 
-/* DM button（任意） */
+/* DM button */
 .dm-btn{
   height:38px;
   padding:0 18px;
@@ -716,11 +751,10 @@ textarea {
   cursor:pointer;
   box-shadow: 0 4px 12px rgba(29,155,240,0.35);
 }
-
 .dm-btn:hover{ opacity:.95; }
 
 /* =========================
-   DM List（最低限）
+   DM List（カード化・崩れ防止）
 ========================= */
 .dm-list {
   display: flex;
@@ -730,23 +764,35 @@ textarea {
 
 .dm-item {
   display: flex;
+  align-items: center;
   gap: 12px;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   text-decoration: none;
   color: inherit;
   transition: background .15s;
 }
 
-.dm-item:hover { background: #f5f5f5; }
+.dm-item:hover { background: #f7f7f8; }
+
+.dm-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #ddd;
+}
 
 .dm-icon img,
 .icon-placeholder {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #ddd;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  display: block;
 }
 
 .dm-body { flex: 1; min-width: 0; }
@@ -755,15 +801,17 @@ textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 
-.dm-name { font-weight: 800; }
+.dm-name { font-weight: 900; }
 
-.dm-time { font-size: 12px; color: #777; }
+.dm-time { font-size: 12px; color: #777; white-space: nowrap; }
 
 .dm-preview {
   font-size: 14px;
   color: #555;
+  margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -820,8 +868,6 @@ textarea {
 /* =========================
    Image Modal（任意）
 ========================= */
-.post-image img{ cursor: zoom-in; }
-
 .img-modal{
   position:fixed;
   inset:0;
@@ -840,18 +886,4 @@ textarea {
   max-width:100%;
   max-height:100%;
   border-radius:16px;
-}
-/* =========================
-   Ranking Fix
-========================= */
-.ranking-item {
-  background: #fff;
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 18px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-
-.ranking-item .ranking-actions {
-  justify-content: flex-end;
 }
