@@ -921,71 +921,52 @@ textarea {
   color: #ff5a8a;
 }
 /* =========================
-   Like Button (FINAL REAL FIX)
+   Like Button (CLEAN FINAL)
 ========================= */
-.like-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
 
-  min-width: 88px;
-  padding: 10px 16px;
-  border-radius: 999px;
+/* いいねボタン本体（ホーム/ランキング/詳細 共通でこれに寄せる） */
+.like-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
 
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  height:38px;
+  padding:0 14px;
+  border-radius:999px;
 
-  color: #333;
-  font-size: 14px;
-  cursor: pointer;
+  background:#fff;
+  border:1px solid #e5e7eb;
+
+  color:#111827;
+  font-size:14px;
+  font-weight:900;
+  cursor:pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
-/* ❌ 既存ハート（svg / i / span）を全殺し */
+/* 既存アイコン（SVG/フォント/絵文字）を全部消す */
 .like-btn svg,
 .like-btn i,
 .like-btn .icon,
 .like-btn .icon-heart,
-.like-btn .heart {
-  display: none !important;
+.like-btn .heart{
+  display:none !important;
 }
 
-/* ❤️ CSSハートを強制描画 */
-.like-btn::before {
-  content: "";
-  width: 14px;
-  height: 14px;
-  margin-right: 8px;
-
-  transform: rotate(-45deg);
-  background: currentColor;
-  box-shadow:
-    7px 0 0 currentColor,
-    0 -7px 0 currentColor;
+/* ✅ CSSで描くハート（これが見える唯一のハート） */
+.like-btn::before{
+  content:"";
+  width:14px;
+  height:14px;
+  transform:rotate(-45deg);
+  background:currentColor;
+  box-shadow:7px 0 0 currentColor, 0 -7px 0 currentColor;
 }
 
-/* 数字 */
-.like-btn .count,
-.like-btn .like-count {
-  font-weight: 900;
-  color: inherit;
-}
-
-/* liked */
-.like-btn.liked {
-  background: #ffe3ec;
-  border-color: #ff5a8a;
-  color: #ff5a8a;
-}
-/* =========================
-   KILL ICON FONT HEART (FINAL)
-========================= */
-
-/* Font Awesome / Material Icons / icon-font 全殺し */
-.like-btn::before,
-.like-btn::after,
-.action-btn::before,
-.action-btn::after {
-  content: none !important;
-  display: none !important;
+/* liked（ピンク） */
+.like-btn.liked{
+  background:#ffe3ec;
+  border-color:#ff5a8a;
+  color:#ff5a8a;
 }
