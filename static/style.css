@@ -850,7 +850,7 @@ textarea {
   border-radius:16px;
 }
 /* =========================
-   Like Button (Ranking Design as Standard) ✅FIX
+   Like Button (FINAL / ANDROID FIX)
 ========================= */
 .like-btn {
   display: inline-flex;
@@ -872,27 +872,44 @@ textarea {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ❤️ CSSハート（ここが本体） */
+.like-btn .heart {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  transform: rotate(-45deg);
+  background: currentColor;
+}
+
+.like-btn .heart::before,
+.like-btn .heart::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.like-btn .heart::before {
+  top: -7px;
+  left: 0;
+}
+
+.like-btn .heart::after {
+  left: 7px;
+  top: 0;
+}
+
 /* count */
 .like-btn .like-count {
   font-size: 14px;
   color: inherit;
 }
 
-/* heart icon ✅ここが白くなるバグの修正 */
-.like-btn .heart {
-  font-size: 16px;
-  line-height: 1;
-  color: currentColor;     /* ✅ 親の色を確実に継承 */
-  font-family: inherit;    /* ✅ 絵文字フォント暴走保険 */
-}
-
-/* ✅ liked（ランキングのピンク） */
+/* liked（ランキングのピンク） */
 .like-btn.liked {
-  background: #ffe3ec;   /* 薄ピンク */
-  border-color: #ff5a8a; /* ピンク枠 */
-  color: #ff5a8a;        /* 数字もハートもピンクになる */
-}
-
-.like-btn.liked .heart {
-  color: currentColor;   /* ✅ ここも保険で統一 */
+  background: #ffe3ec;
+  border-color: #ff5a8a;
+  color: #ff5a8a;
 }
