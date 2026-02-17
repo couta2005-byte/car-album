@@ -850,12 +850,12 @@ textarea {
   border-radius:16px;
 }
 /* =========================
-   Like Button (FINAL / ANDROID FIX)
+   Like Button (NUCLEAR FIX)
 ========================= */
 .like-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
 
   min-width: 88px;
@@ -867,44 +867,50 @@ textarea {
 
   color: #333;
   font-size: 14px;
-  line-height: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ❤️ CSSハート（ここが本体） */
+/* 🔥 中のハート要素は完全無効化 */
 .like-btn .heart {
-  position: relative;
+  display: none !important;
+}
+
+/* ❤️ ボタン自身にハートを描く */
+.like-btn::before {
+  content: "";
   width: 14px;
   height: 14px;
-  font-size: 0;            /* ← 超重要 */
+  margin-right: 8px;
+
   transform: rotate(-45deg);
   background: currentColor;
-}
-
-.like-btn .heart::before,
-.like-btn .heart::after {
-  content: "";
-  position: absolute;
-  width: 14px;
-  height: 14px;
-  background: currentColor;
-  border-radius: 50%;
-}
-
-.like-btn .heart::before {
-  top: -7px;
-  left: 0;
-}
-
-.like-btn .heart::after {
-  left: 7px;
+  position: relative;
   top: 0;
+}
+
+.like-btn::before,
+.like-btn::after {
+  box-sizing: border-box;
+}
+
+.like-btn::before::before,
+.like-btn::before::after {
+  content: "";
+}
+
+/* 丸部分 */
+.like-btn::before {
+  box-shadow:
+    7px 0 0 currentColor,
+    0 -7px 0 currentColor;
+  border-radius: 0;
 }
 
 /* count */
 .like-btn .like-count {
   font-size: 14px;
+  font-weight: 900;
   color: inherit;
 }
 
