@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=4000">
+  <link rel="stylesheet" href="/static/style.css?v=5000">
 </head>
 <body>
 
@@ -43,8 +43,8 @@
             </a>
           {% endif %}
 
-          <!-- Name : Car -->
-          <a href="/post/{{ post.id }}" class="post-user">
+          <!-- Name : Car（※投稿には飛ばさない） -->
+          <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
             {{ post.display_name }}：{{ post.car }}
           </a>
 
@@ -58,14 +58,14 @@
         <div class="post-text">{{ post.comment }}</div>
       {% endif %}
 
-      <!-- Image -->
+      <!-- Image（投稿詳細） -->
       {% if post.image %}
         <a href="/post/{{ post.id }}" class="post-image">
           <img src="{{ post.image }}" alt="投稿画像">
         </a>
       {% endif %}
 
-      <!-- ===== Actions（クリック完全独立） ===== -->
+      <!-- ===== Actions（完全独立） ===== -->
       <div class="post-actions">
 
         <!-- Comment -->
@@ -98,7 +98,7 @@
 
 </main>
 
-<!-- ===== Like JS（最小・安定） ===== -->
+<!-- ===== Like JS（最終安定版） ===== -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".js-like");
@@ -106,7 +106,6 @@ document.addEventListener("click", async (e) => {
 
   e.preventDefault();
 
-  // 連打防止
   if (btn.disabled) return;
   btn.disabled = true;
 
