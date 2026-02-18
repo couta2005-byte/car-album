@@ -2,18 +2,18 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>Carbum｜クルマ好きのSNS</title>
+  <title>Carbum｜クルマ・バイク好きのSNS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- OGP -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Carbum">
-  <meta property="og:title" content="Carbum｜クルマ好きのSNS">
-  <meta property="og:description" content="愛車を投稿して、クルマ好きとつながろう">
+  <meta property="og:title" content="Carbum｜クルマ・バイク好きのSNS">
+  <meta property="og:description" content="愛車・愛車バイクを投稿して、乗り物好きとつながろう">
   <meta property="og:url" content="https://car-album-3.onrender.com/">
   <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
 
-  <link rel="stylesheet" href="/static/style.css?v=102">
+  <link rel="stylesheet" href="/static/style.css?v=110">
 </head>
 <body>
 
@@ -30,7 +30,7 @@
 
   <!-- Search -->
   <form method="get" action="/search" class="home-search">
-    <input type="text" name="q" placeholder="ユーザー・車名で検索">
+    <input type="text" name="q" placeholder="ユーザー・車名・バイク名で検索">
     <button type="submit">検索</button>
   </form>
 
@@ -43,9 +43,9 @@
       <!-- メーカー -->
       <select name="maker">
         <option value="">メーカー（未選択）</option>
-        <option value="none">車なし</option>
+        <option value="none">車・バイクなし</option>
 
-        <optgroup label="日本車">
+        <optgroup label="日本車（四輪）">
           <option value="toyota">トヨタ</option>
           <option value="lexus">レクサス</option>
           <option value="nissan">日産</option>
@@ -58,7 +58,7 @@
           <option value="isuzu">いすゞ</option>
         </optgroup>
 
-        <optgroup label="輸入車">
+        <optgroup label="輸入車（四輪）">
           <option value="benz">メルセデス・ベンツ</option>
           <option value="bmw">BMW</option>
           <option value="audi">アウディ</option>
@@ -73,10 +73,36 @@
           <option value="fiat">フィアット</option>
           <option value="peugeot">プジョー</option>
         </optgroup>
+
+        <optgroup label="日本バイク">
+          <option value="honda_bike">ホンダ（バイク）</option>
+          <option value="yamaha_bike">ヤマハ</option>
+          <option value="suzuki_bike">スズキ（バイク）</option>
+          <option value="kawasaki_bike">カワサキ</option>
+        </optgroup>
+
+        <optgroup label="海外バイク（メジャー）">
+          <option value="harley">Harley-Davidson</option>
+          <option value="bmw_motorrad">BMW Motorrad</option>
+          <option value="ducati">Ducati</option>
+          <option value="triumph">Triumph</option>
+          <option value="ktm">KTM</option>
+          <option value="aprilia">Aprilia</option>
+          <option value="vespa">Vespa</option>
+          <option value="royal_enfield">Royal Enfield</option>
+          <option value="husqvarna">Husqvarna</option>
+          <option value="indian">Indian</option>
+          <option value="mv_agusta">MV Agusta</option>
+          <option value="moto_guzzi">Moto Guzzi</option>
+        </optgroup>
+
+        <optgroup label="その他">
+          <option value="other">その他・不明</option>
+        </optgroup>
       </select>
 
-      <!-- 車名 -->
-      <input name="car" placeholder="車名（未入力OK）">
+      <!-- 車名 / バイク名 -->
+      <input name="car" placeholder="車名・バイク名（未入力OK）">
 
       <!-- 地域 -->
       <select name="region">
@@ -165,7 +191,6 @@
   <div class="posts">
     {% for post in posts %}
     <article class="post" data-href="/post/{{ post.id }}">
-
       <div class="post-top">
         <div class="post-title">
           {% if post.user_icon %}
@@ -179,7 +204,6 @@
               <span class="avatar-fallback"></span>
             </a>
           {% endif %}
-
           <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
             {{ post.display_name }}
           </a>
@@ -198,7 +222,6 @@
       {% endif %}
 
       <div class="post-actions">
-
         {% if me_user_id == post.user_id %}
         <form method="post" action="/delete/{{ post.id }}" class="inline-form">
           <button type="submit" class="delete-btn">削除</button>
@@ -216,9 +239,7 @@
           <span class="heart heart-on">❤️</span>
           <span class="like-count">{{ post.likes }}</span>
         </button>
-
       </div>
-
     </article>
     {% endfor %}
   </div>
@@ -230,12 +251,10 @@
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".like-btn");
   if (!btn) return;
-
   e.preventDefault();
   e.stopPropagation();
 
   const postId = btn.dataset.postId;
-
   const res = await fetch(`/api/like/${postId}`, {
     method: "POST",
     credentials: "same-origin"
