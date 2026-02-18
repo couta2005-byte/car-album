@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=3000">
+  <link rel="stylesheet" href="/static/style.css?v=4000">
 </head>
 <body>
 
@@ -14,43 +14,46 @@
 
   <!-- ===== Ranking Tabs ===== -->
   <div class="ranking-tabs">
-    <a href="/ranking?period=day"   class="ranking-tab {% if period=='day' %}active{% endif %}">日</a>
-    <a href="/ranking?period=week"  class="ranking-tab {% if period=='week' %}active{% endif %}">週</a>
-    <a href="/ranking?period=month" class="ranking-tab {% if period=='month' %}active{% endif %}">月</a>
+    <a href="/ranking?period=day"
+       class="ranking-tab {% if period=='day' %}active{% endif %}">日</a>
+    <a href="/ranking?period=week"
+       class="ranking-tab {% if period=='week' %}active{% endif %}">週</a>
+    <a href="/ranking?period=month"
+       class="ranking-tab {% if period=='month' %}active{% endif %}">月</a>
   </div>
 
   <h2 class="ranking-heading">{{ ranking_title }}</h2>
 
   {% if posts %}
     {% for post in posts %}
-    <article class="post ranking-post rank-{{ loop.index }}"
-             role="button"
-             tabindex="0"
-             onclick="location.href='/post/{{ post.id }}';">
+    <article class="post ranking-post rank-{{ loop.index }}">
 
       <!-- ===== Header ===== -->
       <div class="post-top">
         <div class="post-title">
 
           <!-- Rank -->
-          <span class="rank-badge rank-{{ loop.index }}">{{ loop.index }}</span>
+          <span class="rank-badge rank-{{ loop.index }}">
+            {{ loop.index }}
+          </span>
 
           <!-- Avatar -->
           {% if post.user_icon %}
-            <div class="avatar"
-                 onclick="event.stopPropagation(); location.href='/user/{{ post.profile_key | urlencode }}';">
-              <img src="{{ post.user_icon }}" alt="icon">
+            <div class="avatar">
+              <a href="/user/{{ post.profile_key | urlencode }}">
+                <img src="{{ post.user_icon }}" alt="icon">
+              </a>
             </div>
           {% else %}
-            <span class="avatar-fallback"
-                  onclick="event.stopPropagation(); location.href='/user/{{ post.profile_key | urlencode }}';"></span>
+            <a href="/user/{{ post.profile_key | urlencode }}">
+              <span class="avatar-fallback"></span>
+            </a>
           {% endif %}
 
-          <!-- Name : Car -->
-          <span class="post-user"
-                onclick="event.stopPropagation(); location.href='/user/{{ post.profile_key | urlencode }}';">
+          <!-- Name : Car（ここだけ詳細遷移） -->
+          <a href="/post/{{ post.id }}" class="post-user">
             {{ post.display_name }}：{{ post.car }}
-          </span>
+          </a>
 
         </div>
 
@@ -64,13 +67,13 @@
 
       <!-- Image -->
       {% if post.image %}
-        <div class="post-image">
+        <a href="/post/{{ post.id }}" class="post-image">
           <img src="{{ post.image }}" alt="投稿画像">
-        </div>
+        </a>
       {% endif %}
 
       <!-- ===== Actions ===== -->
-      <div class="post-actions" onclick="event.stopPropagation();">
+      <div class="post-actions">
 
         <!-- Comment -->
         <a href="/post/{{ post.id }}#comments" class="action-btn">
@@ -96,7 +99,9 @@
     </article>
     {% endfor %}
   {% else %}
-    <p style="color:#888; margin-top:24px;">ランキング対象の投稿がありません</p>
+    <p style="color:#888; margin-top:24px;">
+      ランキング対象の投稿がありません
+    </p>
   {% endif %}
 
 </main>
@@ -108,7 +113,6 @@ document.addEventListener("click", async (e) => {
   if (!btn) return;
 
   e.preventDefault();
-  e.stopPropagation();
 
   const postId = btn.dataset.postId;
   if (!postId) return;
@@ -119,11 +123,14 @@ document.addEventListener("click", async (e) => {
   });
 
   if (!res.ok) {
-    if (res.status === 401) location.href = "/login";
+    if (res.status === 401) {
+      location.href = "/login";
+    }
     return;
   }
 
   const data = await res.json();
+
   btn.classList.toggle("liked", data.liked);
   btn.querySelector(".heart").textContent = data.liked ? "❤️" : "🤍";
   btn.querySelector(".like-count").textContent = data.likes;
