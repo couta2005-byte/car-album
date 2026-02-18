@@ -23,23 +23,27 @@
 
   {% if posts %}
     {% for post in posts %}
-    <article class="post ranking-post rank-{{ loop.index }}">
+    <article class="post ranking-post rank-{{ loop.index }}"
+             data-href="/post/{{ post.id }}">
 
-      <!-- ===== Header（ユーザー遷移のみ） ===== -->
+      <!-- ===== Header ===== -->
       <div class="post-top">
+
         <div class="post-title">
 
           <!-- Rank -->
           <span class="rank-badge rank-{{ loop.index }}">{{ loop.index }}</span>
 
           <!-- Avatar -->
-          <a href="/user/{{ post.profile_key | urlencode }}" class="avatar">
-            {% if post.user_icon %}
+          {% if post.user_icon %}
+            <a href="/user/{{ post.profile_key | urlencode }}" class="avatar">
               <img src="{{ post.user_icon }}" alt="icon">
-            {% else %}
+            </a>
+          {% else %}
+            <a href="/user/{{ post.profile_key | urlencode }}">
               <span class="avatar-fallback"></span>
-            {% endif %}
-          </a>
+            </a>
+          {% endif %}
 
           <!-- Name : Car -->
           <span class="post-user">
@@ -51,22 +55,17 @@
         <span class="post-date">{{ post.created_at }}</span>
       </div>
 
-      <!-- ===== 投稿本文＋画像（詳細遷移専用） ===== -->
-      <a href="/post/{{ post.id }}" class="post-body-link">
+      {% if post.comment %}
+        <div class="post-text">{{ post.comment }}</div>
+      {% endif %}
 
-        {% if post.comment %}
-          <div class="post-text">{{ post.comment }}</div>
-        {% endif %}
+      {% if post.image %}
+        <div class="post-image">
+          <img src="{{ post.image }}" alt="投稿画像">
+        </div>
+      {% endif %}
 
-        {% if post.image %}
-          <div class="post-image">
-            <img src="{{ post.image }}" alt="投稿画像">
-          </div>
-        {% endif %}
-
-      </a>
-
-      <!-- ===== Actions（完全独立） ===== -->
+      <!-- ===== Actions ===== -->
       <div class="post-actions">
 
         <!-- Comment -->
@@ -79,7 +78,7 @@
           <button type="button"
                   class="like-btn js-like {% if post.id in liked_posts %}liked{% endif %}"
                   data-post-id="{{ post.id }}"
-                  aria-pressed="{% if post.id in liked_posts %}true{% else %}false{% endif %}">
+                  data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
             <span class="heart">
               {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
             </span>
@@ -99,38 +98,61 @@
 
 </main>
 
-<!-- ===== Like JS（最小・競合ゼロ） ===== -->
+<!-- ===== JS（完全安定） ===== -->
 <script>
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".js-like");
-  if (!btn) return;
+/* ========= 投稿カード遷移 ========= */
+document.querySelectorAll(".ranking-post").forEach(card => {
+  card.addEventListener("click", (e) => {
+    if (e.target.closest("a, button")) return;
+    location.href = card.dataset.href;
+  });
+});
 
-  if (btn.disabled) return;
-  btn.disabled = true;
+/* ========= いいね（即時UI + ロールバック） ========= */
+document.querySelectorAll(".js-like").forEach(btn => {
+  btn.addEventListener("click", async (e) => {
+    e.stopPropagation();
 
-  const postId = btn.dataset.postId;
+    if (btn.disabled) return;
+    btn.disabled = true;
 
-  try {
-    const res = await fetch(`/api/like/${postId}`, {
-      method: "POST",
-      credentials: "same-origin"
-    });
+    const postId = btn.dataset.postId;
+    const likedBefore = btn.dataset.liked === "1";
+    const countEl = btn.querySelector(".like-count");
+    const heartEl = btn.querySelector(".heart");
 
-    if (!res.ok) {
-      if (res.status === 401) location.href = "/login";
-      return;
+    /* 楽観的UI */
+    btn.dataset.liked = likedBefore ? "0" : "1";
+    btn.classList.toggle("liked", !likedBefore);
+    heartEl.textContent = likedBefore ? "🤍" : "❤️";
+    countEl.textContent = Number(countEl.textContent) + (likedBefore ? -1 : 1);
+
+    try {
+      const res = await fetch(`/api/like/${postId}`, {
+        method: "POST",
+        credentials: "same-origin"
+      });
+
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+
+      btn.dataset.liked = data.liked ? "1" : "0";
+      btn.classList.toggle("liked", data.liked);
+      heartEl.textContent = data.liked ? "❤️" : "🤍";
+      countEl.textContent = data.likes;
+
+    } catch {
+      /* ロールバック */
+      btn.dataset.liked = likedBefore ? "1" : "0";
+      btn.classList.toggle("liked", likedBefore);
+      heartEl.textContent = likedBefore ? "❤️" : "🤍";
+      countEl.textContent = Number(countEl.textContent) + (likedBefore ? 1 : -1);
+      alert("いいねに失敗しました");
+    } finally {
+      btn.disabled = false;
     }
-
-    const data = await res.json();
-
-    btn.classList.toggle("liked", data.liked);
-    btn.setAttribute("aria-pressed", data.liked ? "true" : "false");
-    btn.querySelector(".heart").textContent = data.liked ? "❤️" : "🤍";
-    btn.querySelector(".like-count").textContent = data.likes;
-
-  } finally {
-    btn.disabled = false;
-  }
+  });
 });
 </script>
 
