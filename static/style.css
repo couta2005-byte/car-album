@@ -1162,3 +1162,19 @@ textarea {
   position: relative;
   z-index: 2;
 }
+/* ===== ranking overlay click fix ===== */
+.ranking-post{ position: relative; }
+
+.post-overlay{
+  position:absolute;
+  inset:0;
+  z-index:1;
+}
+
+.ranking-post .post-actions,
+.ranking-post .post-top,
+.ranking-post .post-text,
+.ranking-post .post-image{
+  position: relative;
+  z-index:2;
+}
