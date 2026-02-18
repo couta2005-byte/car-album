@@ -2,9 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-
   <title>{{ post.car }} | {{ post.display_name }} | Carbum</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- ===== OGP ===== -->
@@ -19,7 +17,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="/static/style.css?v=16">
+  <link rel="stylesheet" href="/static/style.css?v=17">
 </head>
 <body>
 
@@ -29,12 +27,13 @@
 
   <a href="/" class="back-link">← 戻る</a>
 
-  <!-- ===== Post ===== -->
-  <div class="post">
+  <!-- ======================
+       Post
+  ====================== -->
+  <article class="post">
 
     <div class="post-top">
       <div class="post-title">
-
         {% if post.user_icon %}
           <div class="avatar">
             <a href="/user/{{ post.profile_key | urlencode }}">
@@ -50,7 +49,6 @@
         <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
           <strong>{{ post.display_name }}</strong>
         </a>
-
       </div>
 
       <span class="post-date">{{ post.created_at }}</span>
@@ -69,12 +67,11 @@
     {% endif %}
 
     <!-- ===== Actions ===== -->
-    <div class="post-actions"
-         style="margin-top:10px; display:flex; gap:12px; align-items:center;">
+    <div class="post-actions" style="margin-top:10px; display:flex; gap:12px; align-items:center;">
 
-      <!-- 削除（投稿者のみ） -->
+      <!-- 削除 -->
       {% if me_user_id == post.user_id %}
-        <form method="post" action="/delete/{{ post.id }}" class="inline-form">
+        <form method="post" action="/delete/{{ post.id }}">
           <button type="submit" class="delete-btn">削除</button>
         </form>
       {% endif %}
@@ -82,7 +79,7 @@
       <!-- いいね -->
       {% if user %}
         <button type="button"
-                class="like-btn js-like {% if post.id in liked_posts %}active{% endif %}"
+                class="like-btn js-post-like {% if post.id in liked_posts %}active{% endif %}"
                 data-post-id="{{ post.id }}">
           <span class="like-icon">
             {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
@@ -92,70 +89,67 @@
       {% else %}
         <span>🤍 {{ post.likes }}</span>
       {% endif %}
-
     </div>
 
-  </div>
+  </article>
 
-  <!-- ===== Comments ===== -->
+  <!-- ======================
+       Comments
+  ====================== -->
   <section class="comment-section" id="comments">
     <h3>コメント（{{ post.comments | length }}）</h3>
 
-    {% if post.comments %}
-      {% for c in post.comments %}
-        <div class="comment-item">
+    {% for c in post.comments %}
+      <div class="comment-item">
 
-          <div class="comment-header"
-               style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="comment-header"
+             style="display:flex; justify-content:space-between; align-items:center;">
 
-            <div style="display:flex; gap:10px; align-items:center;">
-              {% if c.user_icon %}
-                <div class="avatar">
-                  <a href="/user/{{ c.profile_key | urlencode }}">
-                    <img src="{{ c.user_icon }}">
-                  </a>
-                </div>
-              {% else %}
+          <div style="display:flex; gap:10px; align-items:center;">
+            {% if c.user_icon %}
+              <div class="avatar">
                 <a href="/user/{{ c.profile_key | urlencode }}">
-                  <span class="avatar-fallback"></span>
+                  <img src="{{ c.user_icon }}">
                 </a>
-              {% endif %}
-              <strong>{{ c.display_name }}</strong>
-              <span class="comment-time">{{ c.created_at }}</span>
-            </div>
-
-            <div style="display:flex; gap:10px; align-items:center;">
-
-              {% if me_user_id == c.user_id %}
-                <form action="/comment_delete/{{ c.id }}" method="post">
-                  <button type="submit" class="comment-del-btn">削除</button>
-                </form>
-              {% endif %}
-
-              {% if user %}
-                <button type="button"
-                        class="like-btn js-comment-like {% if c.liked %}active{% endif %}"
-                        data-comment-id="{{ c.id }}">
-                  <span class="like-icon">{% if c.liked %}❤️{% else %}🤍{% endif %}</span>
-                  <span class="like-count">{{ c.likes }}</span>
-                </button>
-              {% else %}
-                <span>🤍 {{ c.likes }}</span>
-              {% endif %}
-
-            </div>
+              </div>
+            {% else %}
+              <a href="/user/{{ c.profile_key | urlencode }}">
+                <span class="avatar-fallback"></span>
+              </a>
+            {% endif %}
+            <strong>{{ c.display_name }}</strong>
+            <span class="comment-time">{{ c.created_at }}</span>
           </div>
 
-          <div class="comment-body">{{ c.comment }}</div>
+          <div style="display:flex; gap:10px; align-items:center;">
 
+            {% if me_user_id == c.user_id %}
+              <form action="/comment_delete/{{ c.id }}" method="post">
+                <button type="submit" class="comment-del-btn">削除</button>
+              </form>
+            {% endif %}
+
+            {% if user %}
+              <button type="button"
+                      class="like-btn js-comment-like {% if c.liked %}active{% endif %}"
+                      data-comment-id="{{ c.id }}">
+                <span class="like-icon">{% if c.liked %}❤️{% else %}🤍{% endif %}</span>
+                <span class="like-count">{{ c.likes }}</span>
+              </button>
+            {% else %}
+              <span>🤍 {{ c.likes }}</span>
+            {% endif %}
+          </div>
         </div>
-      {% endfor %}
-    {% else %}
-      <p class="no-comment">まだコメントはありません</p>
-    {% endif %}
+
+        <div class="comment-body">{{ c.comment }}</div>
+      </div>
+    {% endfor %}
   </section>
 
-  <!-- ===== Comment Form ===== -->
+  <!-- ======================
+       Comment Form
+  ====================== -->
   {% if user %}
     <section class="comment-form">
       <form action="/comment/{{ post.id }}" method="post">
@@ -167,32 +161,50 @@
 
 </main>
 
-<!-- ===== Like JS ===== -->
+<!-- ======================
+     Like JS（完全安定）
+====================== -->
 <script>
-(async()=>{
-  async function postJson(url){
-    const r = await fetch(url,{method:"POST",credentials:"same-origin"});
-    return r.json();
+document.addEventListener("click", async (e) => {
+
+  const postBtn = e.target.closest(".js-post-like");
+  if (postBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const res = await fetch(`/api/like/${postBtn.dataset.postId}`, {
+      method: "POST",
+      credentials: "same-origin"
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) location.href = "/login";
+      return;
+    }
+
+    const d = await res.json();
+    postBtn.classList.toggle("active", d.liked);
+    postBtn.querySelector(".like-icon").textContent = d.liked ? "❤️" : "🤍";
+    postBtn.querySelector(".like-count").textContent = d.likes;
+    return;
   }
 
-  document.addEventListener("click", async e=>{
-    const p = e.target.closest(".js-like");
-    if(p){
-      const d = await postJson(`/api/like/${p.dataset.postId}`);
-      p.classList.toggle("active", d.liked);
-      p.querySelector(".like-icon").textContent = d.liked ? "❤️" : "🤍";
-      p.querySelector(".like-count").textContent = d.likes;
-    }
+  const cBtn = e.target.closest(".js-comment-like");
+  if (cBtn) {
+    e.preventDefault();
+    e.stopPropagation();
 
-    const c = e.target.closest(".js-comment-like");
-    if(c){
-      const d = await postJson(`/api/comment_like/${c.dataset.commentId}`);
-      c.classList.toggle("active", d.liked);
-      c.querySelector(".like-icon").textContent = d.liked ? "❤️" : "🤍";
-      c.querySelector(".like-count").textContent = d.likes;
-    }
-  });
-})();
+    const res = await fetch(`/api/comment_like/${cBtn.dataset.commentId}`, {
+      method: "POST",
+      credentials: "same-origin"
+    });
+
+    const d = await res.json();
+    cBtn.classList.toggle("active", d.liked);
+    cBtn.querySelector(".like-icon").textContent = d.liked ? "❤️" : "🤍";
+    cBtn.querySelector(".like-count").textContent = d.likes;
+  }
+});
 </script>
 
 </body>
