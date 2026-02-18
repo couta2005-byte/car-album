@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=1003">
+  <link rel="stylesheet" href="/static/style.css?v=3000">
 </head>
 <body>
 
@@ -23,61 +23,65 @@
 
   {% if posts %}
     {% for post in posts %}
-    <article class="post ranking-post rank-{{ loop.index }}">
-
-      <!-- ✅ 全体遷移用オーバーレイ -->
-      <a href="/post/{{ post.id }}" class="post-overlay" aria-label="投稿詳細"></a>
+    <article class="post ranking-post rank-{{ loop.index }}"
+             role="button"
+             tabindex="0"
+             onclick="location.href='/post/{{ post.id }}';">
 
       <!-- ===== Header ===== -->
       <div class="post-top">
-
         <div class="post-title">
 
+          <!-- Rank -->
           <span class="rank-badge rank-{{ loop.index }}">{{ loop.index }}</span>
 
+          <!-- Avatar -->
           {% if post.user_icon %}
-            <div class="avatar">
-              <a href="/user/{{ post.profile_key | urlencode }}" onclick="event.stopPropagation();">
-                <img src="{{ post.user_icon }}" alt="icon">
-              </a>
+            <div class="avatar"
+                 onclick="event.stopPropagation(); location.href='/user/{{ post.profile_key | urlencode }}';">
+              <img src="{{ post.user_icon }}" alt="icon">
             </div>
           {% else %}
-            <a href="/user/{{ post.profile_key | urlencode }}" onclick="event.stopPropagation();">
-              <span class="avatar-fallback"></span>
-            </a>
+            <span class="avatar-fallback"
+                  onclick="event.stopPropagation(); location.href='/user/{{ post.profile_key | urlencode }}';"></span>
           {% endif %}
 
-          <a href="/user/{{ post.profile_key | urlencode }}" class="post-user" onclick="event.stopPropagation();">
+          <!-- Name : Car -->
+          <span class="post-user"
+                onclick="event.stopPropagation(); location.href='/user/{{ post.profile_key | urlencode }}';">
             {{ post.display_name }}：{{ post.car }}
-          </a>
+          </span>
 
         </div>
 
         <span class="post-date">{{ post.created_at }}</span>
       </div>
 
+      <!-- Comment -->
       {% if post.comment %}
         <div class="post-text">{{ post.comment }}</div>
       {% endif %}
 
+      <!-- Image -->
       {% if post.image %}
         <div class="post-image">
           <img src="{{ post.image }}" alt="投稿画像">
         </div>
       {% endif %}
 
-      <!-- ✅ Actionsは overlay より上に＆クリック完全遮断 -->
+      <!-- ===== Actions ===== -->
       <div class="post-actions" onclick="event.stopPropagation();">
 
-        <a href="/post/{{ post.id }}#comments" class="action-btn" onclick="event.stopPropagation();">
+        <!-- Comment -->
+        <a href="/post/{{ post.id }}#comments" class="action-btn">
           💬 <span class="count">{{ post.comment_count }}</span>
         </a>
 
+        <!-- Like -->
         {% if user %}
           <button type="button"
                   class="like-btn js-like {% if post.id in liked_posts %}liked{% endif %}"
-                  data-post-id="{{ post.id }}"
-                  onclick="event.stopPropagation();">
+                  data-post-id="{{ post.id }}">
             <span class="heart">
               {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
             </span>
@@ -97,7 +101,7 @@
 
 </main>
 
-<!-- ===== Like JS（ランキング用・確定版） ===== -->
+<!-- ===== Like JS（ランキング専用・完全安定） ===== -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".js-like");
@@ -105,37 +109,25 @@ document.addEventListener("click", async (e) => {
 
   e.preventDefault();
   e.stopPropagation();
-  if (e.stopImmediatePropagation) e.stopImmediatePropagation();
 
   const postId = btn.dataset.postId;
   if (!postId) return;
 
-  if (btn.classList.contains("is-loading")) return;
-  btn.classList.add("is-loading");
+  const res = await fetch(`/api/like/${postId}`, {
+    method: "POST",
+    credentials: "same-origin"
+  });
 
-  try{
-    const res = await fetch(`/api/like/${postId}`, {
-      method: "POST",
-      credentials: "same-origin"
-    });
-
-    if (!res.ok) {
-      if (res.status === 401) location.href = "/login";
-      return;
-    }
-
-    const data = await res.json();
-
-    btn.classList.toggle("liked", data.liked);
-    const heart = btn.querySelector(".heart");
-    const count = btn.querySelector(".like-count");
-    if (heart) heart.textContent = data.liked ? "❤️" : "🤍";
-    if (count) count.textContent = data.likes;
-
-  } finally {
-    btn.classList.remove("is-loading");
+  if (!res.ok) {
+    if (res.status === 401) location.href = "/login";
+    return;
   }
-}, { passive:false });
+
+  const data = await res.json();
+  btn.classList.toggle("liked", data.liked);
+  btn.querySelector(".heart").textContent = data.liked ? "❤️" : "🤍";
+  btn.querySelector(".like-count").textContent = data.likes;
+});
 </script>
 
 </body>
