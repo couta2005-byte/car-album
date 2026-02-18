@@ -1178,3 +1178,63 @@ textarea {
   position: relative;
   z-index:2;
 }
+.post-form-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.image-upload {
+  border: 2px dashed #1d9bf0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.image-upload input {
+  display: none;
+}
+
+.image-upload-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d9bf0;
+}
+
+.post-submit {
+  font-size: 18px;
+  padding: 14px;
+}
+
+@media (max-width: 600px) {
+  .post-submit {
+    position: sticky;
+    bottom: 12px;
+  }
+}
+/* =========================
+   Post Form Emphasis
+========================= */
+
+/* メーカー・地域 横並び強化 */
+.big-selects {
+  display: flex;
+  gap: 12px;
+}
+
+.big-selects select {
+  flex: 1;
+  font-size: 17px;          /* ← デカく */
+  font-weight: 700;
+  padding: 16px 14px;      /* ← 高さを出す */
+  border-radius: 16px;
+  border-width: 2px;
+}
+
+/* モバイルでも横並び維持 */
+@media (max-width: 600px) {
+  .big-selects {
+    flex-direction: row;
+  }
+}

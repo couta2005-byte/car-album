@@ -13,7 +13,7 @@
   <meta property="og:url" content="https://car-album-3.onrender.com/">
   <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
 
-  <link rel="stylesheet" href="/static/style.css?v=111">
+  <link rel="stylesheet" href="/static/style.css?v=112">
 </head>
 <body>
 
@@ -41,151 +41,155 @@
         enctype="multipart/form-data"
         class="post-form post-form-mobile">
 
-    <!-- ① 画像（最優先） -->
-    <label class="image-upload">
+    <!-- ① 写真（コンパクト） -->
+    <label class="image-upload compact">
       <input type="file" name="image" accept="image/*" required>
       <span class="image-upload-text">📸 写真を選択</span>
     </label>
 
     <!-- ② 車名・バイク名 -->
     <input name="car"
+           class="input-normal"
            placeholder="車名・バイク名（例：マークX / MT-07）"
            required>
 
-    <!-- ③ メーカー -->
-    <select name="maker" required>
-      <option value="">メーカーを選択</option>
-      <option value="none">車・バイクなし</option>
+    <!-- ③ メーカー＋④ 地域（でかく・横並び） -->
+    <div class="form-row big-selects">
+      <select name="maker" required>
+        <option value="">メーカー</option>
+        <option value="none">車・バイクなし</option>
 
-      <optgroup label="日本車（四輪）">
-        <option value="toyota">トヨタ</option>
-        <option value="lexus">レクサス</option>
-        <option value="nissan">日産</option>
-        <option value="honda">ホンダ</option>
-        <option value="mazda">マツダ</option>
-        <option value="subaru">スバル</option>
-        <option value="mitsubishi">三菱</option>
-        <option value="suzuki">スズキ</option>
-        <option value="daihatsu">ダイハツ</option>
-        <option value="isuzu">いすゞ</option>
-      </optgroup>
+        <optgroup label="日本車（四輪）">
+          <option value="toyota">トヨタ</option>
+          <option value="lexus">レクサス</option>
+          <option value="nissan">日産</option>
+          <option value="honda">ホンダ</option>
+          <option value="mazda">マツダ</option>
+          <option value="subaru">スバル</option>
+          <option value="mitsubishi">三菱</option>
+          <option value="suzuki">スズキ</option>
+          <option value="daihatsu">ダイハツ</option>
+          <option value="isuzu">いすゞ</option>
+        </optgroup>
 
-      <optgroup label="輸入車（四輪）">
-        <option value="benz">メルセデス・ベンツ</option>
-        <option value="bmw">BMW</option>
-        <option value="audi">アウディ</option>
-        <option value="vw">フォルクスワーゲン</option>
-        <option value="porsche">ポルシェ</option>
-        <option value="tesla">テスラ</option>
-        <option value="ford">フォード</option>
-        <option value="chevrolet">シボレー</option>
-        <option value="jeep">ジープ</option>
-        <option value="volvo">ボルボ</option>
-        <option value="mini">MINI</option>
-        <option value="fiat">フィアット</option>
-        <option value="peugeot">プジョー</option>
-      </optgroup>
+        <optgroup label="輸入車（四輪）">
+          <option value="benz">メルセデス・ベンツ</option>
+          <option value="bmw">BMW</option>
+          <option value="audi">アウディ</option>
+          <option value="vw">フォルクスワーゲン</option>
+          <option value="porsche">ポルシェ</option>
+          <option value="tesla">テスラ</option>
+          <option value="ford">フォード</option>
+          <option value="chevrolet">シボレー</option>
+          <option value="jeep">ジープ</option>
+          <option value="volvo">ボルボ</option>
+          <option value="mini">MINI</option>
+          <option value="fiat">フィアット</option>
+          <option value="peugeot">プジョー</option>
+        </optgroup>
 
-      <optgroup label="日本バイク">
-        <option value="honda_bike">ホンダ（バイク）</option>
-        <option value="yamaha_bike">ヤマハ</option>
-        <option value="suzuki_bike">スズキ（バイク）</option>
-        <option value="kawasaki_bike">カワサキ</option>
-      </optgroup>
+        <optgroup label="日本バイク">
+          <option value="honda_bike">ホンダ（バイク）</option>
+          <option value="yamaha_bike">ヤマハ</option>
+          <option value="suzuki_bike">スズキ（バイク）</option>
+          <option value="kawasaki_bike">カワサキ</option>
+        </optgroup>
 
-      <optgroup label="海外バイク">
-        <option value="harley">Harley-Davidson</option>
-        <option value="bmw_motorrad">BMW Motorrad</option>
-        <option value="ducati">Ducati</option>
-        <option value="triumph">Triumph</option>
-        <option value="ktm">KTM</option>
-        <option value="aprilia">Aprilia</option>
-        <option value="vespa">Vespa</option>
-        <option value="royal_enfield">Royal Enfield</option>
-        <option value="husqvarna">Husqvarna</option>
-        <option value="indian">Indian</option>
-        <option value="mv_agusta">MV Agusta</option>
-        <option value="moto_guzzi">Moto Guzzi</option>
-      </optgroup>
+        <optgroup label="海外バイク">
+          <option value="harley">Harley-Davidson</option>
+          <option value="bmw_motorrad">BMW Motorrad</option>
+          <option value="ducati">Ducati</option>
+          <option value="triumph">Triumph</option>
+          <option value="ktm">KTM</option>
+          <option value="aprilia">Aprilia</option>
+          <option value="vespa">Vespa</option>
+          <option value="royal_enfield">Royal Enfield</option>
+          <option value="husqvarna">Husqvarna</option>
+          <option value="indian">Indian</option>
+          <option value="mv_agusta">MV Agusta</option>
+          <option value="moto_guzzi">Moto Guzzi</option>
+        </optgroup>
 
-      <optgroup label="その他">
-        <option value="other">その他・不明</option>
-      </optgroup>
-    </select>
+        <optgroup label="その他">
+          <option value="other">その他・不明</option>
+        </optgroup>
+      </select>
 
-    <!-- ④ 地域 -->
-    <select name="region" required>
-      <option value="">地域を選択</option>
-      <option value="overseas">海外</option>
+      <select name="region" required>
+        <option value="">地域</option>
+        <option value="overseas">海外</option>
 
-      <optgroup label="北海道・東北">
-        <option value="hokkaido">北海道</option>
-        <option value="aomori">青森県</option>
-        <option value="iwate">岩手県</option>
-        <option value="miyagi">宮城県</option>
-        <option value="akita">秋田県</option>
-        <option value="yamagata">山形県</option>
-        <option value="fukushima">福島県</option>
-      </optgroup>
+        <optgroup label="北海道・東北">
+          <option value="hokkaido">北海道</option>
+          <option value="aomori">青森県</option>
+          <option value="iwate">岩手県</option>
+          <option value="miyagi">宮城県</option>
+          <option value="akita">秋田県</option>
+          <option value="yamagata">山形県</option>
+          <option value="fukushima">福島県</option>
+        </optgroup>
 
-      <optgroup label="関東">
-        <option value="ibaraki">茨城県</option>
-        <option value="tochigi">栃木県</option>
-        <option value="gunma">群馬県</option>
-        <option value="saitama">埼玉県</option>
-        <option value="chiba">千葉県</option>
-        <option value="tokyo">東京都</option>
-        <option value="kanagawa">神奈川県</option>
-      </optgroup>
+        <optgroup label="関東">
+          <option value="ibaraki">茨城県</option>
+          <option value="tochigi">栃木県</option>
+          <option value="gunma">群馬県</option>
+          <option value="saitama">埼玉県</option>
+          <option value="chiba">千葉県</option>
+          <option value="tokyo">東京都</option>
+          <option value="kanagawa">神奈川県</option>
+        </optgroup>
 
-      <optgroup label="中部">
-        <option value="niigata">新潟県</option>
-        <option value="toyama">富山県</option>
-        <option value="ishikawa">石川県</option>
-        <option value="fukui">福井県</option>
-        <option value="yamanashi">山梨県</option>
-        <option value="nagano">長野県</option>
-        <option value="gifu">岐阜県</option>
-        <option value="shizuoka">静岡県</option>
-        <option value="aichi">愛知県</option>
-      </optgroup>
+        <optgroup label="中部">
+          <option value="niigata">新潟県</option>
+          <option value="toyama">富山県</option>
+          <option value="ishikawa">石川県</option>
+          <option value="fukui">福井県</option>
+          <option value="yamanashi">山梨県</option>
+          <option value="nagano">長野県</option>
+          <option value="gifu">岐阜県</option>
+          <option value="shizuoka">静岡県</option>
+          <option value="aichi">愛知県</option>
+        </optgroup>
 
-      <optgroup label="近畿">
-        <option value="mie">三重県</option>
-        <option value="shiga">滋賀県</option>
-        <option value="kyoto">京都府</option>
-        <option value="osaka">大阪府</option>
-        <option value="hyogo">兵庫県</option>
-        <option value="nara">奈良県</option>
-        <option value="wakayama">和歌山県</option>
-      </optgroup>
+        <optgroup label="近畿">
+          <option value="mie">三重県</option>
+          <option value="shiga">滋賀県</option>
+          <option value="kyoto">京都府</option>
+          <option value="osaka">大阪府</option>
+          <option value="hyogo">兵庫県</option>
+          <option value="nara">奈良県</option>
+          <option value="wakayama">和歌山県</option>
+        </optgroup>
 
-      <optgroup label="中国・四国">
-        <option value="tottori">鳥取県</option>
-        <option value="shimane">島根県</option>
-        <option value="okayama">岡山県</option>
-        <option value="hiroshima">広島県</option>
-        <option value="yamaguchi">山口県</option>
-        <option value="tokushima">徳島県</option>
-        <option value="kagawa">香川県</option>
-        <option value="ehime">愛媛県</option>
-        <option value="kochi">高知県</option>
-      </optgroup>
+        <optgroup label="中国・四国">
+          <option value="tottori">鳥取県</option>
+          <option value="shimane">島根県</option>
+          <option value="okayama">岡山県</option>
+          <option value="hiroshima">広島県</option>
+          <option value="yamaguchi">山口県</option>
+          <option value="tokushima">徳島県</option>
+          <option value="kagawa">香川県</option>
+          <option value="ehime">愛媛県</option>
+          <option value="kochi">高知県</option>
+        </optgroup>
 
-      <optgroup label="九州・沖縄">
-        <option value="fukuoka">福岡県</option>
-        <option value="saga">佐賀県</option>
-        <option value="nagasaki">長崎県</option>
-        <option value="kumamoto">熊本県</option>
-        <option value="oita">大分県</option>
-        <option value="miyazaki">宮崎県</option>
-        <option value="kagoshima">鹿児島県</option>
-        <option value="okinawa">沖縄県</option>
-      </optgroup>
-    </select>
+        <optgroup label="九州・沖縄">
+          <option value="fukuoka">福岡県</option>
+          <option value="saga">佐賀県</option>
+          <option value="nagasaki">長崎県</option>
+          <option value="kumamoto">熊本県</option>
+          <option value="oita">大分県</option>
+          <option value="miyazaki">宮崎県</option>
+          <option value="kagoshima">鹿児島県</option>
+          <option value="okinawa">沖縄県</option>
+        </optgroup>
+      </select>
+    </div>
 
-    <!-- ⑤ コメント -->
+    <!-- ⑤ ひとこと（コンパクト） -->
     <textarea name="comment"
+              rows="2"
+              class="comment-compact"
               placeholder="例：雪溶けたら今年もツーリング開始"
               required></textarea>
 
@@ -230,7 +234,6 @@
       {% endif %}
 
       <div class="post-actions">
-
         {% if me_user_id == post.user_id %}
         <form method="post" action="/delete/{{ post.id }}" class="inline-form">
           <button type="submit" class="delete-btn">削除</button>
@@ -248,7 +251,6 @@
           <span class="heart heart-on">❤️</span>
           <span class="like-count">{{ post.likes }}</span>
         </button>
-
       </div>
     </article>
     {% endfor %}
