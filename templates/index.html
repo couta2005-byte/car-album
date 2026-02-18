@@ -37,20 +37,131 @@
   <!-- Post form -->
   {% if user %}
   <form action="/post" method="post" enctype="multipart/form-data" class="post-form">
+
     <div class="form-row">
-      <input name="maker" placeholder="メーカー">
-      <input name="car" placeholder="車名">
-      <input name="region" placeholder="地域">
+
+      <!-- メーカー -->
+      <select name="maker">
+        <option value="">メーカー（未選択）</option>
+        <option value="none">車なし</option>
+
+        <optgroup label="日本車">
+          <option value="toyota">トヨタ</option>
+          <option value="lexus">レクサス</option>
+          <option value="nissan">日産</option>
+          <option value="honda">ホンダ</option>
+          <option value="mazda">マツダ</option>
+          <option value="subaru">スバル</option>
+          <option value="mitsubishi">三菱</option>
+          <option value="suzuki">スズキ</option>
+          <option value="daihatsu">ダイハツ</option>
+          <option value="isuzu">いすゞ</option>
+        </optgroup>
+
+        <optgroup label="輸入車">
+          <option value="benz">メルセデス・ベンツ</option>
+          <option value="bmw">BMW</option>
+          <option value="audi">アウディ</option>
+          <option value="vw">フォルクスワーゲン</option>
+          <option value="porsche">ポルシェ</option>
+          <option value="tesla">テスラ</option>
+          <option value="ford">フォード</option>
+          <option value="chevrolet">シボレー</option>
+          <option value="jeep">ジープ</option>
+          <option value="volvo">ボルボ</option>
+          <option value="mini">MINI</option>
+          <option value="fiat">フィアット</option>
+          <option value="peugeot">プジョー</option>
+        </optgroup>
+      </select>
+
+      <!-- 車名 -->
+      <input name="car" placeholder="車名（未入力OK）">
+
+      <!-- 地域 -->
+      <select name="region">
+        <option value="">地域（未選択）</option>
+        <option value="overseas">海外</option>
+
+        <optgroup label="北海道・東北">
+          <option value="hokkaido">北海道</option>
+          <option value="aomori">青森県</option>
+          <option value="iwate">岩手県</option>
+          <option value="miyagi">宮城県</option>
+          <option value="akita">秋田県</option>
+          <option value="yamagata">山形県</option>
+          <option value="fukushima">福島県</option>
+        </optgroup>
+
+        <optgroup label="関東">
+          <option value="ibaraki">茨城県</option>
+          <option value="tochigi">栃木県</option>
+          <option value="gunma">群馬県</option>
+          <option value="saitama">埼玉県</option>
+          <option value="chiba">千葉県</option>
+          <option value="tokyo">東京都</option>
+          <option value="kanagawa">神奈川県</option>
+        </optgroup>
+
+        <optgroup label="中部">
+          <option value="niigata">新潟県</option>
+          <option value="toyama">富山県</option>
+          <option value="ishikawa">石川県</option>
+          <option value="fukui">福井県</option>
+          <option value="yamanashi">山梨県</option>
+          <option value="nagano">長野県</option>
+          <option value="gifu">岐阜県</option>
+          <option value="shizuoka">静岡県</option>
+          <option value="aichi">愛知県</option>
+        </optgroup>
+
+        <optgroup label="近畿">
+          <option value="mie">三重県</option>
+          <option value="shiga">滋賀県</option>
+          <option value="kyoto">京都府</option>
+          <option value="osaka">大阪府</option>
+          <option value="hyogo">兵庫県</option>
+          <option value="nara">奈良県</option>
+          <option value="wakayama">和歌山県</option>
+        </optgroup>
+
+        <optgroup label="中国・四国">
+          <option value="tottori">鳥取県</option>
+          <option value="shimane">島根県</option>
+          <option value="okayama">岡山県</option>
+          <option value="hiroshima">広島県</option>
+          <option value="yamaguchi">山口県</option>
+          <option value="tokushima">徳島県</option>
+          <option value="kagawa">香川県</option>
+          <option value="ehime">愛媛県</option>
+          <option value="kochi">高知県</option>
+        </optgroup>
+
+        <optgroup label="九州・沖縄">
+          <option value="fukuoka">福岡県</option>
+          <option value="saga">佐賀県</option>
+          <option value="nagasaki">長崎県</option>
+          <option value="kumamoto">熊本県</option>
+          <option value="oita">大分県</option>
+          <option value="miyazaki">宮崎県</option>
+          <option value="kagoshima">鹿児島県</option>
+          <option value="okinawa">沖縄県</option>
+        </optgroup>
+      </select>
+
     </div>
+
     <textarea name="comment" placeholder="コメント（ひとこと）"></textarea>
+
     <div class="form-row">
       <input type="file" name="image">
       <button class="primary-btn">投稿</button>
     </div>
+
   </form>
   {% endif %}
 
-   <!-- Posts -->
+  <!-- Posts -->
   <div class="posts">
     {% for post in posts %}
     <article class="post" data-href="/post/{{ post.id }}">
@@ -88,19 +199,16 @@
 
       <div class="post-actions">
 
-        <!-- 削除（投稿者のみ） -->
         {% if me_user_id == post.user_id %}
         <form method="post" action="/delete/{{ post.id }}" class="inline-form">
           <button type="submit" class="delete-btn">削除</button>
         </form>
         {% endif %}
 
-        <!-- コメント -->
         <a href="/post/{{ post.id }}#comments" class="action-btn">
           💬 <span class="count">{{ post.comment_count }}</span>
         </a>
 
-        <!-- いいね -->
         <button type="button"
           class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
           data-post-id="{{ post.id }}">
@@ -114,6 +222,9 @@
     </article>
     {% endfor %}
   </div>
+
+</main>
+
 <!-- Like -->
 <script>
 document.addEventListener("click", async (e) => {
@@ -146,9 +257,7 @@ document.addEventListener("click", async (e) => {
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
   if (!post) return;
-
   if (e.target.closest(".like-btn, .action-btn, a, button, form")) return;
-
   location.href = post.dataset.href;
 });
 </script>
