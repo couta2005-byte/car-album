@@ -971,30 +971,35 @@ textarea {
   gap:10px;
 }
 /* =========================
-   Ranking Badge
+   Ranking Rank Badge
 ========================= */
-.rank-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  font-weight: 900;
-  font-size: 13px;
-  color: #fff;
+.rank-badge{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:14px;
+  color:#fff;
+  box-shadow:0 4px 10px rgba(0,0,0,.25);
+  flex:0 0 auto;
 }
 
-.rank-1 .rank-badge { background: linear-gradient(135deg,#ffd700,#ffb700); }
-.rank-2 .rank-badge { background: linear-gradient(135deg,#c0c0c0,#a8a8a8); }
-.rank-3 .rank-badge { background: linear-gradient(135deg,#cd7f32,#b87333); }
-
-.rank-4 .rank-badge,
-.rank-5 .rank-badge,
-.rank-6 .rank-badge,
-.rank-7 .rank-badge,
-.rank-8 .rank-badge,
-.rank-9 .rank-badge,
-.rank-10 .rank-badge {
-  background: #111827;
+/* 🥇 */
+.rank-1{
+  background:linear-gradient(135deg,#ffd700,#ffb300);
+}
+/* 🥈 */
+.rank-2{
+  background:linear-gradient(135deg,#cfd8dc,#90a4ae);
+}
+/* 🥉 */
+.rank-3{
+  background:linear-gradient(135deg,#ffb74d,#f57c00);
+}
+/* 4位以下 */
+.rank-4,.rank-5,.rank-6,.rank-7,.rank-8,.rank-9,.rank-10{
+  background:linear-gradient(135deg,#9ca3af,#6b7280);
 }
