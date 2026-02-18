@@ -1003,3 +1003,137 @@ textarea {
 .rank-4,.rank-5,.rank-6,.rank-7,.rank-8,.rank-9,.rank-10{
   background:linear-gradient(135deg,#9ca3af,#6b7280);
 }
+/* =========================
+   Ranking: Medal + Card Colors
+   (1位 金 / 2位 銀 / 3位 銅 / 4-10 白)
+   ※ style.css の末尾に貼る（上書き用）
+========================= */
+
+/* まずランキング投稿カードのベースを白に固定（4-10位用） */
+.ranking-post{
+  background:#fff !important;
+  border: 1px solid rgba(15,20,25,0.06);
+}
+
+/* 1位: 金 */
+.ranking-post.rank-1{
+  background: linear-gradient(135deg,#fff6bf,#ffd24d) !important;
+  border-color: rgba(255,200,0,0.25);
+}
+
+/* 2位: 銀 */
+.ranking-post.rank-2{
+  background: linear-gradient(135deg,#f5f7fa,#d6dde6) !important;
+  border-color: rgba(120,130,140,0.18);
+}
+
+/* 3位: 銅 */
+.ranking-post.rank-3{
+  background: linear-gradient(135deg,#ffd3b0,#c7773a) !important;
+  border-color: rgba(160,90,40,0.22);
+}
+
+/* ===== 順位バッジ（共通） ===== */
+.rank-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  font-weight: 1000;
+  line-height: 1;
+  user-select:none;
+}
+
+/* 4位以降は小さめの丸でOK */
+.rank-badge.rank-4,
+.rank-badge.rank-5,
+.rank-badge.rank-6,
+.rank-badge.rank-7,
+.rank-badge.rank-8,
+.rank-badge.rank-9,
+.rank-badge.rank-10{
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  color:#fff;
+  background: linear-gradient(135deg,#9ca3af,#6b7280);
+  box-shadow: 0 6px 14px rgba(0,0,0,.18);
+}
+
+/* ===== 1-3位は「メダル」級にデカく・立体感 ===== */
+.rank-badge.rank-1,
+.rank-badge.rank-2,
+.rank-badge.rank-3{
+  width: 52px;
+  height: 52px;
+  font-size: 18px;
+  color:#1f2937;
+
+  /* 縁取り＋立体 */
+  border: 2px solid rgba(255,255,255,0.65);
+  box-shadow:
+    0 10px 20px rgba(0,0,0,.22),
+    inset 0 2px 4px rgba(255,255,255,.65),
+    inset 0 -10px 18px rgba(0,0,0,.10);
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* メダルの“キラッ” */
+.rank-badge.rank-1::before,
+.rank-badge.rank-2::before,
+.rank-badge.rank-3::before{
+  content:"";
+  position:absolute;
+  inset:-20%;
+  transform: rotate(25deg);
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.00) 0%,
+    rgba(255,255,255,0.55) 45%,
+    rgba(255,255,255,0.00) 70%
+  );
+  opacity: .55;
+}
+
+/* 中央の光 */
+.rank-badge.rank-1::after,
+.rank-badge.rank-2::after,
+.rank-badge.rank-3::after{
+  content:"";
+  position:absolute;
+  width: 70%;
+  height: 70%;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 25%,
+    rgba(255,255,255,0.85),
+    rgba(255,255,255,0.00) 60%
+  );
+  top: 12%;
+  left: 12%;
+  opacity: .55;
+}
+
+/* 1位メダル色（ゴールド） */
+.rank-badge.rank-1{
+  background: radial-gradient(circle at 30% 25%, #fff6b7, #ffcc2f 55%, #d79a00 100%);
+  color:#2b1b00;
+}
+
+/* 2位メダル色（シルバー） */
+.rank-badge.rank-2{
+  background: radial-gradient(circle at 30% 25%, #ffffff, #d7dde6 55%, #9aa3ad 100%);
+  color:#111827;
+}
+
+/* 3位メダル色（ブロンズ） */
+.rank-badge.rank-3{
+  background: radial-gradient(circle at 30% 25%, #ffe1c8, #c07a3e 55%, #7a3f14 100%);
+  color:#2b1306;
+}
+
+/* バッジがデカくなった分、行のバランスだけ整える */
+.ranking-post .post-title{
+  gap: 12px;
+}
