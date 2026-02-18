@@ -16,7 +16,7 @@
   <meta property="og:image"
         content="{{ profile[4] if profile and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
 
-  <link rel="stylesheet" href="/static/style.css?v=1000">
+  <link rel="stylesheet" href="/static/style.css?v=1001">
 </head>
 <body>
 
@@ -48,16 +48,16 @@
 
         {% if is_following %}
           <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
-            <button class="follow-btn">フォロー解除</button>
+            <button class="follow-btn" type="submit">フォロー解除</button>
           </form>
         {% else %}
           <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
-            <button class="follow-btn">フォローする</button>
+            <button class="follow-btn" type="submit">フォローする</button>
           </form>
         {% endif %}
 
         <form action="/dm/start/{{ target_user_id }}" method="post">
-          <button class="dm-btn">DMする</button>
+          <button class="dm-btn" type="submit">DMする</button>
         </form>
 
       {% elif me_user_id == target_user_id %}
@@ -96,9 +96,9 @@
   <div class="posts">
     {% for post in posts %}
     <article class="post"
+             data-href="/post/{{ post.id }}"
              role="link"
-             tabindex="0"
-             onclick="location.href='/post/{{ post.id }}';">
+             tabindex="0">
 
       <div class="post-top">
         <div class="post-title">
@@ -130,14 +130,12 @@
       <div class="post-actions">
 
         {% if me_user_id == post.user_id %}
-          <form action="/delete/{{ post.id }}" method="post" onclick="event.stopPropagation();">
+          <form action="/delete/{{ post.id }}" method="post">
             <button class="action-btn delete-btn" type="submit">🗑</button>
           </form>
         {% endif %}
 
-        <a href="/post/{{ post.id }}#comments"
-           class="action-btn"
-           onclick="event.stopPropagation();">
+        <a href="/post/{{ post.id }}#comments" class="action-btn">
           💬 <span class="comment-count">{{ post.comment_count }}</span>
         </a>
 
@@ -156,9 +154,10 @@
 </main>
 
 <!-- ======================
-     Like JS（完全安定版）
+     JS（完全安定版）
 ====================== -->
 <script>
+/* いいね */
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".like-btn");
   if (!btn) return;
@@ -179,10 +178,20 @@ document.addEventListener("click", async (e) => {
   }
 
   const data = await res.json();
-
   btn.classList.toggle("liked", data.liked);
   btn.querySelector(".heart").textContent = data.liked ? "❤️" : "🤍";
   btn.querySelector(".like-count").textContent = data.likes;
+});
+
+/* 投稿クリック遷移（アクション除外） */
+document.addEventListener("click", (e) => {
+  const post = e.target.closest(".post");
+  if (!post) return;
+
+  if (e.target.closest(".post-actions")) return;
+
+  const href = post.dataset.href;
+  if (href) location.href = href;
 });
 </script>
 
