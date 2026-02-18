@@ -909,3 +909,64 @@ textarea {
 .like-btn .like-count {
   font-weight: 900;
 }
+/* =========================
+   Ranking Card Layout（最終）
+========================= */
+
+/* ランキングカード全体 */
+.ranking-card{
+  background:#fff;
+  border-radius:18px;
+  padding:14px;
+  margin-bottom:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+
+/* 上段：順位＋アイコン＋名前：車名 */
+.ranking-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:15px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+/* 順位 */
+.rank-badge{
+  min-width:24px;
+  text-align:center;
+  font-size:18px;
+  font-weight:900;
+  color:#111827;
+}
+
+/* ランキング用ユーザー名 */
+.ranking-user{
+  font-weight:900;
+  text-decoration:none;
+  color:#0f1419;
+}
+
+.ranking-user:hover{
+  text-decoration:underline;
+}
+
+/* 車名 */
+.ranking-car{
+  font-weight:800;
+  color:#374151;
+}
+
+/* 画像は必ず下に */
+.ranking-card .post-image{
+  margin-top:8px;
+}
+
+/* 下段アクション（右寄せ） */
+.ranking-card .post-actions{
+  margin-top:10px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
