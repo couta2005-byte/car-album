@@ -970,3 +970,31 @@ textarea {
   justify-content:flex-end;
   gap:10px;
 }
+/* =========================
+   Ranking Badge
+========================= */
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-weight: 900;
+  font-size: 13px;
+  color: #fff;
+}
+
+.rank-1 .rank-badge { background: linear-gradient(135deg,#ffd700,#ffb700); }
+.rank-2 .rank-badge { background: linear-gradient(135deg,#c0c0c0,#a8a8a8); }
+.rank-3 .rank-badge { background: linear-gradient(135deg,#cd7f32,#b87333); }
+
+.rank-4 .rank-badge,
+.rank-5 .rank-badge,
+.rank-6 .rank-badge,
+.rank-7 .rank-badge,
+.rank-8 .rank-badge,
+.rank-9 .rank-badge,
+.rank-10 .rank-badge {
+  background: #111827;
+}
