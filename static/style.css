@@ -1137,3 +1137,28 @@ textarea {
 .ranking-post .post-title{
   gap: 12px;
 }
+/* =========================
+   Ranking Post Overlay（必須）
+========================= */
+
+/* ランキング投稿は相対位置 */
+.ranking-post{
+  position: relative;
+}
+
+/* 全体クリック用の透明リンク */
+.post-overlay{
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* 操作系は必ずオーバーレイより上に */
+.ranking-post .post-actions,
+.ranking-post .post-actions *,
+.ranking-post .avatar,
+.ranking-post .avatar *,
+.ranking-post .post-user{
+  position: relative;
+  z-index: 2;
+}

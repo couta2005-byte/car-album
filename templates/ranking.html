@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=1001">
+  <link rel="stylesheet" href="/static/style.css?v=1002">
 </head>
 <body>
 
@@ -23,10 +23,10 @@
 
   {% if posts %}
     {% for post in posts %}
-    <article class="post ranking-post rank-{{ loop.index }}"
-             role="link"
-             tabindex="0"
-             onclick="location.href='/post/{{ post.id }}';">
+    <article class="post ranking-post rank-{{ loop.index }}">
+
+      <!-- ===== 全体クリック用オーバーレイ ===== -->
+      <a href="/post/{{ post.id }}" class="post-overlay" aria-label="投稿を見る"></a>
 
       <!-- ===== Header ===== -->
       <div class="post-top">
@@ -60,7 +60,6 @@
 
         </div>
 
-        <!-- 時間（右上） -->
         <span class="post-date">{{ post.created_at }}</span>
       </div>
 
@@ -76,7 +75,7 @@
         </div>
       {% endif %}
 
-      <!-- ===== Actions（右寄せ・遷移防止） ===== -->
+      <!-- ===== Actions（完全独立） ===== -->
       <div class="post-actions" onclick="event.stopPropagation();">
 
         <!-- コメント -->
@@ -110,7 +109,7 @@
 
 </main>
 
-<!-- ===== Like JS（ランキング用・非遷移） ===== -->
+<!-- ===== Like JS（ランキング用・完全安定） ===== -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".js-like");
