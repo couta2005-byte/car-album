@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=4000">
+  <link rel="stylesheet" href="/static/style.css?v=FINAL">
 </head>
 <body>
 
@@ -14,12 +14,9 @@
 
   <!-- ===== Ranking Tabs ===== -->
   <div class="ranking-tabs">
-    <a href="/ranking?period=day"
-       class="ranking-tab {% if period=='day' %}active{% endif %}">日</a>
-    <a href="/ranking?period=week"
-       class="ranking-tab {% if period=='week' %}active{% endif %}">週</a>
-    <a href="/ranking?period=month"
-       class="ranking-tab {% if period=='month' %}active{% endif %}">月</a>
+    <a href="/ranking?period=day"   class="ranking-tab {% if period=='day' %}active{% endif %}">日</a>
+    <a href="/ranking?period=week"  class="ranking-tab {% if period=='week' %}active{% endif %}">週</a>
+    <a href="/ranking?period=month" class="ranking-tab {% if period=='month' %}active{% endif %}">月</a>
   </div>
 
   <h2 class="ranking-heading">{{ ranking_title }}</h2>
@@ -30,12 +27,11 @@
 
       <!-- ===== Header ===== -->
       <div class="post-top">
+
         <div class="post-title">
 
           <!-- Rank -->
-          <span class="rank-badge rank-{{ loop.index }}">
-            {{ loop.index }}
-          </span>
+          <span class="rank-badge rank-{{ loop.index }}">{{ loop.index }}</span>
 
           <!-- Avatar -->
           {% if post.user_icon %}
@@ -50,8 +46,8 @@
             </a>
           {% endif %}
 
-          <!-- Name : Car（ここだけ詳細遷移） -->
-          <a href="/post/{{ post.id }}" class="post-user">
+          <!-- Name : Car -->
+          <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
             {{ post.display_name }}：{{ post.car }}
           </a>
 
@@ -60,19 +56,24 @@
         <span class="post-date">{{ post.created_at }}</span>
       </div>
 
-      <!-- Comment -->
-      {% if post.comment %}
-        <div class="post-text">{{ post.comment }}</div>
-      {% endif %}
+      <!-- ===== Body（ここだけが遷移） ===== -->
+      <div class="post-body"
+           onclick="location.href='/post/{{ post.id }}';"
+           style="cursor:pointer;">
 
-      <!-- Image -->
-      {% if post.image %}
-        <a href="/post/{{ post.id }}" class="post-image">
-          <img src="{{ post.image }}" alt="投稿画像">
-        </a>
-      {% endif %}
+        {% if post.comment %}
+          <div class="post-text">{{ post.comment }}</div>
+        {% endif %}
 
-      <!-- ===== Actions ===== -->
+        {% if post.image %}
+          <div class="post-image">
+            <img src="{{ post.image }}" alt="投稿画像">
+          </div>
+        {% endif %}
+
+      </div>
+
+      <!-- ===== Actions（完全独立） ===== -->
       <div class="post-actions">
 
         <!-- Comment -->
@@ -99,14 +100,12 @@
     </article>
     {% endfor %}
   {% else %}
-    <p style="color:#888; margin-top:24px;">
-      ランキング対象の投稿がありません
-    </p>
+    <p style="color:#888; margin-top:24px;">ランキング対象の投稿がありません</p>
   {% endif %}
 
 </main>
 
-<!-- ===== Like JS（ランキング専用・完全安定） ===== -->
+<!-- ===== Like JS（最終安定版） ===== -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".js-like");
@@ -123,14 +122,11 @@ document.addEventListener("click", async (e) => {
   });
 
   if (!res.ok) {
-    if (res.status === 401) {
-      location.href = "/login";
-    }
+    if (res.status === 401) location.href = "/login";
     return;
   }
 
   const data = await res.json();
-
   btn.classList.toggle("liked", data.liked);
   btn.querySelector(".heart").textContent = data.liked ? "❤️" : "🤍";
   btn.querySelector(".like-count").textContent = data.likes;
