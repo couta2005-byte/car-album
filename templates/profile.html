@@ -16,7 +16,7 @@
   <meta property="og:image"
         content="{{ profile[4] if profile and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
 
-  <link rel="stylesheet" href="/static/style.css?v=1001">
+  <link rel="stylesheet" href="/static/style.css?v=1002">
 </head>
 <body>
 
@@ -28,22 +28,29 @@
        Profile Header
   ====================== -->
   <section class="profile-header">
+
     <div class="profile-left">
       {% if profile and profile[4] %}
-        <div class="avatar profile-avatar">
+        <div class="profile-avatar">
           <img src="{{ profile[4] }}" alt="icon">
         </div>
       {% else %}
-        <span class="avatar-fallback profile-avatar"></span>
+        <span class="profile-avatar avatar-fallback"></span>
       {% endif %}
 
       <div class="profile-idblock">
-        <h2 class="profile-name">{{ display_name if display_name else username }}</h2>
-        <div class="profile-handle">@{{ handle if handle else username }}</div>
+        <h2 class="profile-name">
+          {{ display_name if display_name else username }}
+        </h2>
+        <div class="profile-handle">
+          @{{ handle if handle else username }}
+        </div>
       </div>
     </div>
 
+    <!-- ===== Actions ===== -->
     <div class="profile-actions">
+
       {% if me_user_id and target_user_id and me_user_id != target_user_id %}
 
         {% if is_following %}
@@ -61,7 +68,11 @@
         </form>
 
       {% elif me_user_id == target_user_id %}
+
+        <!-- ★ 本人専用 -->
+        <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
         <a href="/dm" class="dm-btn">DM一覧</a>
+
       {% endif %}
     </div>
   </section>
@@ -70,6 +81,8 @@
        Profile Info
   ====================== -->
   <section class="profile-box">
+
+    <!-- メーカー / 車名 / 地域 -->
     <div class="profile-badges">
       {% if profile %}
         {% if profile[0] %}<span class="badge">メーカー：{{ profile[0] }}</span>{% endif %}
@@ -78,11 +91,19 @@
       {% endif %}
     </div>
 
+    <!-- Stats -->
     <div class="profile-stats">
-      <div class="stat"><span>フォロー</span><strong>{{ follow_count }}</strong></div>
-      <div class="stat"><span>フォロワー</span><strong>{{ follower_count }}</strong></div>
+      <div class="stat">
+        <span>フォロー</span>
+        <span class="stat-num">{{ follow_count }}</span>
+      </div>
+      <div class="stat">
+        <span>フォロワー</span>
+        <span class="stat-num">{{ follower_count }}</span>
+      </div>
     </div>
 
+    <!-- Bio -->
     {% if profile and profile[3] %}
       <p class="profile-bio">{{ profile[3] }}</p>
     {% endif %}
@@ -111,7 +132,9 @@
           {% endif %}
 
           <span class="post-user">{{ post.display_name }}</span>
-          <span class="post-car">：{{ post.car }}</span>
+          {% if post.car %}
+            <span class="post-car">：{{ post.car }}</span>
+          {% endif %}
         </div>
         <span class="post-date">{{ post.created_at }}</span>
       </div>
@@ -130,19 +153,20 @@
       <div class="post-actions">
 
         {% if me_user_id == post.user_id %}
-          <form action="/delete/{{ post.id }}" method="post">
+          <form action="/delete/{{ post.id }}" method="post" class="inline-form">
             <button class="action-btn delete-btn" type="submit">🗑</button>
           </form>
         {% endif %}
 
         <a href="/post/{{ post.id }}#comments" class="action-btn">
-          💬 <span class="comment-count">{{ post.comment_count }}</span>
+          💬 <span class="count">{{ post.comment_count }}</span>
         </a>
 
         <button type="button"
                 class="action-btn like-btn {% if post.id in liked_posts %}liked{% endif %}"
                 data-post-id="{{ post.id }}">
-          <span class="heart">{% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}</span>
+          <span class="heart heart-off">🤍</span>
+          <span class="heart heart-on">❤️</span>
           <span class="like-count">{{ post.likes }}</span>
         </button>
 
@@ -154,7 +178,7 @@
 </main>
 
 <!-- ======================
-     JS（完全安定版）
+     JS（安定版）
 ====================== -->
 <script>
 /* いいね */
@@ -179,7 +203,6 @@ document.addEventListener("click", async (e) => {
 
   const data = await res.json();
   btn.classList.toggle("liked", data.liked);
-  btn.querySelector(".heart").textContent = data.liked ? "❤️" : "🤍";
   btn.querySelector(".like-count").textContent = data.likes;
 });
 
@@ -187,9 +210,7 @@ document.addEventListener("click", async (e) => {
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
   if (!post) return;
-
   if (e.target.closest(".post-actions")) return;
-
   const href = post.dataset.href;
   if (href) location.href = href;
 });

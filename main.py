@@ -1379,6 +1379,60 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         "mode": "profile",
         "posts": posts
     })
+# ======================
+# profile edit page（GET）
+# ======================
+@app.get("/profile/edit", response_class=HTMLResponse)
+def profile_edit_page(
+    request: Request,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
+    db = get_db()
+    cur = db.cursor()
+    try:
+        # ログイン中ユーザー取得
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
+
+        # プロフィール情報
+        cur.execute(
+            "SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s",
+            (me_user_id,)
+        )
+        profile = cur.fetchone()
+
+        # 表示名・handle
+        cur.execute(
+            "SELECT display_name, handle FROM users WHERE id=%s",
+            (me_user_id,)
+        )
+        u = cur.fetchone()
+
+    finally:
+        cur.close()
+        db.close()
+
+    return templates.TemplateResponse(
+        "profile_edit.html",
+        {
+            "request": request,
+            "user": me_username,
+            "me_user_id": me_user_id,
+            "me_handle": me_handle,
+            "user_icon": user_icon,
+            "unread_dm": unread_dm,
+            "display_name": u[0] if u else "",
+            "handle": u[1] if u else "",
+            "profile": profile,
+            "mode": "profile_edit",
+        }
+    )
 
 # ======================
 # profile edit（icon + display_name/handle）

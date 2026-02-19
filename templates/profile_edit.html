@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>プロフィール編集 | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css?v=1001">
+</head>
+<body>
+
+{% include "_nav.html" %}
+
+<main class="container">
+
+  <a href="/user/{{ me_handle if me_handle else user }}" class="back-link">
+    ← プロフィールに戻る
+  </a>
+
+  <h2 class="page-title">プロフィール編集</h2>
+
+  <form action="/profile/edit" method="post" enctype="multipart/form-data">
+
+    <label>表示名</label>
+    <input type="text" name="display_name" value="{{ display_name }}" maxlength="40">
+
+    <label>ハンドル（@なし）</label>
+    <input type="text" name="handle" value="{{ handle }}" placeholder="kumax">
+
+    <label>メーカー</label>
+    <input type="text" name="maker" value="{{ profile[0] if profile else '' }}">
+
+    <label>車名</label>
+    <input type="text" name="car" value="{{ profile[1] if profile else '' }}">
+
+    <label>地域</label>
+    <input type="text" name="region" value="{{ profile[2] if profile else '' }}">
+
+    <label>自己紹介</label>
+    <textarea name="bio">{{ profile[3] if profile else '' }}</textarea>
+
+    <label>アイコン画像</label>
+    <input type="file" name="icon" accept="image/*">
+
+    <button type="submit" class="primary-btn">
+      保存する
+    </button>
+
+  </form>
+
+</main>
+
+</body>
+</html>
