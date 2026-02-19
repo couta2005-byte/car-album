@@ -16,7 +16,7 @@
   <meta property="og:image"
         content="{{ profile[4] if profile and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
 
-  <link rel="stylesheet" href="/static/style.css?v=1002">
+  <link rel="stylesheet" href="/static/style.css?v=1003">
 </head>
 <body>
 
@@ -25,74 +25,84 @@
 <main class="container">
 
   <!-- ======================
-       Profile Header
+       Profile Card
   ====================== -->
-  <section class="profile-header">
+  <section class="profile-box" style="padding:16px;">
 
-    <div class="profile-left">
-      {% if profile and profile[4] %}
-        <div class="profile-avatar">
-          <img src="{{ profile[4] }}" alt="icon">
-        </div>
-      {% else %}
-        <span class="profile-avatar avatar-fallback"></span>
-      {% endif %}
+    <!-- Header -->
+    <div class="profile-header" style="margin:0 0 12px;">
+      <div class="profile-left">
+        {% if profile and profile[4] %}
+          <div class="profile-avatar">
+            <img src="{{ profile[4] }}" alt="icon">
+          </div>
+        {% else %}
+          <span class="profile-avatar avatar-fallback"></span>
+        {% endif %}
 
-      <div class="profile-idblock">
-        <h2 class="profile-name">
-          {{ display_name if display_name else username }}
-        </h2>
-        <div class="profile-handle">
-          @{{ handle if handle else username }}
+        <div class="profile-idblock">
+          <h2 class="profile-name" style="margin:0;">
+            {{ display_name if display_name else username }}
+          </h2>
+          <div class="profile-handle">
+            @{{ handle if handle else username }}
+          </div>
         </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="profile-actions">
+        {% if me_user_id and target_user_id and me_user_id != target_user_id %}
+
+          {% if is_following %}
+            <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
+              <button class="follow-btn" type="submit">フォロー解除</button>
+            </form>
+          {% else %}
+            <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
+              <button class="follow-btn" type="submit">フォローする</button>
+            </form>
+          {% endif %}
+
+          <form action="/dm/start/{{ target_user_id }}" method="post">
+            <button class="dm-btn" type="submit">DMする</button>
+          </form>
+
+        {% elif me_user_id == target_user_id %}
+          <!-- ★ 本人専用：編集だけ（DM一覧は削除） -->
+          <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
+        {% endif %}
       </div>
     </div>
 
-    <!-- ===== Actions ===== -->
-    <div class="profile-actions">
+    <!-- Info（ラベル＋値：タグ化しない） -->
+    <div style="
+      display:grid;
+      grid-template-columns: 92px 1fr;
+      gap:10px 12px;
+      padding:12px;
+      border:1px solid #e5e7eb;
+      border-radius:16px;
+      background:#fff;
+      ">
+      <div style="color:#536471; font-weight:900; font-size:13px;">メーカー</div>
+      <div style="font-weight:900; font-size:14px;">
+        {{ profile[0] if profile and profile[0] else "未設定" }}
+      </div>
 
-      {% if me_user_id and target_user_id and me_user_id != target_user_id %}
+      <div style="color:#536471; font-weight:900; font-size:13px;">車名</div>
+      <div style="font-weight:900; font-size:14px;">
+        {{ profile[1] if profile and profile[1] else "未設定" }}
+      </div>
 
-        {% if is_following %}
-          <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
-            <button class="follow-btn" type="submit">フォロー解除</button>
-          </form>
-        {% else %}
-          <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
-            <button class="follow-btn" type="submit">フォローする</button>
-          </form>
-        {% endif %}
-
-        <form action="/dm/start/{{ target_user_id }}" method="post">
-          <button class="dm-btn" type="submit">DMする</button>
-        </form>
-
-      {% elif me_user_id == target_user_id %}
-
-        <!-- ★ 本人専用 -->
-        <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
-        <a href="/dm" class="dm-btn">DM一覧</a>
-
-      {% endif %}
-    </div>
-  </section>
-
-  <!-- ======================
-       Profile Info
-  ====================== -->
-  <section class="profile-box">
-
-    <!-- メーカー / 車名 / 地域 -->
-    <div class="profile-badges">
-      {% if profile %}
-        {% if profile[0] %}<span class="badge">メーカー：{{ profile[0] }}</span>{% endif %}
-        {% if profile[1] %}<span class="badge">車名：{{ profile[1] }}</span>{% endif %}
-        {% if profile[2] %}<span class="badge">地域：{{ profile[2] }}</span>{% endif %}
-      {% endif %}
+      <div style="color:#536471; font-weight:900; font-size:13px;">地域</div>
+      <div style="font-weight:900; font-size:14px;">
+        {{ profile[2] if profile and profile[2] else "未設定" }}
+      </div>
     </div>
 
     <!-- Stats -->
-    <div class="profile-stats">
+    <div class="profile-stats" style="margin-top:12px;">
       <div class="stat">
         <span>フォロー</span>
         <span class="stat-num">{{ follow_count }}</span>
@@ -104,15 +114,20 @@
     </div>
 
     <!-- Bio -->
-    {% if profile and profile[3] %}
-      <p class="profile-bio">{{ profile[3] }}</p>
-    {% endif %}
+    <div style="margin-top:12px;">
+      {% if profile and profile[3] %}
+        <p class="profile-bio" style="margin:0;">{{ profile[3] }}</p>
+      {% else %}
+        <p class="profile-bio" style="margin:0; color:#8899a6;">自己紹介はまだ未設定です。</p>
+      {% endif %}
+    </div>
+
   </section>
 
   <!-- ======================
        Posts
   ====================== -->
-  <h3 class="profile-section-title">投稿</h3>
+  <h3 class="profile-section-title" style="margin-top:14px;">投稿</h3>
 
   <div class="posts">
     {% for post in posts %}
@@ -149,9 +164,7 @@
         </div>
       {% endif %}
 
-      <!-- ===== Actions ===== -->
       <div class="post-actions">
-
         {% if me_user_id == post.user_id %}
           <form action="/delete/{{ post.id }}" method="post" class="inline-form">
             <button class="action-btn delete-btn" type="submit">🗑</button>
@@ -169,17 +182,14 @@
           <span class="heart heart-on">❤️</span>
           <span class="like-count">{{ post.likes }}</span>
         </button>
-
       </div>
+
     </article>
     {% endfor %}
   </div>
 
 </main>
 
-<!-- ======================
-     JS（安定版）
-====================== -->
 <script>
 /* いいね */
 document.addEventListener("click", async (e) => {
