@@ -2045,88 +2045,120 @@ def dm_list(
         }
     )
 # =========================
-# フォロー一覧 / フォロワー一覧
+# フォロー一覧
 # =========================
+@app.get("/following/{key}", response_class=HTMLResponse)
+def following_page(
+    request: Request,
+    key: str,
+    user: str = Cookie(None),
+    uid: str = Cookie(None)
+):
+    key = unquote(key)
 
-@app.get("/following/{handle}", response_class=HTMLResponse)
-def following_page(request: Request, handle: str, session_id: Optional[str] = Cookie(None)):
-    conn = get_db()
-    cur = conn.cursor()
+    db = get_db()
+    cur = db.cursor()
+    try:
+        # ✅ 正しい取得方法（これが重要）
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
 
-    # 自分
-    me = get_current_user(session_id)
+        # 対象ユーザー取得
+        urow = resolve_user_by_key(db, key)
+        if not urow:
+            return RedirectResponse("/", status_code=303)
 
-    # 対象ユーザー取得
-    cur.execute("""
-        SELECT id, username, display_name, handle, icon
-        FROM users
-        WHERE handle = %s OR username = %s
-        LIMIT 1
-    """, (handle, handle))
-    user = cur.fetchone()
+        target_user_id = str(urow[0])
 
-    if not user:
-        return RedirectResponse("/", status_code=302)
+        # フォローしている人
+        cur.execute("""
+            SELECT
+                u.id,
+                u.username,
+                u.display_name,
+                u.handle,
+                p.icon
+            FROM follows f
+            JOIN users u ON f.followee_id = u.id
+            LEFT JOIN profiles p ON p.user_id = u.id
+            WHERE f.follower_id = %s
+            ORDER BY u.username
+        """, (target_user_id,))
 
-    user_id = user[0]
+        users = cur.fetchall()
 
-    # フォローしている人
-    cur.execute("""
-        SELECT u.id, u.username, u.display_name, u.handle, u.icon
-        FROM follows f
-        JOIN users u ON f.following_id = u.id
-        WHERE f.follower_id = %s
-        ORDER BY f.id DESC
-    """, (user_id,))
-    users = cur.fetchall()
-
-    cur.close()
-    conn.close()
+    finally:
+        cur.close()
+        db.close()
 
     return templates.TemplateResponse("following.html", {
         "request": request,
         "users": users,
-        "me_user_id": me["id"] if me else None
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "me_handle": me_handle,
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
     })
 
 
-@app.get("/followers/{handle}", response_class=HTMLResponse)
-def followers_page(request: Request, handle: str, session_id: Optional[str] = Cookie(None)):
-    conn = get_db()
-    cur = conn.cursor()
+# =========================
+# フォロワー一覧
+# =========================
+@app.get("/followers/{key}", response_class=HTMLResponse)
+def followers_page(
+    request: Request,
+    key: str,
+    user: str = Cookie(None),
+    uid: str = Cookie(None)
+):
+    key = unquote(key)
 
-    # 自分
-    me = get_current_user(session_id)
+    db = get_db()
+    cur = db.cursor()
+    try:
+        # ✅ 正しい取得方法（ここも重要）
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
 
-    # 対象ユーザー取得
-    cur.execute("""
-        SELECT id, username, display_name, handle, icon
-        FROM users
-        WHERE handle = %s OR username = %s
-        LIMIT 1
-    """, (handle, handle))
-    user = cur.fetchone()
+        # 対象ユーザー
+        urow = resolve_user_by_key(db, key)
+        if not urow:
+            return RedirectResponse("/", status_code=303)
 
-    if not user:
-        return RedirectResponse("/", status_code=302)
+        target_user_id = str(urow[0])
 
-    user_id = user[0]
+        # フォロワー取得
+        cur.execute("""
+            SELECT
+                u.id,
+                u.username,
+                u.display_name,
+                u.handle,
+                p.icon
+            FROM follows f
+            JOIN users u ON f.follower_id = u.id
+            LEFT JOIN profiles p ON p.user_id = u.id
+            WHERE f.followee_id = %s
+            ORDER BY u.username
+        """, (target_user_id,))
 
-    # フォロワー
-    cur.execute("""
-        SELECT u.id, u.username, u.display_name, u.handle, u.icon
-        FROM follows f
-        JOIN users u ON f.follower_id = u.id
-        WHERE f.following_id = %s
-        ORDER BY f.id DESC
-    """, (user_id,))
-    users = cur.fetchall()
+        users = cur.fetchall()
 
-    cur.close()
-    conn.close()
+    finally:
+        cur.close()
+        db.close()
 
     return templates.TemplateResponse("followers.html", {
         "request": request,
         "users": users,
-        "me_user_id": me["id"] if me else None
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "me_handle": me_handle,
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
     })
