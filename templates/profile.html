@@ -16,7 +16,7 @@
   <meta property="og:image"
         content="{{ profile[4] if profile and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
 
-  <link rel="stylesheet" href="/static/style.css?v=1003">
+  <link rel="stylesheet" href="/static/style.css?v=1004">
 </head>
 <body>
 
@@ -69,13 +69,13 @@
           </form>
 
         {% elif me_user_id == target_user_id %}
-          <!-- ★ 本人専用：編集だけ（DM一覧は削除） -->
+          <!-- 本人 -->
           <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
         {% endif %}
       </div>
     </div>
 
-    <!-- Info（ラベル＋値：タグ化しない） -->
+    <!-- Info -->
     <div style="
       display:grid;
       grid-template-columns: 92px 1fr;
@@ -84,7 +84,7 @@
       border:1px solid #e5e7eb;
       border-radius:16px;
       background:#fff;
-      ">
+    ">
       <div style="color:#536471; font-weight:900; font-size:13px;">メーカー</div>
       <div style="font-weight:900; font-size:14px;">
         {{ profile[0] if profile and profile[0] else "未設定" }}
@@ -101,16 +101,23 @@
       </div>
     </div>
 
-    <!-- Stats -->
-    <div class="profile-stats" style="margin-top:12px;">
-      <div class="stat">
+    <!-- Stats（クリック可能） -->
+    <div class="profile-stats" style="margin-top:12px; display:flex; gap:20px;">
+
+      <a href="/following/{{ handle if handle else username }}"
+         class="stat"
+         style="text-decoration:none; color:inherit;">
         <span>フォロー</span>
         <span class="stat-num">{{ follow_count }}</span>
-      </div>
-      <div class="stat">
+      </a>
+
+      <a href="/followers/{{ handle if handle else username }}"
+         class="stat"
+         style="text-decoration:none; color:inherit;">
         <span>フォロワー</span>
         <span class="stat-num">{{ follower_count }}</span>
-      </div>
+      </a>
+
     </div>
 
     <!-- Bio -->
@@ -118,7 +125,9 @@
       {% if profile and profile[3] %}
         <p class="profile-bio" style="margin:0;">{{ profile[3] }}</p>
       {% else %}
-        <p class="profile-bio" style="margin:0; color:#8899a6;">自己紹介はまだ未設定です。</p>
+        <p class="profile-bio" style="margin:0; color:#8899a6;">
+          自己紹介はまだ未設定です。
+        </p>
       {% endif %}
     </div>
 
@@ -165,6 +174,7 @@
       {% endif %}
 
       <div class="post-actions">
+
         {% if me_user_id == post.user_id %}
           <form action="/delete/{{ post.id }}" method="post" class="inline-form">
             <button class="action-btn delete-btn" type="submit">🗑</button>
@@ -182,8 +192,8 @@
           <span class="heart heart-on">❤️</span>
           <span class="like-count">{{ post.likes }}</span>
         </button>
-      </div>
 
+      </div>
     </article>
     {% endfor %}
   </div>
@@ -216,11 +226,13 @@ document.addEventListener("click", async (e) => {
   btn.querySelector(".like-count").textContent = data.likes;
 });
 
-/* 投稿クリック遷移（アクション除外） */
+/* 投稿クリック遷移 */
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
   if (!post) return;
+
   if (e.target.closest(".post-actions")) return;
+
   const href = post.dataset.href;
   if (href) location.href = href;
 });

@@ -2044,3 +2044,89 @@ def dm_list(
             "timedelta": timedelta,
         }
     )
+# =========================
+# フォロー一覧 / フォロワー一覧
+# =========================
+
+@app.get("/following/{handle}", response_class=HTMLResponse)
+def following_page(request: Request, handle: str, session_id: Optional[str] = Cookie(None)):
+    conn = get_db()
+    cur = conn.cursor()
+
+    # 自分
+    me = get_current_user(session_id)
+
+    # 対象ユーザー取得
+    cur.execute("""
+        SELECT id, username, display_name, handle, icon
+        FROM users
+        WHERE handle = %s OR username = %s
+        LIMIT 1
+    """, (handle, handle))
+    user = cur.fetchone()
+
+    if not user:
+        return RedirectResponse("/", status_code=302)
+
+    user_id = user[0]
+
+    # フォローしている人
+    cur.execute("""
+        SELECT u.id, u.username, u.display_name, u.handle, u.icon
+        FROM follows f
+        JOIN users u ON f.following_id = u.id
+        WHERE f.follower_id = %s
+        ORDER BY f.id DESC
+    """, (user_id,))
+    users = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return templates.TemplateResponse("following.html", {
+        "request": request,
+        "users": users,
+        "me_user_id": me["id"] if me else None
+    })
+
+
+@app.get("/followers/{handle}", response_class=HTMLResponse)
+def followers_page(request: Request, handle: str, session_id: Optional[str] = Cookie(None)):
+    conn = get_db()
+    cur = conn.cursor()
+
+    # 自分
+    me = get_current_user(session_id)
+
+    # 対象ユーザー取得
+    cur.execute("""
+        SELECT id, username, display_name, handle, icon
+        FROM users
+        WHERE handle = %s OR username = %s
+        LIMIT 1
+    """, (handle, handle))
+    user = cur.fetchone()
+
+    if not user:
+        return RedirectResponse("/", status_code=302)
+
+    user_id = user[0]
+
+    # フォロワー
+    cur.execute("""
+        SELECT u.id, u.username, u.display_name, u.handle, u.icon
+        FROM follows f
+        JOIN users u ON f.follower_id = u.id
+        WHERE f.following_id = %s
+        ORDER BY f.id DESC
+    """, (user_id,))
+    users = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return templates.TemplateResponse("followers.html", {
+        "request": request,
+        "users": users,
+        "me_user_id": me["id"] if me else None
+    })

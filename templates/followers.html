@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>フォロワー | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css?v=5001">
+</head>
+<body>
+
+{% include "_nav.html" %}
+
+<main class="container">
+
+  <h2 class="page-title">フォロワー</h2>
+
+  <div class="user-list">
+    {% for u in users %}
+    <a href="/profile/{{ u[3] if u[3] else u[1] }}" class="user-item">
+
+      {% if u[4] %}
+        <img src="{{ u[4] }}" class="user-icon">
+      {% else %}
+        <div class="user-icon fallback"></div>
+      {% endif %}
+
+      <div class="user-info">
+        <div class="user-name">{{ u[2] if u[2] else u[1] }}</div>
+        <div class="user-handle">@{{ u[3] if u[3] else u[1] }}</div>
+      </div>
+
+    </a>
+    {% endfor %}
+  </div>
+
+</main>
+
+</body>
+</html>
