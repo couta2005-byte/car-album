@@ -2169,13 +2169,17 @@ import os
 
 templates = Jinja2Templates(directory="templates")
 
+# ======================
+# ADMIN
+# ======================
+
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "1234")
 
 def is_admin(request: Request):
     return request.cookies.get("admin") == "1"
 
 
-# ===== Admin Login =====
+# ===== Login =====
 @app.get("/admin/login", response_class=HTMLResponse)
 def admin_login_page(request: Request):
     return templates.TemplateResponse("admin_login.html", {"request": request})
@@ -2183,9 +2187,9 @@ def admin_login_page(request: Request):
 
 @app.post("/admin/login")
 def admin_login(password: str = Form(...)):
-    if password == ADMIN_PASSWORD:0424
+    if password == ADMIN_PASSWORD:
         res = RedirectResponse("/admin", status_code=303)
-        res.set_cookie("admin", "1")
+        res.set_cookie("admin", "1", httponly=True)
         return res
     return RedirectResponse("/admin/login", status_code=303)
 
@@ -2196,8 +2200,8 @@ def admin_dashboard(request: Request):
     if not is_admin(request):
         return RedirectResponse("/admin/login")
 
-    conn = get_conn()
-    cur = conn.cursor()
+    db = get_db()
+    cur = db.cursor()
 
     cur.execute("SELECT COUNT(*) FROM users")
     user_count = cur.fetchone()[0]
@@ -2205,7 +2209,8 @@ def admin_dashboard(request: Request):
     cur.execute("SELECT COUNT(*) FROM posts")
     post_count = cur.fetchone()[0]
 
-    conn.close()
+    cur.close()
+    db.close()
 
     return templates.TemplateResponse("admin.html", {
         "request": request,
@@ -2220,13 +2225,14 @@ def admin_users(request: Request):
     if not is_admin(request):
         return RedirectResponse("/admin/login")
 
-    conn = get_conn()
-    cur = conn.cursor()
+    db = get_db()
+    cur = db.cursor()
 
     cur.execute("SELECT id, username FROM users ORDER BY id DESC")
     users = cur.fetchall()
 
-    conn.close()
+    cur.close()
+    db.close()
 
     return templates.TemplateResponse("admin_users.html", {
         "request": request,
@@ -2235,16 +2241,14 @@ def admin_users(request: Request):
 
 
 @app.post("/admin/users/delete/{user_id}")
-def delete_user(request: Request, user_id: int):
+def delete_user(request: Request, user_id: str):
     if not is_admin(request):
         return RedirectResponse("/admin/login")
 
-    conn = get_conn()
-    cur = conn.cursor()
+    def _do(db, cur):
+        cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
 
-    cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
-    conn.commit()
-    conn.close()
+    run_db(_do)
 
     return RedirectResponse("/admin/users", status_code=303)
 
@@ -2255,8 +2259,8 @@ def admin_posts(request: Request):
     if not is_admin(request):
         return RedirectResponse("/admin/login")
 
-    conn = get_conn()
-    cur = conn.cursor()
+    db = get_db()
+    cur = db.cursor()
 
     cur.execute("""
         SELECT id, user_id, comment
@@ -2266,7 +2270,8 @@ def admin_posts(request: Request):
     """)
     posts = cur.fetchall()
 
-    conn.close()
+    cur.close()
+    db.close()
 
     return templates.TemplateResponse("admin_posts.html", {
         "request": request,
@@ -2275,15 +2280,13 @@ def admin_posts(request: Request):
 
 
 @app.post("/admin/posts/delete/{post_id}")
-def delete_post(request: Request, post_id: int):
+def delete_post_admin(request: Request, post_id: int):
     if not is_admin(request):
         return RedirectResponse("/admin/login")
 
-    conn = get_conn()
-    cur = conn.cursor()
+    def _do(db, cur):
+        cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
-    cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
-    conn.commit()
-    conn.close()
+    run_db(_do)
 
     return RedirectResponse("/admin/posts", status_code=303)
