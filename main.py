@@ -2183,7 +2183,7 @@ def admin_login_page(request: Request):
 
 @app.post("/admin/login")
 def admin_login(password: str = Form(...)):
-    if password == ADMIN_PASSWORD:
+    if password == ADMIN_PASSWORD:0424
         res = RedirectResponse("/admin", status_code=303)
         res.set_cookie("admin", "1")
         return res
