@@ -1,0 +1,10 @@
+<h2>投稿一覧</h2>
+
+{% for p in posts %}
+  <div>
+    {{ p[2] }}
+    <form action="/admin/posts/delete/{{ p[0] }}" method="post">
+      <button>削除</button>
+    </form>
+  </div>
+{% endfor %}

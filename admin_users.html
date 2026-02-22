@@ -1,0 +1,10 @@
+<h2>ユーザー一覧</h2>
+
+{% for u in users %}
+  <div>
+    {{ u[1] }}
+    <form action="/admin/users/delete/{{ u[0] }}" method="post">
+      <button>削除</button>
+    </form>
+  </div>
+{% endfor %}

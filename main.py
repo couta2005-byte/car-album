@@ -2162,3 +2162,128 @@ def followers_page(
         "user_icon": user_icon,
         "unread_dm": unread_dm,
     })
+from fastapi import Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+import os
+
+templates = Jinja2Templates(directory="templates")
+
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "1234")
+
+def is_admin(request: Request):
+    return request.cookies.get("admin") == "1"
+
+
+# ===== Admin Login =====
+@app.get("/admin/login", response_class=HTMLResponse)
+def admin_login_page(request: Request):
+    return templates.TemplateResponse("admin_login.html", {"request": request})
+
+
+@app.post("/admin/login")
+def admin_login(password: str = Form(...)):
+    if password == ADMIN_PASSWORD:
+        res = RedirectResponse("/admin", status_code=303)
+        res.set_cookie("admin", "1")
+        return res
+    return RedirectResponse("/admin/login", status_code=303)
+
+
+# ===== Dashboard =====
+@app.get("/admin", response_class=HTMLResponse)
+def admin_dashboard(request: Request):
+    if not is_admin(request):
+        return RedirectResponse("/admin/login")
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("SELECT COUNT(*) FROM users")
+    user_count = cur.fetchone()[0]
+
+    cur.execute("SELECT COUNT(*) FROM posts")
+    post_count = cur.fetchone()[0]
+
+    conn.close()
+
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "user_count": user_count,
+        "post_count": post_count
+    })
+
+
+# ===== Users =====
+@app.get("/admin/users", response_class=HTMLResponse)
+def admin_users(request: Request):
+    if not is_admin(request):
+        return RedirectResponse("/admin/login")
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, username FROM users ORDER BY id DESC")
+    users = cur.fetchall()
+
+    conn.close()
+
+    return templates.TemplateResponse("admin_users.html", {
+        "request": request,
+        "users": users
+    })
+
+
+@app.post("/admin/users/delete/{user_id}")
+def delete_user(request: Request, user_id: int):
+    if not is_admin(request):
+        return RedirectResponse("/admin/login")
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
+    conn.commit()
+    conn.close()
+
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+# ===== Posts =====
+@app.get("/admin/posts", response_class=HTMLResponse)
+def admin_posts(request: Request):
+    if not is_admin(request):
+        return RedirectResponse("/admin/login")
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, user_id, comment
+        FROM posts
+        ORDER BY id DESC
+        LIMIT 100
+    """)
+    posts = cur.fetchall()
+
+    conn.close()
+
+    return templates.TemplateResponse("admin_posts.html", {
+        "request": request,
+        "posts": posts
+    })
+
+
+@app.post("/admin/posts/delete/{post_id}")
+def delete_post(request: Request, post_id: int):
+    if not is_admin(request):
+        return RedirectResponse("/admin/login")
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
+    conn.commit()
+    conn.close()
+
+    return RedirectResponse("/admin/posts", status_code=303)
