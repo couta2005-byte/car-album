@@ -282,16 +282,18 @@ def init_db():
             created_at TIMESTAMP
         );
         """)
-
         # ---- profiles icon ----
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
 
-        # ---- users 拡張（display_name / handle / created_at）----
+        # ---- users 拡張 ----
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS handle TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP;")
 
-        # ---- ✅ users.id(UUID) 追加（固定IDの本体）----
+        # 👇管理者 & BAN（ここ重要）
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE;")
+        # ---- users.id(UUID) 追加（固定IDの本体）----
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS id UUID;")
         cur.execute("UPDATE users SET id = gen_random_uuid() WHERE id IS NULL;")
         cur.execute("ALTER TABLE users ALTER COLUMN id SET DEFAULT gen_random_uuid();")
@@ -829,10 +831,11 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
                 p.comment, p.image, p.created_at,
                 pr.icon
             ORDER BY
-                (COUNT(DISTINCT l.user_id) * 3)
-              + (COUNT(DISTINCT c.id) * 2)
-              - (EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600) * 0.15
-                DESC,
+                (
+                    (COUNT(DISTINCT l.user_id) * 3)
+                  + (COUNT(DISTINCT c.id) * 2)
+                  - (EXTRACT(EPOCH FROM (NOW() - p.created_at)) / 3600) * 0.3
+                ) DESC,
                 p.id DESC
             LIMIT 50
         """)
@@ -873,7 +876,6 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
             "comments": post_comments,
         })
     return posts
-
 # ======================
 # top
 # ======================
@@ -1199,11 +1201,19 @@ def add_comment(
     uid: str = Cookie(default=None),
 ):
     db = get_db()
+    cur = db.cursor()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
+
+        cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
+        row = cur.fetchone()
+        if row and row[0]:
+            return RedirectResponse("/", status_code=303)
+
     finally:
+        cur.close()
         db.close()
 
     comment = (comment or "").strip()
@@ -1221,7 +1231,6 @@ def add_comment(
 
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
-
 # ======================
 # comment delete（自分のだけ）
 # ======================
@@ -1271,11 +1280,19 @@ def delete_comment(request: Request, comment_id: int, user: str = Cookie(default
 @app.post("/api/comment_like/{comment_id}")
 def api_comment_like(comment_id: int, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
+    cur = db.cursor()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
+
+        cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
+        row = cur.fetchone()
+        if row and row[0]:
+            return JSONResponse({"ok": False, "error": "banned"}, status_code=403)
+
     finally:
+        cur.close()
         db.close()
 
     def _do(db, cur):
@@ -1301,7 +1318,6 @@ def api_comment_like(comment_id: int, request: Request, user: str = Cookie(defau
         return {"ok": True, "liked": liked, "likes": likes_count}
 
     return JSONResponse(run_db(_do))
-
 # ======================
 # profile（/user/{key} は handle優先で解決）
 # ======================
@@ -1606,11 +1622,19 @@ def post(
     uid: str = Cookie(default=None),
 ):
     db = get_db()
+    cur = db.cursor()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
+
+        cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
+        row = cur.fetchone()
+        if row and row[0]:
+            return RedirectResponse("/", status_code=303)
+
     finally:
+        cur.close()
         db.close()
 
     image_path = None
@@ -1633,7 +1657,6 @@ def post(
 
     run_db(_do)
     return redirect_back(request, "/")
-
 # ======================
 # ✅ auth（pbkdf2） + ✅ インスタ方式：handleでもログインOK
 # ======================
@@ -1644,35 +1667,47 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     db = get_db()
     cur = db.cursor()
     try:
+        # handleログイン
         h = normalize_login_id(login_id_raw)
         if h:
-            cur.execute("SELECT password, id, username FROM users WHERE handle=%s", (h,))
+            cur.execute("SELECT password, id, username, is_banned FROM users WHERE handle=%s", (h,))
             row = cur.fetchone()
-            if row and pwd_context.verify(password, row[0]):
-                user_id = str(row[1])
-                real_username = row[2]
-                res = RedirectResponse("/", status_code=303)
-                res.set_cookie(key="user", value=quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
-                res.set_cookie(key="uid", value=user_id, httponly=True, secure=is_https_request(request), samesite="lax")
-                return res
+            if row:
+                if row[3]:  # BANチェック
+                    return RedirectResponse("/login?error=banned", status_code=303)
 
-        cur.execute("SELECT password, id, username FROM users WHERE username=%s", (login_id_raw,))
+                if pwd_context.verify(password, row[0]):
+                    user_id = str(row[1])
+                    real_username = row[2]
+                    res = RedirectResponse("/", status_code=303)
+                    res.set_cookie("user", quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
+                    res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
+                    return res
+
+        # usernameログイン
+        cur.execute("SELECT password, id, username, is_banned FROM users WHERE username=%s", (login_id_raw,))
         row = cur.fetchone()
+
     finally:
         cur.close()
         db.close()
 
-    if not row or not pwd_context.verify(password, row[0]):
+    if not row:
+        return RedirectResponse("/login?error=invalid", status_code=303)
+
+    if row[3]:  # BANチェック
+        return RedirectResponse("/login?error=banned", status_code=303)
+
+    if not pwd_context.verify(password, row[0]):
         return RedirectResponse("/login?error=invalid", status_code=303)
 
     user_id = str(row[1])
     real_username = row[2]
 
     res = RedirectResponse("/", status_code=303)
-    res.set_cookie(key="user", value=quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
-    res.set_cookie(key="uid", value=user_id, httponly=True, secure=is_https_request(request), samesite="lax")
+    res.set_cookie("user", quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
+    res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
     return res
-
 @app.post("/register")
 def register(request: Request, username: str = Form(...), password: str = Form(...)):
     # ✅ 新規登録の「ログインID」はインスタルール強制（日本語NG）
@@ -1730,11 +1765,19 @@ def logout():
 @app.post("/api/like/{post_id}")
 def api_like(post_id: int, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
+    cur = db.cursor()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
+
+        cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
+        row = cur.fetchone()
+        if row and row[0]:
+            return JSONResponse({"ok": False, "error": "banned"}, status_code=403)
+
     finally:
+        cur.close()
         db.close()
 
     def _do(db, cur):
@@ -1756,7 +1799,6 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
         return {"ok": True, "liked": liked, "likes": likes_count}
 
     return JSONResponse(run_db(_do))
-
 # ======================
 # delete post（自分のだけ）
 # ======================
@@ -1903,6 +1945,12 @@ def dm_start(
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
+        # 🔥 BANチェック（安全版）
+        cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
+        row = cur.fetchone()
+        if row and row[0]:
+            return RedirectResponse("/", status_code=303)
+
         if me_user_id == target_user_id:
             return RedirectResponse("/", status_code=303)
 
@@ -1921,7 +1969,6 @@ def dm_start(
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
-
 @app.post("/dm/{room_id}/send")
 def dm_send(
     room_id: str,
@@ -1941,6 +1988,12 @@ def dm_send(
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
+        # BANチェック
+        cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
+        row = cur.fetchone()
+        if row and row[0]:
+            return RedirectResponse("/", status_code=303)
+
         cur.execute("""
             SELECT 1
             FROM dm_rooms
@@ -1959,7 +2012,6 @@ def dm_send(
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
-
 @app.get("/dm", response_class=HTMLResponse)
 def dm_list(
     request: Request,
@@ -2162,62 +2214,46 @@ def followers_page(
         "user_icon": user_icon,
         "unread_dm": unread_dm,
     })
-from fastapi import Request
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-import os
-
-templates = Jinja2Templates(directory="templates")
 
 # ======================
-# ADMIN（完全版）
+# ADMIN（最終版）
 # ======================
 
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "1234")
+# ===== 管理者判定 =====
+def is_admin_user(db, user_id: Optional[str]) -> bool:
+    if not user_id:
+        return False
 
-def is_admin(request: Request):
-    return request.cookies.get("admin") == "1"
-
-
-# ===== Login =====
-@app.get("/admin/login", response_class=HTMLResponse)
-def admin_login_page(request: Request):
-    return templates.TemplateResponse("admin_login.html", {"request": request})
-
-
-@app.post("/admin/login")
-def admin_login(request: Request, password: str = Form(...)):
-    if password == ADMIN_PASSWORD:
-        res = RedirectResponse("/admin", status_code=303)
-        res.set_cookie("admin", "1", httponly=True, secure=is_https_request(request), samesite="lax")
-        return res
-    return RedirectResponse("/admin/login", status_code=303)
-
-
-@app.post("/admin/logout")
-def admin_logout():
-    res = RedirectResponse("/admin/login", status_code=303)
-    res.delete_cookie("admin")
-    return res
+    cur = db.cursor()
+    try:
+        cur.execute("SELECT is_admin FROM users WHERE id=%s", (user_id,))
+        row = cur.fetchone()
+        return bool(row and row[0])
+    finally:
+        cur.close()
 
 
 # ===== Dashboard =====
 @app.get("/admin", response_class=HTMLResponse)
-def admin_dashboard(request: Request):
-    if not is_admin(request):
-        return RedirectResponse("/admin/login")
-
+def admin_dashboard(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
     cur = db.cursor()
 
-    cur.execute("SELECT COUNT(*) FROM users")
-    user_count = cur.fetchone()[0]
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
 
-    cur.execute("SELECT COUNT(*) FROM posts")
-    post_count = cur.fetchone()[0]
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
 
-    cur.close()
-    db.close()
+        cur.execute("SELECT COUNT(*) FROM users")
+        user_count = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM posts")
+        post_count = cur.fetchone()[0]
+
+    finally:
+        cur.close()
+        db.close()
 
     return templates.TemplateResponse("admin.html", {
         "request": request,
@@ -2228,23 +2264,28 @@ def admin_dashboard(request: Request):
 
 # ===== Users =====
 @app.get("/admin/users", response_class=HTMLResponse)
-def admin_users(request: Request):
-    if not is_admin(request):
-        return RedirectResponse("/admin/login")
-
+def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
     cur = db.cursor()
 
-    cur.execute("""
-        SELECT id, username, display_name, handle
-        FROM users
-        ORDER BY created_at DESC
-        LIMIT 100
-    """)
-    users = cur.fetchall()
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
 
-    cur.close()
-    db.close()
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
+
+        # 🔥 BAN表示込み
+        cur.execute("""
+            SELECT id, username, display_name, handle, is_admin, is_banned
+            FROM users
+            ORDER BY created_at DESC
+            LIMIT 100
+        """)
+        users = cur.fetchall()
+
+    finally:
+        cur.close()
+        db.close()
 
     return templates.TemplateResponse("admin_users.html", {
         "request": request,
@@ -2252,87 +2293,159 @@ def admin_users(request: Request):
     })
 
 
+# ===== ユーザー削除（完全安全）=====
 @app.post("/admin/users/delete/{user_id}")
-def admin_delete_user(request: Request, user_id: str):
-    if not is_admin(request):
-        return RedirectResponse("/admin/login")
+def admin_delete_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
+    db = get_db()
+
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
+
+        # 🔥 自分削除防止
+        if user_id == me_user_id:
+            return RedirectResponse("/admin/users")
+
+    finally:
+        db.close()
 
     def _do(db, cur):
-        # ======================
         # likes
-        # ======================
         cur.execute("DELETE FROM likes WHERE user_id=%s", (user_id,))
 
-        # ======================
         # comment_likes
-        # ======================
         cur.execute("DELETE FROM comment_likes WHERE user_id=%s", (user_id,))
 
-        # ======================
         # comments
-        # ======================
         cur.execute("DELETE FROM comments WHERE user_id=%s", (user_id,))
 
-        # ======================
         # follows
-        # ======================
         cur.execute("""
             DELETE FROM follows
             WHERE follower_id=%s OR followee_id=%s
         """, (user_id, user_id))
 
-        # ======================
-        # DM
-        # ======================
+        # 🔥 DM（順番重要）
         cur.execute("""
             DELETE FROM dm_messages
-            WHERE sender_id=%s
-        """, (user_id,))
+            WHERE room_id IN (
+                SELECT id FROM dm_rooms
+                WHERE user1_id=%s OR user2_id=%s
+            )
+        """, (user_id, user_id))
 
         cur.execute("""
             DELETE FROM dm_rooms
             WHERE user1_id=%s OR user2_id=%s
         """, (user_id, user_id))
 
-        # ======================
         # posts
-        # ======================
         cur.execute("DELETE FROM posts WHERE user_id=%s", (user_id,))
 
-        # ======================
         # profiles
-        # ======================
         cur.execute("DELETE FROM profiles WHERE user_id=%s", (user_id,))
 
-        # ======================
         # users（最後）
-        # ======================
         cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
 
     run_db(_do)
+    return RedirectResponse("/admin/users", status_code=303)
+# ===== 管理者昇格 =====
+@app.post("/admin/promote/{user_id}")
+def admin_promote_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
+    db = get_db()
 
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
+    finally:
+        db.close()
+
+    run_db(lambda db, cur: cur.execute("UPDATE users SET is_admin=TRUE WHERE id=%s", (user_id,)))
+    return RedirectResponse("/admin/users", status_code=303)
+
+
+# ===== 管理者解除 =====
+@app.post("/admin/demote/{user_id}")
+def admin_demote_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
+    db = get_db()
+
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
+
+        # 🔥 自分demote防止
+        if user_id == me_user_id:
+            return RedirectResponse("/admin/users")
+
+    finally:
+        db.close()
+
+    run_db(lambda db, cur: cur.execute("UPDATE users SET is_admin=FALSE WHERE id=%s", (user_id,)))
+    return RedirectResponse("/admin/users", status_code=303)
+# ===== BAN =====
+@app.post("/admin/ban/{user_id}")
+def admin_ban_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
+    db = get_db()
+
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
+
+        # 🔥 自分BAN防止
+        if user_id == me_user_id:
+            return RedirectResponse("/admin/users")
+
+    finally:
+        db.close()
+
+    run_db(lambda db, cur: cur.execute("UPDATE users SET is_banned=TRUE WHERE id=%s", (user_id,)))
+    return RedirectResponse("/admin/users", status_code=303)
+
+@app.post("/admin/unban/{user_id}")
+def admin_unban_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
+    db = get_db()
+
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
+    finally:
+        db.close()
+
+    run_db(lambda db, cur: cur.execute("UPDATE users SET is_banned=FALSE WHERE id=%s", (user_id,)))
     return RedirectResponse("/admin/users", status_code=303)
 
 
 # ===== Posts =====
 @app.get("/admin/posts", response_class=HTMLResponse)
-def admin_posts(request: Request):
-    if not is_admin(request):
-        return RedirectResponse("/admin/login")
-
+def admin_posts(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
     cur = db.cursor()
 
-    cur.execute("""
-        SELECT id, user_id, comment, created_at
-        FROM posts
-        ORDER BY created_at DESC
-        LIMIT 100
-    """)
-    posts = cur.fetchall()
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
 
-    cur.close()
-    db.close()
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
+
+        cur.execute("""
+            SELECT id, user_id, comment, created_at
+            FROM posts
+            ORDER BY created_at DESC
+            LIMIT 100
+        """)
+        posts = cur.fetchall()
+
+    finally:
+        cur.close()
+        db.close()
 
     return templates.TemplateResponse("admin_posts.html", {
         "request": request,
@@ -2340,29 +2453,29 @@ def admin_posts(request: Request):
     })
 
 
+# ===== 投稿削除 =====
 @app.post("/admin/posts/delete/{post_id}")
-def admin_delete_post(request: Request, post_id: int):
-    if not is_admin(request):
-        return RedirectResponse("/admin/login")
+def admin_delete_post(request: Request, post_id: int, user: str = Cookie(None), uid: str = Cookie(None)):
+    db = get_db()
+
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
+    finally:
+        db.close()
 
     def _do(db, cur):
-        # コメントいいね削除
         cur.execute("""
             DELETE FROM comment_likes
             WHERE comment_id IN (
                 SELECT id FROM comments WHERE post_id=%s
             )
         """, (post_id,))
-
-        # コメント削除
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
-
-        # いいね削除
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
-
-        # 投稿削除
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
     run_db(_do)
-
     return RedirectResponse("/admin/posts", status_code=303)
