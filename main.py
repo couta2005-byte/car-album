@@ -1667,25 +1667,38 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     db = get_db()
     cur = db.cursor()
     try:
-        # handleログイン
+        # ===== handleログイン =====
         h = normalize_login_id(login_id_raw)
         if h:
-            cur.execute("SELECT password, id, username, is_banned FROM users WHERE handle=%s", (h,))
+            cur.execute(
+                "SELECT password, id, username, is_banned FROM users WHERE handle=%s",
+                (h,)
+            )
             row = cur.fetchone()
             if row:
-                if row[3]:  # BANチェック
+                if row[3]:
                     return RedirectResponse("/login?error=banned", status_code=303)
 
                 if pwd_context.verify(password, row[0]):
                     user_id = str(row[1])
                     real_username = row[2]
+
                     res = RedirectResponse("/", status_code=303)
                     res.set_cookie("user", quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
                     res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
+
+                    # 🔥 admin化
+                    def _admin(db, cur):
+                        cur.execute("UPDATE users SET is_admin=TRUE WHERE id=%s", (user_id,))
+                    run_db(_admin)
+
                     return res
 
-        # usernameログイン
-        cur.execute("SELECT password, id, username, is_banned FROM users WHERE username=%s", (login_id_raw,))
+        # ===== usernameログイン =====
+        cur.execute(
+            "SELECT password, id, username, is_banned FROM users WHERE username=%s",
+            (login_id_raw,)
+        )
         row = cur.fetchone()
 
     finally:
@@ -1695,7 +1708,7 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     if not row:
         return RedirectResponse("/login?error=invalid", status_code=303)
 
-    if row[3]:  # BANチェック
+    if row[3]:
         return RedirectResponse("/login?error=banned", status_code=303)
 
     if not pwd_context.verify(password, row[0]):
@@ -1707,6 +1720,12 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     res = RedirectResponse("/", status_code=303)
     res.set_cookie("user", quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
     res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
+
+    # 🔥 admin化
+    def _admin(db, cur):
+        cur.execute("UPDATE users SET is_admin=TRUE WHERE id=%s", (user_id,))
+    run_db(_admin)
+
     return res
 @app.post("/register")
 def register(request: Request, username: str = Form(...), password: str = Form(...)):
