@@ -2170,7 +2170,7 @@ import os
 templates = Jinja2Templates(directory="templates")
 
 # ======================
-# ADMIN
+# ADMIN（完全版）
 # ======================
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "1234")
@@ -2186,12 +2186,19 @@ def admin_login_page(request: Request):
 
 
 @app.post("/admin/login")
-def admin_login(password: str = Form(...)):
+def admin_login(request: Request, password: str = Form(...)):
     if password == ADMIN_PASSWORD:
         res = RedirectResponse("/admin", status_code=303)
-        res.set_cookie("admin", "1", httponly=True)
+        res.set_cookie("admin", "1", httponly=True, secure=is_https_request(request), samesite="lax")
         return res
     return RedirectResponse("/admin/login", status_code=303)
+
+
+@app.post("/admin/logout")
+def admin_logout():
+    res = RedirectResponse("/admin/login", status_code=303)
+    res.delete_cookie("admin")
+    return res
 
 
 # ===== Dashboard =====
@@ -2228,7 +2235,12 @@ def admin_users(request: Request):
     db = get_db()
     cur = db.cursor()
 
-    cur.execute("SELECT id, username FROM users ORDER BY id DESC")
+    cur.execute("""
+        SELECT id, username, display_name, handle
+        FROM users
+        ORDER BY created_at DESC
+        LIMIT 100
+    """)
     users = cur.fetchall()
 
     cur.close()
@@ -2241,11 +2253,60 @@ def admin_users(request: Request):
 
 
 @app.post("/admin/users/delete/{user_id}")
-def delete_user(request: Request, user_id: str):
+def admin_delete_user(request: Request, user_id: str):
     if not is_admin(request):
         return RedirectResponse("/admin/login")
 
     def _do(db, cur):
+        # ======================
+        # likes
+        # ======================
+        cur.execute("DELETE FROM likes WHERE user_id=%s", (user_id,))
+
+        # ======================
+        # comment_likes
+        # ======================
+        cur.execute("DELETE FROM comment_likes WHERE user_id=%s", (user_id,))
+
+        # ======================
+        # comments
+        # ======================
+        cur.execute("DELETE FROM comments WHERE user_id=%s", (user_id,))
+
+        # ======================
+        # follows
+        # ======================
+        cur.execute("""
+            DELETE FROM follows
+            WHERE follower_id=%s OR followee_id=%s
+        """, (user_id, user_id))
+
+        # ======================
+        # DM
+        # ======================
+        cur.execute("""
+            DELETE FROM dm_messages
+            WHERE sender_id=%s
+        """, (user_id,))
+
+        cur.execute("""
+            DELETE FROM dm_rooms
+            WHERE user1_id=%s OR user2_id=%s
+        """, (user_id, user_id))
+
+        # ======================
+        # posts
+        # ======================
+        cur.execute("DELETE FROM posts WHERE user_id=%s", (user_id,))
+
+        # ======================
+        # profiles
+        # ======================
+        cur.execute("DELETE FROM profiles WHERE user_id=%s", (user_id,))
+
+        # ======================
+        # users（最後）
+        # ======================
         cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
 
     run_db(_do)
@@ -2263,9 +2324,9 @@ def admin_posts(request: Request):
     cur = db.cursor()
 
     cur.execute("""
-        SELECT id, user_id, comment
+        SELECT id, user_id, comment, created_at
         FROM posts
-        ORDER BY id DESC
+        ORDER BY created_at DESC
         LIMIT 100
     """)
     posts = cur.fetchall()
@@ -2280,11 +2341,26 @@ def admin_posts(request: Request):
 
 
 @app.post("/admin/posts/delete/{post_id}")
-def delete_post_admin(request: Request, post_id: int):
+def admin_delete_post(request: Request, post_id: int):
     if not is_admin(request):
         return RedirectResponse("/admin/login")
 
     def _do(db, cur):
+        # コメントいいね削除
+        cur.execute("""
+            DELETE FROM comment_likes
+            WHERE comment_id IN (
+                SELECT id FROM comments WHERE post_id=%s
+            )
+        """, (post_id,))
+
+        # コメント削除
+        cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
+
+        # いいね削除
+        cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
+
+        # 投稿削除
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
     run_db(_do)
