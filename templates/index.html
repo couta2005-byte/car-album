@@ -234,28 +234,38 @@
       {% endif %}
 
       <div class="post-actions">
-        {% if me_user_id == post.user_id %}
-        <form method="post" action="/delete/{{ post.id }}" class="inline-form">
-          <button type="submit" class="delete-btn">削除</button>
-        </form>
-        {% endif %}
 
-        <a href="/post/{{ post.id }}#comments" class="action-btn">
-          💬 <span class="count">{{ post.comment_count }}</span>
-        </a>
+  <!-- 自分の投稿削除 -->
+  {% if me_user_id == post.user_id %}
+  <form method="post" action="/delete/{{ post.id }}" class="inline-form">
+    <button type="submit" class="delete-btn">削除</button>
+  </form>
+  {% endif %}
 
-        <button type="button"
-                class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
-                data-post-id="{{ post.id }}">
-          <span class="heart heart-off">🤍</span>
-          <span class="heart heart-on">❤️</span>
-          <span class="like-count">{{ post.likes }}</span>
-        </button>
-      </div>
-    </article>
-    {% endfor %}
-  </div>
+  <!-- 🔥 管理者削除（ここ追加） -->
+  {% if is_admin and me_user_id != post.user_id %}
+  <form method="post" action="/admin/posts/delete/{{ post.id }}" class="inline-form">
+    <button type="submit" class="delete-btn" style="color:#ff4444;">
+      管理削除
+    </button>
+  </form>
+  {% endif %}
 
+  <!-- コメント -->
+  <a href="/post/{{ post.id }}#comments" class="action-btn">
+    💬 <span class="count">{{ post.comment_count }}</span>
+  </a>
+
+  <!-- いいね -->
+  <button type="button"
+          class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
+          data-post-id="{{ post.id }}">
+    <span class="heart heart-off">🤍</span>
+    <span class="heart heart-on">❤️</span>
+    <span class="like-count">{{ post.likes }}</span>
+  </button>
+
+</div>
 </main>
 
 <!-- Like -->

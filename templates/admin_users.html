@@ -1,10 +1,113 @@
-<h2>ユーザー一覧</h2>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>ユーザー管理 | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css?v=5000">
+</head>
+<body>
 
-{% for u in users %}
-  <div>
-    {{ u[1] }}
-    <form action="/admin/users/delete/{{ u[0] }}" method="post">
-      <button>削除</button>
-    </form>
+{% include "_nav.html" %}
+
+<main class="container">
+
+  <div class="admin-head">
+    <div>
+      <h2 class="page-title">ユーザー管理</h2>
+      <div class="admin-sub">
+        管理者：<b>{{ me }}</b>
+      </div>
+    </div>
+
+    <div class="admin-actions">
+      <a class="btn btn-ghost" href="/admin">ダッシュボード</a>
+      <a class="btn btn-ghost" href="/admin/posts">投稿管理</a>
+    </div>
   </div>
-{% endfor %}
+
+  <div class="admin-card">
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ユーザー</th>
+            <th>表示名</th>
+            <th>@ID</th>
+            <th class="t-center">権限</th>
+            <th class="t-center">状態</th>
+            <th class="t-right">操作</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for u in users %}
+          {# users: (id, username, display_name, handle, is_admin, is_banned) #}
+          <tr>
+            <td class="usercell">
+              <div class="usercell-main">
+                <div class="usercell-name">{{ u[1] }}</div>
+              </div>
+              <div class="usercell-sub">ID: {{ u[0] }}</div>
+            </td>
+
+            <td>{{ u[2] if u[2] else "" }}</td>
+            <td class="mono">@{{ u[3] if u[3] else "-" }}</td>
+
+            <td class="t-center">
+              {% if u[4] %}
+                <span class="badge badge-admin">ADMIN</span>
+              {% else %}
+                <span class="badge badge-user">USER</span>
+              {% endif %}
+            </td>
+
+            <td class="t-center">
+              {% if u[5] %}
+                <span class="badge badge-ban">BAN</span>
+              {% else %}
+                <span class="badge badge-ok">OK</span>
+              {% endif %}
+            </td>
+
+            <td class="t-right">
+              <div class="row-actions">
+
+                {% if u[4] %}
+                  <form method="post" action="/admin/demote/{{ u[0] }}">
+                    <button class="btn btn-ghost btn-sm" type="submit">解除</button>
+                  </form>
+                {% else %}
+                  <form method="post" action="/admin/promote/{{ u[0] }}">
+                    <button class="btn btn-ghost btn-sm" type="submit">昇格</button>
+                  </form>
+                {% endif %}
+
+                {% if u[5] %}
+                  <form method="post" action="/admin/unban/{{ u[0] }}">
+                    <button class="btn btn-ghost btn-sm" type="submit">UNBAN</button>
+                  </form>
+                {% else %}
+                  <form method="post" action="/admin/ban/{{ u[0] }}">
+                    <button class="btn btn-ghost btn-sm" type="submit">BAN</button>
+                  </form>
+                {% endif %}
+
+                <form method="post" action="/admin/users/delete/{{ u[0] }}"
+                      onsubmit="return confirm('本当に削除しますか？（元に戻せません）');">
+                  <button class="btn btn-danger btn-sm" type="submit">削除</button>
+                </form>
+
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+
+</main>
+</body>
+</html>

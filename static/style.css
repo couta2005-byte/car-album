@@ -1340,3 +1340,98 @@ textarea {
   font-size: 12px;
   color: #666;
 }
+/* =========================
+   Admin UI
+========================= */
+.admin-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin: 10px 0 14px;
+}
+.admin-sub{
+  font-size: 13px;
+  opacity: .75;
+  margin-top: 4px;
+}
+.admin-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.admin-card{
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:16px;
+  overflow:hidden;
+}
+
+.admin-table-wrap{
+  width:100%;
+  overflow:auto;
+}
+
+.admin-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width: 820px; /* 横が狭い画面で崩れない */
+}
+.admin-table th,
+.admin-table td{
+  padding: 12px 12px;
+  border-bottom:1px solid rgba(0,0,0,.06);
+  vertical-align:middle;
+  white-space:nowrap;
+}
+.admin-table thead th{
+  font-size:12px;
+  opacity:.75;
+  text-align:left;
+  background: rgba(0,0,0,.02);
+}
+.t-center{ text-align:center; }
+.t-right{ text-align:right; }
+.mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+.usercell{ min-width: 220px; }
+.usercell-name{ font-weight: 700; }
+.usercell-sub{ font-size: 12px; opacity: .7; margin-top: 4px; }
+
+.badge{
+  display:inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  border:1px solid rgba(0,0,0,.08);
+}
+.badge-admin{ background: rgba(0,0,0,.06); }
+.badge-user{ background: rgba(0,0,0,.03); opacity:.85; }
+.badge-ban{ background: rgba(255,0,0,.07); }
+.badge-ok{ background: rgba(0,160,0,.07); }
+
+.row-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+/* 既存にbtnが無い場合の保険（あれば上書きされるだけ） */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border:1px solid rgba(0,0,0,.12);
+  background:#fff;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+}
+.btn-sm{ padding: 7px 10px; border-radius: 10px; font-size: 12px; }
+.btn-ghost{ background:#fff; }
+.btn-danger{ background: rgba(255,0,0,.08); border-color: rgba(255,0,0,.18); }

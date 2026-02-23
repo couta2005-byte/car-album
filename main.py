@@ -2254,10 +2254,10 @@ def admin_dashboard(request: Request, user: str = Cookie(None), uid: str = Cooki
     cur = db.cursor()
 
     try:
-        _, me_user_id = get_me_from_cookies(db, user, uid)
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
 
         if not is_admin_user(db, me_user_id):
-            return RedirectResponse("/")
+            return RedirectResponse("/", status_code=303)
 
         cur.execute("SELECT COUNT(*) FROM users")
         user_count = cur.fetchone()[0]
@@ -2272,9 +2272,12 @@ def admin_dashboard(request: Request, user: str = Cookie(None), uid: str = Cooki
     return templates.TemplateResponse("admin.html", {
         "request": request,
         "user_count": user_count,
-        "post_count": post_count
+        "post_count": post_count,
+        "user": me_username,     # ←他ページと統一（nav用）
+        "me": me_username,       # ←必要ならテンプレ側で表示できる
+        "me_user_id": me_user_id,
+        "mode": "admin",
     })
-
 
 # ===== Users =====
 @app.get("/admin/users", response_class=HTMLResponse)
@@ -2283,10 +2286,10 @@ def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(No
     cur = db.cursor()
 
     try:
-        _, me_user_id = get_me_from_cookies(db, user, uid)
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
 
         if not is_admin_user(db, me_user_id):
-            return RedirectResponse("/")
+            return RedirectResponse("/", status_code=303)
 
         # 🔥 BAN表示込み
         cur.execute("""
@@ -2303,9 +2306,12 @@ def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(No
 
     return templates.TemplateResponse("admin_users.html", {
         "request": request,
-        "users": users
+        "users": users,
+        "user": me_username,     # ←nav統一
+        "me": me_username,       # ←admin_users.htmlで使える
+        "me_user_id": me_user_id,
+        "mode": "admin",
     })
-
 
 # ===== ユーザー削除（完全安全）=====
 @app.post("/admin/users/delete/{user_id}")
