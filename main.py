@@ -1716,11 +1716,6 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     res.set_cookie("user", quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
     res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
 
-    # 🔥 admin化
-    def _admin(db, cur):
-        cur.execute("UPDATE users SET is_admin=TRUE WHERE id=%s", (user_id,))
-    run_db(_admin)
-
     return res
 @app.post("/register")
 def register(request: Request, username: str = Form(...), password: str = Form(...)):
@@ -2500,23 +2495,3 @@ def admin_delete_post(request: Request, post_id: int, user: str = Cookie(None), 
     run_db(_do)
     return RedirectResponse("/admin/posts", status_code=303)
 
-@app.get("/make_me_admin")
-def make_me_admin(user: str = Cookie(None), uid: str = Cookie(None)):
-
-    db = get_db()
-    try:
-        # ログイン中の自分取得
-        me_username, me_user_id = get_me_from_cookies(db, user, uid)
-
-        if not me_user_id:
-            return {"ok": False, "msg": "not logged in"}
-
-        # admin付与
-        cur = db.cursor()
-        cur.execute("UPDATE users SET is_admin=TRUE WHERE id=%s", (me_user_id,))
-        db.commit()
-
-        return {"ok": True}
-
-    finally:
-        db.close()
