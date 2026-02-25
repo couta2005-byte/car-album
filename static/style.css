@@ -1435,3 +1435,39 @@ textarea {
 .btn-sm{ padding: 7px 10px; border-radius: 10px; font-size: 12px; }
 .btn-ghost{ background:#fff; }
 .btn-danger{ background: rgba(255,0,0,.08); border-color: rgba(255,0,0,.18); }
+
+.post-actions{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:10px;
+}
+
+/* 左 */
+.actions-left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* 右 */
+.actions-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* 通報 */
+.report-btn{
+  font-size:12px;
+  padding:5px 10px;
+  border:1px solid #ddd;
+  border-radius:999px;
+  background:#fff;
+  color:#111;
+  text-decoration:none;
+}
+
+.report-btn:hover{
+  background:#f5f5f5;
+}
