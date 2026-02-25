@@ -399,8 +399,10 @@ def init_db():
             ON comment_likes(user_id, comment_id)
             WHERE user_id IS NOT NULL;
         """)
-
+ 
+        # ======================
         # profiles.user_id
+        # ======================
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS user_id UUID;")
         cur.execute("""
             UPDATE profiles pr
@@ -408,12 +410,26 @@ def init_db():
             FROM users u
             WHERE pr.user_id IS NULL AND pr.username = u.username;
         """)
+
         cur.execute("""
-            CREATE UNIQUE INDEX IF NOT EXISTS profiles_user_id_unique
-            ON profiles(user_id)
-            WHERE user_id IS NOT NULL;
+        CREATE UNIQUE INDEX IF NOT EXISTS profiles_user_id_unique
+        ON profiles(user_id)
+        WHERE user_id IS NOT NULL;
         """)
 
+        # ======================
+        # 通報テーブル
+        # ======================
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS reports (
+            id SERIAL PRIMARY KEY,
+            post_id INTEGER,
+            reporter_id UUID,
+            reason TEXT,
+            detail TEXT,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+        """)
         # ======================
         # ✅ DM tables（追加）
         # ======================
@@ -2495,3 +2511,105 @@ def admin_delete_post(request: Request, post_id: int, user: str = Cookie(None), 
     run_db(_do)
     return RedirectResponse("/admin/posts", status_code=303)
 
+from fastapi.responses import HTMLResponse
+from fastapi import Request, Form
+from fastapi.responses import RedirectResponse
+
+@app.get("/report/{post_id}", response_class=HTMLResponse)
+def report_page(request: Request, post_id: int, user: str = Cookie(None), uid: str = Cookie(None)):
+
+    db = get_db()
+    try:
+        _, user_id = get_me_from_cookies(db, user, uid)
+        if not user_id:
+            return RedirectResponse("/login")
+    finally:
+        db.close()
+
+    return templates.TemplateResponse("report.html", {
+        "request": request,
+        "post_id": post_id
+    })
+@app.post("/report/{post_id}")
+def report_post(request: Request, post_id: int,
+                reason: str = Form(...),
+                detail: str = Form(""),
+                user: str = Cookie(None),
+                uid: str = Cookie(None)):
+
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        _, user_id = get_me_from_cookies(db, user, uid)
+        if not user_id:
+            return RedirectResponse("/login")
+
+        cur.execute("""
+            INSERT INTO reports (post_id, reporter_id, reason, detail)
+            VALUES (%s, %s, %s, %s)
+        """, (post_id, user_id, reason, detail))
+
+        db.commit()
+
+    finally:
+        cur.close()
+        db.close()
+
+    return RedirectResponse("/", status_code=303)
+# ======================
+# 通報一覧（admin）
+# ======================
+@app.get("/admin/reports", response_class=HTMLResponse)
+def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/", status_code=303)
+
+        cur.execute("""
+            SELECT
+                r.id,
+                r.post_id,
+                r.reason,
+                r.detail,
+                r.created_at,
+                u.display_name,
+                u.handle
+            FROM reports r
+            LEFT JOIN users u ON u.id = r.reporter_id
+            ORDER BY r.created_at DESC
+            LIMIT 100
+        """)
+        reports = cur.fetchall()
+
+    finally:
+        cur.close()
+        db.close()
+
+    return templates.TemplateResponse("admin_reports.html", {
+        "request": request,
+        "reports": reports,
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "mode": "admin",
+    })
+
+@app.post("/admin/reports/delete/{report_id}")
+def admin_delete_report(request: Request, report_id: int, user: str = Cookie(None), uid: str = Cookie(None)):
+    db = get_db()
+
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/")
+    finally:
+        db.close()
+
+    run_db(lambda db, cur: cur.execute("DELETE FROM reports WHERE id=%s", (report_id,)))
+    return RedirectResponse("/admin/reports", status_code=303)
