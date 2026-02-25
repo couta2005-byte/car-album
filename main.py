@@ -2600,34 +2600,29 @@ def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(
     })
 
 @app.post("/admin/reports/delete/{report_id}")
-def admin_delete_report(request: Request, report_id: int, user: str = Cookie(None), uid: str = Cookie(None)):
+def admin_delete_report(
+    request: Request,
+    report_id: int,
+    user: str = Cookie(None),
+    uid: str = Cookie(None)
+):
     db = get_db()
+    cur = db.cursor()
 
     try:
-        _, me_user_id = get_me_from_cookies(db, user, uid)
+        # ログインユーザー取得
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
 
-        if not is_admin_user(db, me_user_id):
-            return RedirectResponse("/")
+        # 管理者チェック
+        if not me_user_id or not is_admin_user(db, me_user_id):
+            return RedirectResponse("/", status_code=303)
+
+        # 通報削除
+        cur.execute("DELETE FROM reports WHERE id=%s", (report_id,))
+        db.commit()
+
     finally:
+        cur.close()
         db.close()
 
-    run_db(lambda db, cur: cur.execute("DELETE FROM reports WHERE id=%s", (report_id,)))
     return RedirectResponse("/admin/reports", status_code=303)
-
-@app.get("/create_reports_table")
-def create_reports_table():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS reports (
-            id SERIAL PRIMARY KEY,
-            post_id INTEGER,
-            user_id INTEGER,
-            reason TEXT,
-            detail TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-    """)
-    conn.commit()
-    conn.close()
-    return {"ok": True}
