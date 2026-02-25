@@ -202,6 +202,7 @@
 
       <div class="post-top">
         <div class="post-title">
+
           {% if post.user_icon %}
             <div class="avatar">
               <a href="/user/{{ post.profile_key | urlencode }}">
@@ -217,6 +218,7 @@
           <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
             {{ post.display_name }}
           </a>
+
         </div>
 
         <span class="post-date">{{ post.created_at }}</span>
@@ -232,48 +234,54 @@
       </div>
       {% endif %}
 
-<div class="post-actions">
+      <!-- 🔥 ボタン列 -->
+      <div class="post-actions">
 
-  <!-- 左：通報 or 削除 -->
-  <div class="actions-left">
+        <!-- 左 -->
+        <div class="actions-left">
 
-    {% if me_user_id == post.user_id %}
-    <form method="post" action="/delete/{{ post.id }}" class="inline-form">
-      <button type="submit" class="delete-btn">削除</button>
-    </form>
+          {% if me_user_id == post.user_id %}
+          <form method="post" action="/delete/{{ post.id }}" class="inline-form">
+            <button type="submit" class="delete-btn">削除</button>
+          </form>
 
-    {% elif is_admin and me_user_id != post.user_id %}
-    <form method="post" action="/admin/posts/delete/{{ post.id }}" class="inline-form">
-      <button type="submit" class="delete-btn" style="color:#ff4444;">
-        管理削除
-      </button>
-    </form>
+          {% elif is_admin and me_user_id != post.user_id %}
+          <form method="post" action="/admin/posts/delete/{{ post.id }}" class="inline-form">
+            <button type="submit" class="delete-btn" style="color:#ff4444;">
+              管理削除
+            </button>
+          </form>
 
-    {% elif me_user_id %}
-    <!-- 🔥 ここ追加：通報 -->
-    <a href="/report/{{ post.id }}" class="report-btn">通報</a>
-    {% endif %}
+          {% elif me_user_id is not none %}
+          <a href="/report/{{ post.id }}" class="report-btn">通報</a>
+          {% endif %}
 
+        </div>
+
+        <!-- 右 -->
+        <div class="actions-right">
+
+          <a href="/post/{{ post.id }}#comments" class="action-btn">
+            💬 <span class="count">{{ post.comment_count }}</span>
+          </a>
+
+          <button type="button"
+                  class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
+                  data-post-id="{{ post.id }}">
+            <span class="heart heart-off">🤍</span>
+            <span class="heart heart-on">❤️</span>
+            <span class="like-count">{{ post.likes }}</span>
+          </button>
+
+        </div>
+
+      </div>
+
+    </article>
+
+    {% endfor %}
   </div>
 
-  <!-- 右：既存ボタン -->
-  <div class="actions-right">
-
-    <a href="/post/{{ post.id }}#comments" class="action-btn">
-      💬 <span class="count">{{ post.comment_count }}</span>
-    </a>
-
-    <button type="button"
-            class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
-            data-post-id="{{ post.id }}">
-      <span class="heart heart-off">🤍</span>
-      <span class="heart heart-on">❤️</span>
-      <span class="like-count">{{ post.likes }}</span>
-    </button>
-
-  </div>
-
-</div>
 </main>
 
 <!-- Like -->
