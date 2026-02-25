@@ -1,33 +1,20 @@
-{% include "_nav.html" %}
+<h2>通報</h2>
 
-<main class="container">
-  <h2>通報一覧</h2>
+<form method="post">
 
-  {% for r in reports %}
-  <div style="border-bottom:1px solid #ddd; padding:10px;">
+  <select name="reason" required>
+    <option value="">理由を選択</option>
+    <option value="spam">スパム</option>
+    <option value="abuse">暴言・不適切</option>
+    <option value="other">その他</option>
+  </select>
 
-    <p><b>投稿ID:</b> {{ r[1] }}</p>
+  <br><br>
 
-    <p>
-      <b>通報者:</b>
-      {{ r[5] if r[5] else "不明" }}
-      {% if r[6] %}(@{{ r[6] }}){% endif %}
-    </p>
+  <textarea name="detail" placeholder="詳細（任意）"></textarea>
 
-    <p><b>理由:</b> {{ r[2] }}</p>
+  <br><br>
 
-    <p><b>詳細:</b> {{ r[3] }}</p>
+  <button type="submit">通報する</button>
 
-    <p><b>日時:</b> {{ r[4] }}</p>
-
-    <!-- 投稿確認 -->
-    <a href="/post/{{ r[1] }}">投稿を見る</a>
-
-    <!-- 削除 -->
-    <form method="post" action="/admin/reports/delete/{{ r[0] }}">
-      <button type="submit">通報削除</button>
-    </form>
-
-  </div>
-  {% endfor %}
-</main>
+</form>

@@ -2613,3 +2613,21 @@ def admin_delete_report(request: Request, report_id: int, user: str = Cookie(Non
 
     run_db(lambda db, cur: cur.execute("DELETE FROM reports WHERE id=%s", (report_id,)))
     return RedirectResponse("/admin/reports", status_code=303)
+
+@app.get("/create_reports_table")
+def create_reports_table():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS reports (
+            id SERIAL PRIMARY KEY,
+            post_id INTEGER,
+            user_id INTEGER,
+            reason TEXT,
+            detail TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    """)
+    conn.commit()
+    conn.close()
+    return {"ok": True}
