@@ -2531,26 +2531,41 @@ def report_page(request: Request, post_id: int, user: str = Cookie(None), uid: s
         "post_id": post_id
     })
 @app.post("/report/{post_id}")
-def report_post(request: Request, post_id: int,
-                reason: str = Form(...),
-                detail: str = Form(""),
-                user: str = Cookie(None),
-                uid: str = Cookie(None)):
-
+def report_post(
+    request: Request,
+    post_id: int,
+    reason: str = Form(...),
+    detail: str = Form(""),
+    user: str = Cookie(None),
+    uid: str = Cookie(None)
+):
     db = get_db()
     cur = db.cursor()
 
     try:
         _, user_id = get_me_from_cookies(db, user, uid)
+
         if not user_id:
-            return RedirectResponse("/login")
+            return RedirectResponse("/login", status_code=303)
+
+        # 🔥 reason空対策
+        if not reason:
+            return RedirectResponse(f"/report/{post_id}", status_code=303)
+
+        # 🔥 post存在チェック（これ重要）
+        cur.execute("SELECT 1 FROM posts WHERE id=%s", (post_id,))
+        if cur.fetchone() is None:
+            return RedirectResponse("/", status_code=303)
 
         cur.execute("""
             INSERT INTO reports (post_id, reporter_id, reason, detail)
-            VALUES (%s, %s, %s, %s)
-        """, (post_id, user_id, reason, detail))
+            VALUES (%s, %s::uuid, %s, %s)
+        """, (post_id, user_id, reason, detail or ""))
 
         db.commit()
+
+    except Exception as e:
+        print("REPORT ERROR:", e)  # ←ログ出る
 
     finally:
         cur.close()
