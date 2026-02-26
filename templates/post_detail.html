@@ -1,3 +1,4 @@
+<!-- templates/post_detail.html（改良版フル：複数画像対応 + OGP 先頭画像優先 + 画像モーダル + like class統一） -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -13,7 +14,7 @@
         content="{{ post.comment | striptags | truncate(80, True, '…') if post.comment else 'Carbumの投稿を見る' }}">
   <meta property="og:url" content="{{ request.url }}">
   <meta property="og:image"
-        content="{{ post.image if post.image else 'https://car-album-3.onrender.com/static/ogp.png' }}">
+        content="{% if post.images and post.images|length>0 %}{{ post.images[0] }}{% elif post.image %}{{ post.image }}{% else %}https://car-album-3.onrender.com/static/ogp.png{% endif %}">
 
   <meta name="twitter:card" content="summary_large_image">
 
@@ -37,7 +38,7 @@
         {% if post.user_icon %}
           <div class="avatar">
             <a href="/user/{{ post.profile_key | urlencode }}">
-              <img src="{{ post.user_icon }}">
+              <img src="{{ post.user_icon }}" alt="icon">
             </a>
           </div>
         {% else %}
@@ -60,14 +61,37 @@
       <div class="post-text">{{ post.comment }}</div>
     {% endif %}
 
-    {% if post.image %}
+    <!-- ======================
+         Images（複数対応）
+         - post.images があればそれを優先
+         - 無い場合は互換で post.image
+    ====================== -->
+    {% if post.images and post.images|length > 0 %}
+
+      {% if post.images|length == 1 %}
+        <div class="post-image">
+          <img src="{{ post.images[0] }}" alt="post image" class="js-zoomable">
+        </div>
+      {% else %}
+        <div class="post-images">
+          <div class="post-images-track">
+            {% for url in post.images %}
+              <div class="post-image">
+                <img src="{{ url }}" alt="post image" class="js-zoomable">
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endif %}
+
+    {% elif post.image %}
       <div class="post-image">
-        <img src="{{ post.image }}">
+        <img src="{{ post.image }}" alt="post image" class="js-zoomable">
       </div>
     {% endif %}
 
     <!-- ===== Actions ===== -->
-    <div class="post-actions" style="margin-top:10px; display:flex; gap:12px; align-items:center;">
+    <div class="post-actions" style="margin-top:10px; display:flex; gap:12px; align-items:center; justify-content:flex-end;">
 
       <!-- 削除 -->
       {% if me_user_id == post.user_id %}
@@ -78,12 +102,11 @@
 
       <!-- いいね -->
       {% if user %}
+        {% set is_liked = (post.id in liked_posts) %}
         <button type="button"
-                class="like-btn js-post-like {% if post.id in liked_posts %}active{% endif %}"
+                class="like-btn js-post-like {% if is_liked %}active liked{% endif %}"
                 data-post-id="{{ post.id }}">
-          <span class="like-icon">
-            {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
-          </span>
+          <span class="like-icon">{% if is_liked %}❤️{% else %}🤍{% endif %}</span>
           <span class="like-count">{{ post.likes }}</span>
         </button>
       {% else %}
@@ -102,14 +125,13 @@
     {% for c in post.comments %}
       <div class="comment-item">
 
-        <div class="comment-header"
-             style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="comment-header" style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
 
-          <div style="display:flex; gap:10px; align-items:center;">
+          <div style="display:flex; gap:10px; align-items:center; min-width:0;">
             {% if c.user_icon %}
               <div class="avatar">
                 <a href="/user/{{ c.profile_key | urlencode }}">
-                  <img src="{{ c.user_icon }}">
+                  <img src="{{ c.user_icon }}" alt="icon">
                 </a>
               </div>
             {% else %}
@@ -117,11 +139,11 @@
                 <span class="avatar-fallback"></span>
               </a>
             {% endif %}
-            <strong>{{ c.display_name }}</strong>
+            <strong style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ c.display_name }}</strong>
             <span class="comment-time">{{ c.created_at }}</span>
           </div>
 
-          <div style="display:flex; gap:10px; align-items:center;">
+          <div style="display:flex; gap:10px; align-items:center; flex-shrink:0;">
 
             {% if me_user_id == c.user_id %}
               <form action="/comment_delete/{{ c.id }}" method="post">
@@ -131,7 +153,7 @@
 
             {% if user %}
               <button type="button"
-                      class="like-btn js-comment-like {% if c.liked %}active{% endif %}"
+                      class="like-btn js-comment-like {% if c.liked %}active liked{% endif %}"
                       data-comment-id="{{ c.id }}">
                 <span class="like-icon">{% if c.liked %}❤️{% else %}🤍{% endif %}</span>
                 <span class="like-count">{{ c.likes }}</span>
@@ -162,11 +184,38 @@
 </main>
 
 <!-- ======================
-     Like JS（完全安定）
+     Image Modal（クリックで拡大）
+====================== -->
+<div class="img-modal" id="imgModal">
+  <div class="img-modal-inner">
+    <img id="imgModalImg" src="" alt="zoomed">
+  </div>
+</div>
+
+<!-- ======================
+     Like JS（完全安定 + class統一）
 ====================== -->
 <script>
 document.addEventListener("click", async (e) => {
 
+  // ===== 画像拡大 =====
+  const img = e.target.closest(".js-zoomable");
+  if (img) {
+    const modal = document.getElementById("imgModal");
+    const modalImg = document.getElementById("imgModalImg");
+    modalImg.src = img.src;
+    modal.classList.add("open");
+    return;
+  }
+  const modal = e.target.closest("#imgModal");
+  if (modal) {
+    modal.classList.remove("open");
+    const modalImg = document.getElementById("imgModalImg");
+    modalImg.src = "";
+    return;
+  }
+
+  // ===== Post Like =====
   const postBtn = e.target.closest(".js-post-like");
   if (postBtn) {
     e.preventDefault();
@@ -183,12 +232,15 @@ document.addEventListener("click", async (e) => {
     }
 
     const d = await res.json();
+    // active / liked 両方同期（CSS互換）
     postBtn.classList.toggle("active", d.liked);
+    postBtn.classList.toggle("liked", d.liked);
     postBtn.querySelector(".like-icon").textContent = d.liked ? "❤️" : "🤍";
     postBtn.querySelector(".like-count").textContent = d.likes;
     return;
   }
 
+  // ===== Comment Like =====
   const cBtn = e.target.closest(".js-comment-like");
   if (cBtn) {
     e.preventDefault();
@@ -199,8 +251,14 @@ document.addEventListener("click", async (e) => {
       credentials: "same-origin"
     });
 
+    if (!res.ok) {
+      if (res.status === 401) location.href = "/login";
+      return;
+    }
+
     const d = await res.json();
     cBtn.classList.toggle("active", d.liked);
+    cBtn.classList.toggle("liked", d.liked);
     cBtn.querySelector(".like-icon").textContent = d.liked ? "❤️" : "🤍";
     cBtn.querySelector(".like-count").textContent = d.likes;
   }

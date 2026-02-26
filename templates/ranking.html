@@ -1,9 +1,20 @@
+<!-- templates/ranking.html（改良版フル：複数画像対応 + OGP + 画像モーダル + クリック遷移安定 + like統一） -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
   <title>{{ ranking_title }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ===== OGP（ランキングはwebsite扱い） ===== -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Carbum">
+  <meta property="og:title" content="{{ ranking_title }} | Carbum">
+  <meta property="og:description" content="Carbumのランキングを見る">
+  <meta property="og:url" content="{{ request.url }}">
+  <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="stylesheet" href="/static/style.css?v=FINAL">
 </head>
 <body>
@@ -59,9 +70,32 @@
         <div class="post-text">{{ post.comment }}</div>
       {% endif %}
 
-      {% if post.image %}
+      <!-- ======================
+           Images（複数対応）
+           - post.images があればそれを優先
+           - 無い場合は互換で post.image
+      ====================== -->
+      {% if post.images and post.images|length > 0 %}
+
+        {% if post.images|length == 1 %}
+          <div class="post-image">
+            <img src="{{ post.images[0] }}" alt="投稿画像" class="js-zoomable">
+          </div>
+        {% else %}
+          <div class="post-images">
+            <div class="post-images-track">
+              {% for url in post.images %}
+                <div class="post-image">
+                  <img src="{{ url }}" alt="投稿画像" class="js-zoomable">
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+      {% elif post.image %}
         <div class="post-image">
-          <img src="{{ post.image }}" alt="投稿画像">
+          <img src="{{ post.image }}" alt="投稿画像" class="js-zoomable">
         </div>
       {% endif %}
 
@@ -75,13 +109,12 @@
 
         <!-- Like -->
         {% if user %}
+          {% set is_liked = (post.id in liked_posts) %}
           <button type="button"
-                  class="like-btn js-like {% if post.id in liked_posts %}liked{% endif %}"
+                  class="like-btn js-like {% if is_liked %}active liked{% endif %}"
                   data-post-id="{{ post.id }}"
-                  data-liked="{% if post.id in liked_posts %}1{% else %}0{% endif %}">
-            <span class="heart">
-              {% if post.id in liked_posts %}❤️{% else %}🤍{% endif %}
-            </span>
+                  data-liked="{% if is_liked %}1{% else %}0{% endif %}">
+            <span class="heart">{% if is_liked %}❤️{% else %}🤍{% endif %}</span>
             <span class="like-count">{{ post.likes }}</span>
           </button>
         {% else %}
@@ -98,8 +131,38 @@
 
 </main>
 
+<!-- ======================
+     Image Modal（クリックで拡大）
+====================== -->
+<div class="img-modal" id="imgModal">
+  <div class="img-modal-inner">
+    <img id="imgModalImg" src="" alt="zoomed">
+  </div>
+</div>
+
 <!-- ===== JS（完全安定） ===== -->
 <script>
+/* ========= 画像拡大 ========= */
+document.addEventListener("click", (e) => {
+  const img = e.target.closest(".js-zoomable");
+  if (img) {
+    e.preventDefault();
+    e.stopPropagation();
+    const modal = document.getElementById("imgModal");
+    const modalImg = document.getElementById("imgModalImg");
+    modalImg.src = img.src;
+    modal.classList.add("open");
+    return;
+  }
+  const modal = e.target.closest("#imgModal");
+  if (modal) {
+    modal.classList.remove("open");
+    const modalImg = document.getElementById("imgModalImg");
+    modalImg.src = "";
+    return;
+  }
+});
+
 /* ========= 投稿カード遷移 ========= */
 document.querySelectorAll(".ranking-post").forEach(card => {
   card.addEventListener("click", (e) => {
@@ -111,6 +174,7 @@ document.querySelectorAll(".ranking-post").forEach(card => {
 /* ========= いいね（即時UI + ロールバック） ========= */
 document.querySelectorAll(".js-like").forEach(btn => {
   btn.addEventListener("click", async (e) => {
+    e.preventDefault();
     e.stopPropagation();
 
     if (btn.disabled) return;
@@ -124,6 +188,7 @@ document.querySelectorAll(".js-like").forEach(btn => {
     /* 楽観的UI */
     btn.dataset.liked = likedBefore ? "0" : "1";
     btn.classList.toggle("liked", !likedBefore);
+    btn.classList.toggle("active", !likedBefore);
     heartEl.textContent = likedBefore ? "🤍" : "❤️";
     countEl.textContent = Number(countEl.textContent) + (likedBefore ? -1 : 1);
 
@@ -133,12 +198,16 @@ document.querySelectorAll(".js-like").forEach(btn => {
         credentials: "same-origin"
       });
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        if (res.status === 401) location.href = "/login";
+        throw new Error();
+      }
 
       const data = await res.json();
 
       btn.dataset.liked = data.liked ? "1" : "0";
       btn.classList.toggle("liked", data.liked);
+      btn.classList.toggle("active", data.liked);
       heartEl.textContent = data.liked ? "❤️" : "🤍";
       countEl.textContent = data.likes;
 
@@ -146,6 +215,7 @@ document.querySelectorAll(".js-like").forEach(btn => {
       /* ロールバック */
       btn.dataset.liked = likedBefore ? "1" : "0";
       btn.classList.toggle("liked", likedBefore);
+      btn.classList.toggle("active", likedBefore);
       heartEl.textContent = likedBefore ? "❤️" : "🤍";
       countEl.textContent = Number(countEl.textContent) + (likedBefore ? 1 : -1);
       alert("いいねに失敗しました");

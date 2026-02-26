@@ -1,3 +1,4 @@
+<!-- templates/profile.html（改良版フル：投稿の複数画像対応 + 画像モーダル + クリック遷移安定 + Like統一 + OGP安全） -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -16,7 +17,9 @@
   <meta property="og:image"
         content="{{ profile[4] if profile and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
 
-  <link rel="stylesheet" href="/static/style.css?v=1005">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_MULTI">
 </head>
 <body>
 
@@ -52,7 +55,7 @@
         </div>
       </div>
 
-      <!-- 右：ボタン（ここ1個だけ） -->
+      <!-- 右：ボタン -->
       <div class="profile-actions">
 
         {% if me_user_id and target_user_id and me_user_id != target_user_id %}
@@ -146,6 +149,7 @@
   ====================== -->
   <h3 class="profile-section-title" style="margin-top:14px;">投稿</h3>
 
+  {% if posts and posts|length > 0 %}
   <div class="posts">
     {% for post in posts %}
     <article class="post"
@@ -179,9 +183,32 @@
         <div class="post-comment">{{ post.comment }}</div>
       {% endif %}
 
-      {% if post.image %}
+      <!-- ======================
+           Images（複数対応）
+           - post.images があればそれを優先
+           - 無い場合は互換で post.image
+      ====================== -->
+      {% if post.images and post.images|length > 0 %}
+
+        {% if post.images|length == 1 %}
+          <div class="post-image">
+            <img src="{{ post.images[0] }}" alt="投稿画像" class="js-zoomable">
+          </div>
+        {% else %}
+          <div class="post-images">
+            <div class="post-images-track">
+              {% for url in post.images %}
+                <div class="post-image">
+                  <img src="{{ url }}" alt="投稿画像" class="js-zoomable">
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+      {% elif post.image %}
         <div class="post-image">
-          <img src="{{ post.image }}" alt="投稿画像">
+          <img src="{{ post.image }}" alt="投稿画像" class="js-zoomable">
         </div>
       {% endif %}
 
@@ -197,53 +224,134 @@
           💬 <span class="count">{{ post.comment_count }}</span>
         </a>
 
-        <button type="button"
-                class="action-btn like-btn {% if post.id in liked_posts %}liked{% endif %}"
-                data-post-id="{{ post.id }}">
-          <span class="heart heart-off">🤍</span>
-          <span class="heart heart-on">❤️</span>
-          <span class="like-count">{{ post.likes }}</span>
-        </button>
+        {% if user %}
+          {% set is_liked = (post.id in liked_posts) %}
+          <button type="button"
+                  class="action-btn like-btn js-like {% if is_liked %}liked active{% endif %}"
+                  data-post-id="{{ post.id }}"
+                  data-liked="{% if is_liked %}1{% else %}0{% endif %}">
+            <span class="heart">{% if is_liked %}❤️{% else %}🤍{% endif %}</span>
+            <span class="like-count">{{ post.likes }}</span>
+          </button>
+        {% else %}
+          <span>🤍 {{ post.likes }}</span>
+        {% endif %}
 
       </div>
 
     </article>
     {% endfor %}
   </div>
+  {% else %}
+    <p style="color:#888; margin-top:16px;">投稿がまだありません</p>
+  {% endif %}
 
 </main>
 
+<!-- ======================
+     Image Modal（クリックで拡大）
+====================== -->
+<div class="img-modal" id="imgModal">
+  <div class="img-modal-inner">
+    <img id="imgModalImg" src="" alt="zoomed">
+  </div>
+</div>
+
 <script>
+/* ========= 画像拡大 ========= */
+document.addEventListener("click", (e) => {
+  const img = e.target.closest(".js-zoomable");
+  if (img) {
+    e.preventDefault();
+    e.stopPropagation();
+    const modal = document.getElementById("imgModal");
+    const modalImg = document.getElementById("imgModalImg");
+    modalImg.src = img.src;
+    modal.classList.add("open");
+    return;
+  }
+  const modal = e.target.closest("#imgModal");
+  if (modal) {
+    modal.classList.remove("open");
+    const modalImg = document.getElementById("imgModalImg");
+    modalImg.src = "";
+    return;
+  }
+});
+
+/* ========= いいね（即時UI + ロールバック） ========= */
 document.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".like-btn");
+  const btn = e.target.closest(".js-like");
   if (!btn) return;
 
   e.preventDefault();
   e.stopPropagation();
 
+  if (btn.disabled) return;
+  btn.disabled = true;
+
   const postId = btn.dataset.postId;
+  const likedBefore = btn.dataset.liked === "1";
+  const countEl = btn.querySelector(".like-count");
+  const heartEl = btn.querySelector(".heart");
 
-  const res = await fetch(`/api/like/${postId}`, {
-    method: "POST",
-    credentials: "same-origin"
-  });
+  /* 楽観的UI */
+  btn.dataset.liked = likedBefore ? "0" : "1";
+  btn.classList.toggle("liked", !likedBefore);
+  btn.classList.toggle("active", !likedBefore);
+  heartEl.textContent = likedBefore ? "🤍" : "❤️";
+  countEl.textContent = Number(countEl.textContent) + (likedBefore ? -1 : 1);
 
-  if (!res.ok) {
-    if (res.status === 401) location.href = "/login";
-    return;
+  try {
+    const res = await fetch(`/api/like/${postId}`, {
+      method: "POST",
+      credentials: "same-origin"
+    });
+
+    if (!res.ok) {
+      if (res.status === 401) location.href = "/login";
+      throw new Error();
+    }
+
+    const data = await res.json();
+    btn.dataset.liked = data.liked ? "1" : "0";
+    btn.classList.toggle("liked", data.liked);
+    btn.classList.toggle("active", data.liked);
+    heartEl.textContent = data.liked ? "❤️" : "🤍";
+    countEl.textContent = data.likes;
+
+  } catch {
+    /* ロールバック */
+    btn.dataset.liked = likedBefore ? "1" : "0";
+    btn.classList.toggle("liked", likedBefore);
+    btn.classList.toggle("active", likedBefore);
+    heartEl.textContent = likedBefore ? "❤️" : "🤍";
+    countEl.textContent = Number(countEl.textContent) + (likedBefore ? 1 : -1);
+    alert("いいねに失敗しました");
+  } finally {
+    btn.disabled = false;
   }
-
-  const data = await res.json();
-  btn.classList.toggle("liked", data.liked);
-  btn.querySelector(".like-count").textContent = data.likes;
 });
 
+/* ========= 投稿カード遷移（ボタン/リンク/画像/スワイプは除外） ========= */
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
   if (!post) return;
 
+  if (e.target.closest("a, button, form, textarea, input")) return;
   if (e.target.closest(".post-actions")) return;
+  if (e.target.closest(".post-images-track")) return; /* 横スクロールを邪魔しない */
+  if (e.target.closest(".js-zoomable")) return;        /* 画像クリックは拡大優先 */
 
+  const href = post.dataset.href;
+  if (href) location.href = href;
+});
+
+/* ========= Enterキーでも遷移（アクセシビリティ） ========= */
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Enter") return;
+  const post = document.activeElement && document.activeElement.closest && document.activeElement.closest(".post");
+  if (!post) return;
   const href = post.dataset.href;
   if (href) location.href = href;
 });
