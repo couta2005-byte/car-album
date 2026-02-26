@@ -50,31 +50,35 @@
         </div>
       </div>
 
-      <!-- Actions -->
-      <div class="profile-actions">
-        {% if me_user_id and target_user_id and me_user_id != target_user_id %}
+<!-- Actions -->
+<div class="profile-actions">
 
-          {% if is_following %}
-            <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
-              <button class="follow-btn" type="submit">フォロー解除</button>
-            </form>
-          {% else %}
-            <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
-              <button class="follow-btn" type="submit">フォローする</button>
-            </form>
-          {% endif %}
+  {% if me_user_id and target_user_id and me_user_id != target_user_id %}
 
-          <form action="/dm/start/{{ target_user_id }}" method="post">
-            <button class="dm-btn" type="submit">DMする</button>
-          </form>
+    {% if is_following %}
+      <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
+        <button class="follow-btn" type="submit">フォロー解除</button>
+      </form>
+    {% else %}
+      <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
+        <button class="follow-btn" type="submit">フォローする</button>
+      </form>
+    {% endif %}
 
-        {% elif me_user_id == target_user_id %}
-          <!-- 本人 -->
-          <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
-        {% endif %}
-      </div>
-    </div>
+    <form action="/dm/start/{{ target_user_id }}" method="post">
+      <button class="dm-btn" type="submit">DMする</button>
+    </form>
 
+  {% elif me_user_id == target_user_id %}
+    <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
+  {% endif %}
+
+  <!-- ★ 管理者ボタン -->
+  {% if is_admin %}
+    <a href="/admin" class="admin-btn">管理画面</a>
+  {% endif %}
+
+</div>
     <!-- Info -->
     <div style="
       display:grid;

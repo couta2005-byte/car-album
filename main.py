@@ -1362,6 +1362,9 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
+        # ★ admin判定（追加）
+        is_admin = is_admin_user(db, me_user_id)
+
         urow = resolve_user_by_key(db, key)
         if not urow:
             return RedirectResponse("/", status_code=303)
@@ -1378,6 +1381,7 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
 
         cur.execute("SELECT COUNT(*) FROM follows WHERE follower_id=%s", (target_user_id,))
         follow_count = cur.fetchone()[0]
+
         cur.execute("SELECT COUNT(*) FROM follows WHERE followee_id=%s", (target_user_id,))
         follower_count = cur.fetchone()[0]
 
@@ -1387,6 +1391,7 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
             is_following = cur.fetchone() is not None
 
         liked_posts = get_liked_posts(db, me_user_id, me_username)
+
     finally:
         cur.close()
         db.close()
@@ -1409,7 +1414,10 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         "display_name": display_name,
         "handle": handle,
         "mode": "profile",
-        "posts": posts
+        "posts": posts,
+
+        # ★ これが超重要
+        "is_admin": is_admin,
     })
 # ======================
 # profile edit page（GET）
