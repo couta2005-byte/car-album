@@ -1,20 +1,41 @@
-<h2>通報</h2>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>通報 | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css?v=1">
+</head>
+<body>
 
-<form method="post">
+{% include "_nav.html" %}
 
-  <select name="reason" required>
-    <option value="">理由を選択</option>
-    <option value="spam">スパム</option>
-    <option value="abuse">暴言・不適切</option>
-    <option value="other">その他</option>
-  </select>
+<main class="container">
 
-  <br><br>
+  <h2>通報</h2>
 
-  <textarea name="detail" placeholder="詳細（任意）"></textarea>
+  <form method="post" action="/report/{{ post_id }}">
 
-  <br><br>
+    <div style="margin-bottom:10px;">
+      <select name="reason" required>
+        <option value="">理由を選択</option>
+        <option value="spam">スパム</option>
+        <option value="abuse">暴言・不適切</option>
+        <option value="other">その他</option>
+      </select>
+    </div>
 
-  <button type="submit">通報する</button>
+    <div style="margin-bottom:10px;">
+      <textarea name="detail" rows="4" placeholder="詳細（任意）"></textarea>
+    </div>
 
-</form>
+    <button type="submit" class="primary-btn">
+      通報する
+    </button>
+
+  </form>
+
+</main>
+
+</body>
+</html>
