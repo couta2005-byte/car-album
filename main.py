@@ -2461,13 +2461,14 @@ def admin_posts(request: Request, user: str = Cookie(None), uid: str = Cookie(No
     cur = db.cursor()
 
     try:
-        _, me_user_id = get_me_from_cookies(db, user, uid)
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
 
         if not is_admin_user(db, me_user_id):
             return RedirectResponse("/")
 
+        # 🔥 ここ修正（image追加）
         cur.execute("""
-            SELECT id, user_id, comment, created_at
+            SELECT id, user_id, image, created_at, comment
             FROM posts
             ORDER BY created_at DESC
             LIMIT 100
@@ -2480,9 +2481,11 @@ def admin_posts(request: Request, user: str = Cookie(None), uid: str = Cookie(No
 
     return templates.TemplateResponse("admin_posts.html", {
         "request": request,
-        "posts": posts
+        "posts": posts,
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "mode": "admin",
     })
-
 
 # ===== 投稿削除 =====
 @app.post("/admin/posts/delete/{post_id}")
@@ -2585,6 +2588,7 @@ def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(
         if not is_admin_user(db, me_user_id):
             return RedirectResponse("/", status_code=303)
 
+        # 🔥 投稿もJOINする
         cur.execute("""
             SELECT
                 r.id,
@@ -2593,9 +2597,12 @@ def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(
                 r.detail,
                 r.created_at,
                 u.display_name,
-                u.handle
+                u.handle,
+                p.image,
+                p.comment
             FROM reports r
             LEFT JOIN users u ON u.id = r.reporter_id
+            LEFT JOIN posts p ON p.id = r.post_id
             ORDER BY r.created_at DESC
             LIMIT 100
         """)
@@ -2612,7 +2619,6 @@ def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(
         "me_user_id": me_user_id,
         "mode": "admin",
     })
-
 @app.post("/admin/reports/delete/{report_id}")
 def admin_delete_report(
     request: Request,
