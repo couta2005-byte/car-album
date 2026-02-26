@@ -1471,249 +1471,71 @@ textarea {
 .report-btn:hover{
   background:#f5f5f5;
 }
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+/* =========================
+   Multiple Images (Carousel)
+   index.html の .post-images / .post-images-track 用
+========================= */
 
-  <!-- ===== OGP ===== -->
-  <meta property="og:site_name" content="Carbum">
-  <meta property="og:type" content="profile">
-  <meta property="og:title"
-        content="{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum">
-  <meta property="og:description"
-        content="{{ profile[3] if profile and profile[3] else 'Carbumのプロフィールを見る' }}">
-  <meta property="og:url" content="{{ request.url }}">
-  <meta property="og:image"
-        content="{{ profile[4] if profile and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
+/* 外枠：はみ出しを隠して角丸維持 */
+.post-images{
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
 
-  <link rel="stylesheet" href="/static/style.css?v=1004">
-</head>
-<body>
+/* 横スクロール（スワイプ対応） */
+.post-images-track{
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
 
-{% include "_nav.html" %}
+/* スクロールバー薄く（対応ブラウザのみ） */
+.post-images-track::-webkit-scrollbar{
+  height: 6px;
+}
+.post-images-track::-webkit-scrollbar-thumb{
+  background: rgba(0,0,0,0.18);
+  border-radius: 999px;
+}
 
-<main class="container">
+/* 1枚の枠（横に並ぶ） */
+.post-images .post-image{
+  flex: 0 0 88%;
+  max-width: 88%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f3f4f6;
+  scroll-snap-align: start;
+}
 
-  <!-- ======================
-       Profile Card
-  ====================== -->
-  <section class="profile-box" style="padding:16px;">
+/* 画像：高さが暴れないように揃える（見た目が安定する） */
+.post-images .post-image img{
+  width: 100%;
+  height: 320px;          /* ←ここで統一 */
+  object-fit: cover;      /* 画角は切れるけど見栄え最優先 */
+  display: block;
+  cursor: zoom-in;
+}
 
-    <!-- Header -->
-    <div class="profile-header" style="margin:0 0 12px;">
-      <div class="profile-left">
-        {% if profile and profile[4] %}
-          <div class="profile-avatar">
-            <img src="{{ profile[4] }}" alt="icon">
-          </div>
-        {% else %}
-          <span class="profile-avatar avatar-fallback"></span>
-        {% endif %}
-
-        <div class="profile-idblock">
-          <h2 class="profile-name" style="margin:0;">
-            {{ display_name if display_name else username }}
-          </h2>
-          <div class="profile-handle">
-            @{{ handle if handle else username }}
-          </div>
-        </div>
-      </div>
-
-<!-- Actions -->
-<div class="profile-actions">
-
-  {% if me_user_id and target_user_id and me_user_id != target_user_id %}
-
-    {% if is_following %}
-      <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
-        <button class="follow-btn" type="submit">フォロー解除</button>
-      </form>
-    {% else %}
-      <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
-        <button class="follow-btn" type="submit">フォローする</button>
-      </form>
-    {% endif %}
-
-    <form action="/dm/start/{{ target_user_id }}" method="post">
-      <button class="dm-btn" type="submit">DMする</button>
-    </form>
-
-  {% elif me_user_id == target_user_id %}
-    <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
-  {% endif %}
-
-  <!-- ★ 管理者ボタン -->
-  {% if is_admin %}
-    <a href="/admin" class="admin-btn">管理画面</a>
-  {% endif %}
-
-</div>
-    <!-- Info -->
-    <div style="
-      display:grid;
-      grid-template-columns: 92px 1fr;
-      gap:10px 12px;
-      padding:12px;
-      border:1px solid #e5e7eb;
-      border-radius:16px;
-      background:#fff;
-    ">
-      <div style="color:#536471; font-weight:900; font-size:13px;">メーカー</div>
-      <div style="font-weight:900; font-size:14px;">
-        {{ profile[0] if profile and profile[0] else "未設定" }}
-      </div>
-
-      <div style="color:#536471; font-weight:900; font-size:13px;">車名</div>
-      <div style="font-weight:900; font-size:14px;">
-        {{ profile[1] if profile and profile[1] else "未設定" }}
-      </div>
-
-      <div style="color:#536471; font-weight:900; font-size:13px;">地域</div>
-      <div style="font-weight:900; font-size:14px;">
-        {{ profile[2] if profile and profile[2] else "未設定" }}
-      </div>
-    </div>
-
-    <!-- Stats（クリック可能） -->
-    <div class="profile-stats" style="margin-top:12px; display:flex; gap:20px;">
-
-      <a href="/following/{{ handle if handle else username }}"
-         class="stat"
-         style="text-decoration:none; color:inherit;">
-        <span>フォロー</span>
-        <span class="stat-num">{{ follow_count }}</span>
-      </a>
-
-      <a href="/followers/{{ handle if handle else username }}"
-         class="stat"
-         style="text-decoration:none; color:inherit;">
-        <span>フォロワー</span>
-        <span class="stat-num">{{ follower_count }}</span>
-      </a>
-
-    </div>
-
-    <!-- Bio -->
-    <div style="margin-top:12px;">
-      {% if profile and profile[3] %}
-        <p class="profile-bio" style="margin:0;">{{ profile[3] }}</p>
-      {% else %}
-        <p class="profile-bio" style="margin:0; color:#8899a6;">
-          自己紹介はまだ未設定です。
-        </p>
-      {% endif %}
-    </div>
-
-  </section>
-
-  <!-- ======================
-       Posts
-  ====================== -->
-  <h3 class="profile-section-title" style="margin-top:14px;">投稿</h3>
-
-  <div class="posts">
-    {% for post in posts %}
-    <article class="post"
-             data-href="/post/{{ post.id }}"
-             role="link"
-             tabindex="0">
-
-      <div class="post-top">
-        <div class="post-title">
-          {% if post.user_icon %}
-            <div class="avatar">
-              <img src="{{ post.user_icon }}" alt="icon">
-            </div>
-          {% else %}
-            <span class="avatar-fallback"></span>
-          {% endif %}
-
-          <span class="post-user">{{ post.display_name }}</span>
-          {% if post.car %}
-            <span class="post-car">：{{ post.car }}</span>
-          {% endif %}
-        </div>
-        <span class="post-date">{{ post.created_at }}</span>
-      </div>
-
-      {% if post.comment %}
-        <div class="post-comment">{{ post.comment }}</div>
-      {% endif %}
-
-      {% if post.image %}
-        <div class="post-image">
-          <img src="{{ post.image }}" alt="投稿画像">
-        </div>
-      {% endif %}
-
-      <div class="post-actions">
-
-        {% if me_user_id == post.user_id %}
-          <form action="/delete/{{ post.id }}" method="post" class="inline-form">
-            <button class="action-btn delete-btn" type="submit">🗑</button>
-          </form>
-        {% endif %}
-
-        <a href="/post/{{ post.id }}#comments" class="action-btn">
-          💬 <span class="count">{{ post.comment_count }}</span>
-        </a>
-
-        <button type="button"
-                class="action-btn like-btn {% if post.id in liked_posts %}liked{% endif %}"
-                data-post-id="{{ post.id }}">
-          <span class="heart heart-off">🤍</span>
-          <span class="heart heart-on">❤️</span>
-          <span class="like-count">{{ post.likes }}</span>
-        </button>
-
-      </div>
-    </article>
-    {% endfor %}
-  </div>
-
-</main>
-
-<script>
-/* いいね */
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".like-btn");
-  if (!btn) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  const postId = btn.dataset.postId;
-
-  const res = await fetch(`/api/like/${postId}`, {
-    method: "POST",
-    credentials: "same-origin"
-  });
-
-  if (!res.ok) {
-    if (res.status === 401) location.href = "/login";
-    return;
+/* PCで少し横幅を広げる */
+@media (min-width: 601px){
+  .post-images .post-image{
+    flex-basis: 70%;
+    max-width: 70%;
   }
+  .post-images .post-image img{
+    height: 380px;
+  }
+}
 
-  const data = await res.json();
-  btn.classList.toggle("liked", data.liked);
-  btn.querySelector(".like-count").textContent = data.likes;
-});
-
-/* 投稿クリック遷移 */
-document.addEventListener("click", (e) => {
-  const post = e.target.closest(".post");
-  if (!post) return;
-
-  if (e.target.closest(".post-actions")) return;
-
-  const href = post.dataset.href;
-  if (href) location.href = href;
-});
-</script>
-
-</body>
-</html>
+/* 旧 .post-image（単発表示）も同じ高さルールに寄せたいなら保険 */
+.post-image img{
+  object-fit: cover;
+}

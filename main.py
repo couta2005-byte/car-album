@@ -1,6 +1,6 @@
 # main.py
 from fastapi import FastAPI, Request, Form, UploadFile, File, Cookie, Query
-from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
+from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -230,7 +230,7 @@ def get_or_create_dm_room_id(db, me_user_id: str, other_user_id: str) -> str:
         cur.close()
 
 # ======================
-# DB init（壊さない段階移行：UUID追加＋既存データ埋め） + ✅DM追加
+# DB init（壊さない段階移行：UUID追加＋既存データ埋め） + ✅DM追加 + ✅複数画像
 # ======================
 def init_db():
     def _do(db, cur):
@@ -282,6 +282,7 @@ def init_db():
             created_at TIMESTAMP
         );
         """)
+
         # ---- profiles icon ----
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS icon TEXT;")
 
@@ -293,6 +294,7 @@ def init_db():
         # 👇管理者 & BAN（ここ重要）
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE;")
+
         # ---- users.id(UUID) 追加（固定IDの本体）----
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS id UUID;")
         cur.execute("UPDATE users SET id = gen_random_uuid() WHERE id IS NULL;")
@@ -399,7 +401,7 @@ def init_db():
             ON comment_likes(user_id, comment_id)
             WHERE user_id IS NOT NULL;
         """)
- 
+
         # ======================
         # profiles.user_id
         # ======================
@@ -410,11 +412,40 @@ def init_db():
             FROM users u
             WHERE pr.user_id IS NULL AND pr.username = u.username;
         """)
-
         cur.execute("""
         CREATE UNIQUE INDEX IF NOT EXISTS profiles_user_id_unique
         ON profiles(user_id)
         WHERE user_id IS NOT NULL;
+        """)
+
+        # ======================
+        # ✅ 複数画像：post_images
+        # ======================
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS post_images (
+            id SERIAL PRIMARY KEY,
+            post_id INTEGER NOT NULL,
+            url TEXT NOT NULL,
+            sort INTEGER NOT NULL DEFAULT 0,
+            created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE
+        );
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS post_images_post_id_idx ON post_images(post_id);")
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS post_images_post_sort_unique
+            ON post_images(post_id, sort);
+        """)
+
+        # ✅ 既存の posts.image を post_images に移行（1回だけ入る）
+        cur.execute("""
+            INSERT INTO post_images (post_id, url, sort, created_at)
+            SELECT p.id, p.image, 0, COALESCE(p.created_at, NOW())
+            FROM posts p
+            WHERE p.image IS NOT NULL
+              AND NOT EXISTS (
+                SELECT 1 FROM post_images pi WHERE pi.post_id = p.id
+              );
         """)
 
         # ======================
@@ -430,6 +461,7 @@ def init_db():
             created_at TIMESTAMP DEFAULT NOW()
         );
         """)
+
         # ======================
         # ✅ DM tables（追加）
         # ======================
@@ -565,6 +597,30 @@ def search_users(db, q: str, limit: int = 20) -> List[Dict[str, Any]]:
             "profile_key": profile_key,
         })
     return out
+
+# ======================
+# ✅ 複数画像 fetch
+# ======================
+def fetch_images_for_posts(db, post_ids: List[int]) -> Dict[int, List[str]]:
+    if not post_ids:
+        return {}
+    placeholders = ",".join(["%s"] * len(post_ids))
+    cur = db.cursor()
+    try:
+        cur.execute(f"""
+            SELECT post_id, url
+            FROM post_images
+            WHERE post_id IN ({placeholders})
+            ORDER BY post_id ASC, sort ASC, id ASC
+        """, tuple(post_ids))
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+
+    mp: Dict[int, List[str]] = {}
+    for pid, url in rows:
+        mp.setdefault(pid, []).append(url)
+    return mp
 
 # ======================
 # comments fetch（一覧・ランキング用）
@@ -741,7 +797,7 @@ def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) 
     return out
 
 # ======================
-# posts fetch（display_name/handle も返す）
+# posts fetch（display_name/handle も返す） + ✅複数画像対応
 # ======================
 def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sql="ORDER BY p.id DESC", limit_sql=""):
     cur = db.cursor()
@@ -782,6 +838,7 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
 
     post_ids = [r[0] for r in rows]
     comments_map = fetch_comments_for_posts(db, post_ids, me_user_id)
+    images_map = fetch_images_for_posts(db, post_ids)
 
     posts = []
     for r in rows:
@@ -793,6 +850,9 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
         profile_key = handle if handle else username
 
         post_comments = comments_map.get(pid, [])
+        imgs = images_map.get(pid, [])
+        main_img = r[9] or (imgs[0] if imgs else None)
+
         posts.append({
             "id": pid,
             "username": username,
@@ -804,7 +864,8 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
             "region": r[6],
             "car": r[7],
             "comment": r[8],
-            "image": r[9],
+            "image": main_img,     # 互換：先頭1枚
+            "images": imgs,        # ✅ 複数画像
             "created_at": fmt_jst(r[10]),
             "likes": r[11],
             "user_icon": r[12],
@@ -812,8 +873,9 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
             "comment_count": len(post_comments)
         })
     return posts
+
 # ======================
-# ★ recommend fetch（修正版）
+# ★ recommend fetch（修正版） + ✅複数画像対応
 # ======================
 def fetch_posts_recommend(db, me_user_id: Optional[str]):
     cur = db.cursor()
@@ -861,6 +923,7 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
 
     post_ids = [r[0] for r in rows]
     comments_map = fetch_comments_for_posts(db, post_ids, me_user_id)
+    images_map = fetch_images_for_posts(db, post_ids)
 
     posts = []
     for r in rows:
@@ -872,6 +935,8 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
         profile_key = handle if handle else username
 
         post_comments = comments_map.get(pid, [])
+        imgs = images_map.get(pid, [])
+        main_img = r[9] or (imgs[0] if imgs else None)
 
         posts.append({
             "id": pid,
@@ -884,7 +949,8 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
             "region": r[6],
             "car": r[7],
             "comment": r[8],
-            "image": r[9],
+            "image": main_img,     # 互換：先頭1枚
+            "images": imgs,        # ✅ 複数画像
             "created_at": fmt_jst(r[10]),
             "likes": r[11],
             "comment_count": len(post_comments),
@@ -892,6 +958,7 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
             "comments": post_comments,
         })
     return posts
+
 # ======================
 # top
 # ======================
@@ -911,34 +978,26 @@ def index(
         liked_posts = get_liked_posts(db, me_user_id, me_username)
 
         if tab == "recommend":
-            # ★ おすすめ（スコア制）
             posts = fetch_posts_recommend(db, me_user_id)
-
         elif tab == "follow" and me_user_id:
-            # ★ フォロー中
             posts = fetch_posts(
                 db,
                 me_user_id,
                 "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
                 (me_user_id,),
             )
-
         elif tab == "new":
-            # ★ 新着
             posts = fetch_posts(
                 db,
                 me_user_id,
                 order_sql="ORDER BY p.created_at DESC"
             )
-
         else:
-            # フォールバック（保険）
             posts = fetch_posts(
                 db,
                 me_user_id,
                 order_sql="ORDER BY p.id DESC"
             )
-
     finally:
         db.close()
 
@@ -1187,7 +1246,6 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
             return RedirectResponse("/", status_code=303)
         post = posts[0]
 
-        # detailではコメントを確実に最新で出したい場合
         post["comments"] = fetch_comments_for_post_detail(db, post_id, me_user_id)
         post["comment_count"] = len(post["comments"])
     finally:
@@ -1247,6 +1305,7 @@ def add_comment(
 
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
+
 # ======================
 # comment delete（自分のだけ）
 # ======================
@@ -1334,6 +1393,7 @@ def api_comment_like(comment_id: int, request: Request, user: str = Cookie(defau
         return {"ok": True, "liked": liked, "likes": likes_count}
 
     return JSONResponse(run_db(_do))
+
 # ======================
 # profile（/user/{key} は handle優先で解決）
 # ======================
@@ -1350,6 +1410,18 @@ def resolve_user_by_key(db, key: str):
     finally:
         cur.close()
 
+# ===== 管理者判定 =====
+def is_admin_user(db, user_id: Optional[str]) -> bool:
+    if not user_id:
+        return False
+    cur = db.cursor()
+    try:
+        cur.execute("SELECT is_admin FROM users WHERE id=%s", (user_id,))
+        row = cur.fetchone()
+        return bool(row and row[0])
+    finally:
+        cur.close()
+
 @app.get("/user/{key}", response_class=HTMLResponse)
 def profile(request: Request, key: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     key = unquote(key)
@@ -1362,7 +1434,6 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
-        # ★ admin判定（追加）
         is_admin = is_admin_user(db, me_user_id)
 
         urow = resolve_user_by_key(db, key)
@@ -1415,10 +1486,9 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         "handle": handle,
         "mode": "profile",
         "posts": posts,
-
-        # ★ これが超重要
         "is_admin": is_admin,
     })
+
 # ======================
 # profile edit page（GET）
 # ======================
@@ -1431,7 +1501,6 @@ def profile_edit_page(
     db = get_db()
     cur = db.cursor()
     try:
-        # ログイン中ユーザー取得
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
@@ -1440,14 +1509,12 @@ def profile_edit_page(
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
-        # プロフィール情報
         cur.execute(
             "SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s",
             (me_user_id,)
         )
         profile = cur.fetchone()
 
-        # 表示名・handle
         cur.execute(
             "SELECT display_name, handle FROM users WHERE id=%s",
             (me_user_id,)
@@ -1632,7 +1699,7 @@ def unfollow(key: str, user: str = Cookie(default=None), uid: str = Cookie(defau
     return RedirectResponse(f"/user/{quote(target_key)}", status_code=303)
 
 # ======================
-# post（user_idで保存）
+# post（user_idで保存） + ✅複数画像投稿対応
 # ======================
 @app.post("/post")
 def post(
@@ -1641,7 +1708,8 @@ def post(
     region: str = Form(""),
     car: str = Form(""),
     comment: str = Form(""),
-    image: UploadFile = File(None),
+    images: Optional[List[UploadFile]] = File(None),  # ✅ 複数
+    image: UploadFile = File(None),                   # 互換（残す）
     user: str = Cookie(default=None),
     uid: str = Cookie(default=None),
 ):
@@ -1661,26 +1729,48 @@ def post(
         cur.close()
         db.close()
 
-    image_path = None
-    if image and image.filename:
+    # ✅ 互換：旧imageしか来ない場合は images に入れる
+    files: List[UploadFile] = []
+    if images:
+        files.extend([f for f in images if f and f.filename])
+    if (not files) and image and image.filename:
+        files.append(image)
+
+    image_urls: List[str] = []
+    for f in files[:10]:  # 上限10枚
         result = cloudinary.uploader.upload(
-            image.file,
+            f.file,
             folder="carbum/posts",
             transformation=[
                 {"width": 1400, "crop": "limit"},
                 {"quality": "auto", "fetch_format": "auto"}
             ]
         )
-        image_path = result["secure_url"]
+        url = result.get("secure_url")
+        if url:
+            image_urls.append(url)
+
+    # 互換用：posts.image には先頭1枚
+    main_image = image_urls[0] if image_urls else None
 
     def _do(db, cur):
         cur.execute("""
             INSERT INTO posts (username, user_id, maker, region, car, comment, image, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (me_username, me_user_id, maker, region, car, comment, image_path, utcnow_naive()))
+            RETURNING id
+        """, (me_username, me_user_id, maker, region, car, comment, main_image, utcnow_naive()))
+        new_post_id = cur.fetchone()[0]
+
+        # ✅ 複数画像保存
+        for idx, url in enumerate(image_urls):
+            cur.execute("""
+                INSERT INTO post_images (post_id, url, sort, created_at)
+                VALUES (%s, %s, %s, %s)
+            """, (new_post_id, url, idx, utcnow_naive()))
 
     run_db(_do)
     return redirect_back(request, "/")
+
 # ======================
 # ✅ auth（pbkdf2） + ✅ インスタ方式：handleでもログインOK
 # ======================
@@ -1741,9 +1831,9 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
 
     return res
+
 @app.post("/register")
 def register(request: Request, username: str = Form(...), password: str = Form(...)):
-    # ✅ 新規登録の「ログインID」はインスタルール強制（日本語NG）
     login_id = normalize_login_id(username)
     if not login_id:
         return RedirectResponse("/register?error=invalid_id", status_code=303)
@@ -1832,6 +1922,7 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
         return {"ok": True, "liked": liked, "likes": likes_count}
 
     return JSONResponse(run_db(_do))
+
 # ======================
 # delete post（自分のだけ）
 # ======================
@@ -1857,6 +1948,7 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
         """, (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
+        # ✅ post_images は ON DELETE CASCADE で消える
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
     run_db(_do)
@@ -1865,7 +1957,6 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
 # ======================
 # ✅ DM（HTMLで完全に動かす版）
 # ======================
-
 @app.get("/dm/{room_id}", response_class=HTMLResponse)
 def dm_room(
     request: Request,
@@ -1978,7 +2069,6 @@ def dm_start(
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        # 🔥 BANチェック（安全版）
         cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
         row = cur.fetchone()
         if row and row[0]:
@@ -2002,6 +2092,7 @@ def dm_start(
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
+
 @app.post("/dm/{room_id}/send")
 def dm_send(
     room_id: str,
@@ -2021,7 +2112,6 @@ def dm_send(
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        # BANチェック
         cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
         row = cur.fetchone()
         if row and row[0]:
@@ -2045,6 +2135,7 @@ def dm_send(
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
+
 @app.get("/dm", response_class=HTMLResponse)
 def dm_list(
     request: Request,
@@ -2129,6 +2220,7 @@ def dm_list(
             "timedelta": timedelta,
         }
     )
+
 # =========================
 # フォロー一覧
 # =========================
@@ -2144,20 +2236,17 @@ def following_page(
     db = get_db()
     cur = db.cursor()
     try:
-        # ✅ 正しい取得方法（これが重要）
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
-        # 対象ユーザー取得
         urow = resolve_user_by_key(db, key)
         if not urow:
             return RedirectResponse("/", status_code=303)
 
         target_user_id = str(urow[0])
 
-        # フォローしている人
         cur.execute("""
             SELECT
                 u.id,
@@ -2188,7 +2277,6 @@ def following_page(
         "unread_dm": unread_dm,
     })
 
-
 # =========================
 # フォロワー一覧
 # =========================
@@ -2204,20 +2292,17 @@ def followers_page(
     db = get_db()
     cur = db.cursor()
     try:
-        # ✅ 正しい取得方法（ここも重要）
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
-        # 対象ユーザー
         urow = resolve_user_by_key(db, key)
         if not urow:
             return RedirectResponse("/", status_code=303)
 
         target_user_id = str(urow[0])
 
-        # フォロワー取得
         cur.execute("""
             SELECT
                 u.id,
@@ -2252,26 +2337,11 @@ def followers_page(
 # ADMIN（最終版）
 # ======================
 
-# ===== 管理者判定 =====
-def is_admin_user(db, user_id: Optional[str]) -> bool:
-    if not user_id:
-        return False
-
-    cur = db.cursor()
-    try:
-        cur.execute("SELECT is_admin FROM users WHERE id=%s", (user_id,))
-        row = cur.fetchone()
-        return bool(row and row[0])
-    finally:
-        cur.close()
-
-
 # ===== Dashboard =====
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
     cur = db.cursor()
-
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
 
@@ -2292,8 +2362,8 @@ def admin_dashboard(request: Request, user: str = Cookie(None), uid: str = Cooki
         "request": request,
         "user_count": user_count,
         "post_count": post_count,
-        "user": me_username,     # ←他ページと統一（nav用）
-        "me": me_username,       # ←必要ならテンプレ側で表示できる
+        "user": me_username,
+        "me": me_username,
         "me_user_id": me_user_id,
         "mode": "admin",
     })
@@ -2310,7 +2380,6 @@ def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(No
         if not is_admin_user(db, me_user_id):
             return RedirectResponse("/", status_code=303)
 
-        # 🔥 BAN表示込み
         cur.execute("""
             SELECT id, username, display_name, handle, is_admin, is_banned
             FROM users
@@ -2326,8 +2395,8 @@ def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(No
     return templates.TemplateResponse("admin_users.html", {
         "request": request,
         "users": users,
-        "user": me_username,     # ←nav統一
-        "me": me_username,       # ←admin_users.htmlで使える
+        "user": me_username,
+        "me": me_username,
         "me_user_id": me_user_id,
         "mode": "admin",
     })
@@ -2336,14 +2405,12 @@ def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(No
 @app.post("/admin/users/delete/{user_id}")
 def admin_delete_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
-
     try:
         _, me_user_id = get_me_from_cookies(db, user, uid)
 
         if not is_admin_user(db, me_user_id):
             return RedirectResponse("/")
 
-        # 🔥 自分削除防止
         if user_id == me_user_id:
             return RedirectResponse("/admin/users")
 
@@ -2351,22 +2418,15 @@ def admin_delete_user(request: Request, user_id: str, user: str = Cookie(None), 
         db.close()
 
     def _do(db, cur):
-        # likes
         cur.execute("DELETE FROM likes WHERE user_id=%s", (user_id,))
-
-        # comment_likes
         cur.execute("DELETE FROM comment_likes WHERE user_id=%s", (user_id,))
-
-        # comments
         cur.execute("DELETE FROM comments WHERE user_id=%s", (user_id,))
 
-        # follows
         cur.execute("""
             DELETE FROM follows
             WHERE follower_id=%s OR followee_id=%s
         """, (user_id, user_id))
 
-        # 🔥 DM（順番重要）
         cur.execute("""
             DELETE FROM dm_messages
             WHERE room_id IN (
@@ -2380,22 +2440,17 @@ def admin_delete_user(request: Request, user_id: str, user: str = Cookie(None), 
             WHERE user1_id=%s OR user2_id=%s
         """, (user_id, user_id))
 
-        # posts
         cur.execute("DELETE FROM posts WHERE user_id=%s", (user_id,))
-
-        # profiles
         cur.execute("DELETE FROM profiles WHERE user_id=%s", (user_id,))
-
-        # users（最後）
         cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
 
     run_db(_do)
     return RedirectResponse("/admin/users", status_code=303)
+
 # ===== 管理者昇格 =====
 @app.post("/admin/promote/{user_id}")
 def admin_promote_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
-
     try:
         _, me_user_id = get_me_from_cookies(db, user, uid)
         if not is_admin_user(db, me_user_id):
@@ -2406,41 +2461,32 @@ def admin_promote_user(request: Request, user_id: str, user: str = Cookie(None),
     run_db(lambda db, cur: cur.execute("UPDATE users SET is_admin=TRUE WHERE id=%s", (user_id,)))
     return RedirectResponse("/admin/users", status_code=303)
 
-
 # ===== 管理者解除 =====
 @app.post("/admin/demote/{user_id}")
 def admin_demote_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
-
     try:
         _, me_user_id = get_me_from_cookies(db, user, uid)
-
         if not is_admin_user(db, me_user_id):
             return RedirectResponse("/")
-
-        # 🔥 自分demote防止
         if user_id == me_user_id:
             return RedirectResponse("/admin/users")
-
     finally:
         db.close()
 
     run_db(lambda db, cur: cur.execute("UPDATE users SET is_admin=FALSE WHERE id=%s", (user_id,)))
     return RedirectResponse("/admin/users", status_code=303)
+
 # ===== BAN =====
 @app.post("/admin/ban/{user_id}")
 def admin_ban_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
-
     try:
         _, me_user_id = get_me_from_cookies(db, user, uid)
         if not is_admin_user(db, me_user_id):
             return RedirectResponse("/")
-
-        # 🔥 自分BAN防止
         if user_id == me_user_id:
             return RedirectResponse("/admin/users")
-
     finally:
         db.close()
 
@@ -2450,7 +2496,6 @@ def admin_ban_user(request: Request, user_id: str, user: str = Cookie(None), uid
 @app.post("/admin/unban/{user_id}")
 def admin_unban_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
-
     try:
         _, me_user_id = get_me_from_cookies(db, user, uid)
         if not is_admin_user(db, me_user_id):
@@ -2461,7 +2506,6 @@ def admin_unban_user(request: Request, user_id: str, user: str = Cookie(None), u
     run_db(lambda db, cur: cur.execute("UPDATE users SET is_banned=FALSE WHERE id=%s", (user_id,)))
     return RedirectResponse("/admin/users", status_code=303)
 
-
 # ===== Posts =====
 @app.get("/admin/posts", response_class=HTMLResponse)
 def admin_posts(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
@@ -2470,11 +2514,9 @@ def admin_posts(request: Request, user: str = Cookie(None), uid: str = Cookie(No
 
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
-
         if not is_admin_user(db, me_user_id):
             return RedirectResponse("/")
 
-        # 🔥 ここ修正（image追加）
         cur.execute("""
             SELECT id, user_id, image, created_at, comment
             FROM posts
@@ -2499,10 +2541,8 @@ def admin_posts(request: Request, user: str = Cookie(None), uid: str = Cookie(No
 @app.post("/admin/posts/delete/{post_id}")
 def admin_delete_post(request: Request, post_id: int, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
-
     try:
         _, me_user_id = get_me_from_cookies(db, user, uid)
-
         if not is_admin_user(db, me_user_id):
             return RedirectResponse("/")
     finally:
@@ -2517,18 +2557,17 @@ def admin_delete_post(request: Request, post_id: int, user: str = Cookie(None), 
         """, (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
+        # ✅ post_images は ON DELETE CASCADE
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
     run_db(_do)
     return RedirectResponse("/admin/posts", status_code=303)
 
-from fastapi.responses import HTMLResponse
-from fastapi import Request, Form
-from fastapi.responses import RedirectResponse
-
+# ======================
+# report
+# ======================
 @app.get("/report/{post_id}", response_class=HTMLResponse)
 def report_page(request: Request, post_id: int, user: str = Cookie(None), uid: str = Cookie(None)):
-
     db = get_db()
     try:
         _, user_id = get_me_from_cookies(db, user, uid)
@@ -2541,6 +2580,7 @@ def report_page(request: Request, post_id: int, user: str = Cookie(None), uid: s
         "request": request,
         "post_id": post_id
     })
+
 @app.post("/report/{post_id}")
 def report_post(
     request: Request,
@@ -2555,7 +2595,6 @@ def report_post(
 
     try:
         _, user_id = get_me_from_cookies(db, user, uid)
-
         if not user_id:
             return RedirectResponse("/login", status_code=303)
 
@@ -2566,7 +2605,6 @@ def report_post(
         if cur.fetchone() is None:
             return RedirectResponse("/", status_code=303)
 
-        # 🔥ここ修正（::uuid消す）
         cur.execute("""
             INSERT INTO reports (post_id, reporter_id, reason, detail)
             VALUES (%s, %s, %s, %s)
@@ -2582,6 +2620,7 @@ def report_post(
         db.close()
 
     return RedirectResponse("/", status_code=303)
+
 # ======================
 # 通報一覧（admin）
 # ======================
@@ -2596,7 +2635,6 @@ def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(
         if not is_admin_user(db, me_user_id):
             return RedirectResponse("/", status_code=303)
 
-        # 🔥 投稿もJOINする
         cur.execute("""
             SELECT
                 r.id,
@@ -2627,6 +2665,7 @@ def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(
         "me_user_id": me_user_id,
         "mode": "admin",
     })
+
 @app.post("/admin/reports/delete/{report_id}")
 def admin_delete_report(
     request: Request,
@@ -2638,14 +2677,11 @@ def admin_delete_report(
     cur = db.cursor()
 
     try:
-        # ログインユーザー取得
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
 
-        # 管理者チェック
         if not me_user_id or not is_admin_user(db, me_user_id):
             return RedirectResponse("/", status_code=303)
 
-        # 通報削除
         cur.execute("DELETE FROM reports WHERE id=%s", (report_id,))
         db.commit()
 
@@ -2655,8 +2691,9 @@ def admin_delete_report(
 
     return RedirectResponse("/admin/reports", status_code=303)
 
-from fastapi.responses import Response
-
+# ======================
+# sitemap.xml
+# ======================
 @app.get("/sitemap.xml", response_class=Response)
 def sitemap():
     xml = """<?xml version="1.0" encoding="UTF-8"?>

@@ -45,7 +45,8 @@
         class="post-form post-form-mobile">
 
     <label class="image-upload compact">
-      <input type="file" name="image" accept="image/*" required>
+      <!-- ✅ 複数画像対応 -->
+      <input type="file" name="images" accept="image/*" multiple required>
       <span class="image-upload-text">📸 写真を選択</span>
     </label>
 
@@ -114,78 +115,80 @@
           <option value="other">その他・不明</option>
         </optgroup>
       </select>
-<select name="region" required>
-  <option value="">地域</option>
-  <option value="overseas">海外</option>
 
-  <optgroup label="北海道・東北">
-    <option value="hokkaido">北海道</option>
-    <option value="aomori">青森県</option>
-    <option value="iwate">岩手県</option>
-    <option value="miyagi">宮城県</option>
-    <option value="akita">秋田県</option>
-    <option value="yamagata">山形県</option>
-    <option value="fukushima">福島県</option>
-  </optgroup>
+      <select name="region" required>
+        <option value="">地域</option>
+        <option value="overseas">海外</option>
 
-  <optgroup label="関東">
-    <option value="ibaraki">茨城県</option>
-    <option value="tochigi">栃木県</option>
-    <option value="gunma">群馬県</option>
-    <option value="saitama">埼玉県</option>
-    <option value="chiba">千葉県</option>
-    <option value="tokyo">東京都</option>
-    <option value="kanagawa">神奈川県</option>
-  </optgroup>
+        <optgroup label="北海道・東北">
+          <option value="hokkaido">北海道</option>
+          <option value="aomori">青森県</option>
+          <option value="iwate">岩手県</option>
+          <option value="miyagi">宮城県</option>
+          <option value="akita">秋田県</option>
+          <option value="yamagata">山形県</option>
+          <option value="fukushima">福島県</option>
+        </optgroup>
 
-  <optgroup label="中部">
-    <option value="niigata">新潟県</option>
-    <option value="toyama">富山県</option>
-    <option value="ishikawa">石川県</option>
-    <option value="fukui">福井県</option>
-    <option value="yamanashi">山梨県</option>
-    <option value="nagano">長野県</option>
-    <option value="gifu">岐阜県</option>
-    <option value="shizuoka">静岡県</option>
-    <option value="aichi">愛知県</option>
-  </optgroup>
+        <optgroup label="関東">
+          <option value="ibaraki">茨城県</option>
+          <option value="tochigi">栃木県</option>
+          <option value="gunma">群馬県</option>
+          <option value="saitama">埼玉県</option>
+          <option value="chiba">千葉県</option>
+          <option value="tokyo">東京都</option>
+          <option value="kanagawa">神奈川県</option>
+        </optgroup>
 
-  <optgroup label="近畿">
-    <option value="mie">三重県</option>
-    <option value="shiga">滋賀県</option>
-    <option value="kyoto">京都府</option>
-    <option value="osaka">大阪府</option>
-    <option value="hyogo">兵庫県</option>
-    <option value="nara">奈良県</option>
-    <option value="wakayama">和歌山県</option>
-  </optgroup>
+        <optgroup label="中部">
+          <option value="niigata">新潟県</option>
+          <option value="toyama">富山県</option>
+          <option value="ishikawa">石川県</option>
+          <option value="fukui">福井県</option>
+          <option value="yamanashi">山梨県</option>
+          <option value="nagano">長野県</option>
+          <option value="gifu">岐阜県</option>
+          <option value="shizuoka">静岡県</option>
+          <option value="aichi">愛知県</option>
+        </optgroup>
 
-  <optgroup label="中国">
-    <option value="tottori">鳥取県</option>
-    <option value="shimane">島根県</option>
-    <option value="okayama">岡山県</option>
-    <option value="hiroshima">広島県</option>
-    <option value="yamaguchi">山口県</option>
-  </optgroup>
+        <optgroup label="近畿">
+          <option value="mie">三重県</option>
+          <option value="shiga">滋賀県</option>
+          <option value="kyoto">京都府</option>
+          <option value="osaka">大阪府</option>
+          <option value="hyogo">兵庫県</option>
+          <option value="nara">奈良県</option>
+          <option value="wakayama">和歌山県</option>
+        </optgroup>
 
-  <optgroup label="四国">
-    <option value="tokushima">徳島県</option>
-    <option value="kagawa">香川県</option>
-    <option value="ehime">愛媛県</option>
-    <option value="kochi">高知県</option>
-  </optgroup>
+        <optgroup label="中国">
+          <option value="tottori">鳥取県</option>
+          <option value="shimane">島根県</option>
+          <option value="okayama">岡山県</option>
+          <option value="hiroshima">広島県</option>
+          <option value="yamaguchi">山口県</option>
+        </optgroup>
 
-  <optgroup label="九州・沖縄">
-    <option value="fukuoka">福岡県</option>
-    <option value="saga">佐賀県</option>
-    <option value="nagasaki">長崎県</option>
-    <option value="kumamoto">熊本県</option>
-    <option value="oita">大分県</option>
-    <option value="miyazaki">宮崎県</option>
-    <option value="kagoshima">鹿児島県</option>
-    <option value="okinawa">沖縄県</option>
-  </optgroup>
-</select>    </div>
+        <optgroup label="四国">
+          <option value="tokushima">徳島県</option>
+          <option value="kagawa">香川県</option>
+          <option value="ehime">愛媛県</option>
+          <option value="kochi">高知県</option>
+        </optgroup>
+
+        <optgroup label="九州・沖縄">
+          <option value="fukuoka">福岡県</option>
+          <option value="saga">佐賀県</option>
+          <option value="nagasaki">長崎県</option>
+          <option value="kumamoto">熊本県</option>
+          <option value="oita">大分県</option>
+          <option value="miyazaki">宮崎県</option>
+          <option value="kagoshima">鹿児島県</option>
+          <option value="okinawa">沖縄県</option>
+        </optgroup>
+      </select>
+    </div>
 
     <textarea name="comment"
               rows="2"
@@ -231,10 +234,26 @@
       <div class="post-comment">{{ post.comment }}</div>
       {% endif %}
 
-      {% if post.image %}
-      <div class="post-image">
-        <img src="{{ post.image }}">
-      </div>
+      <!-- ✅ 複数画像表示（横スクロール） -->
+      {% if post.images and post.images|length > 0 %}
+        <div class="post-images">
+          <div class="post-images-track">
+            {% for img in post.images %}
+              <div class="post-image">
+                <img src="{{ img }}">
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% elif post.image %}
+        <!-- 互換：古い投稿 -->
+        <div class="post-images">
+          <div class="post-images-track">
+            <div class="post-image">
+              <img src="{{ post.image }}">
+            </div>
+          </div>
+        </div>
       {% endif %}
 
       <!-- 🔥 ボタン列 -->
