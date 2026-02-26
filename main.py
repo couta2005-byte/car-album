@@ -2654,3 +2654,22 @@ def admin_delete_report(
         db.close()
 
     return RedirectResponse("/admin/reports", status_code=303)
+
+from fastapi.responses import Response
+
+@app.get("/sitemap.xml", response_class=Response)
+def sitemap():
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <url>
+    <loc>https://car-album-3.onrender.com/</loc>
+  </url>
+
+  <url>
+    <loc>https://car-album-3.onrender.com/ranking</loc>
+  </url>
+
+</urlset>
+"""
+    return Response(content=xml, media_type="application/xml")
