@@ -234,28 +234,37 @@
       <div class="post-comment">{{ post.comment }}</div>
       {% endif %}
 
-      <!-- ✅ 複数画像表示（横スクロール） -->
-      {% if post.images and post.images|length > 0 %}
+      <!-- ======================
+           ✅ 画像表示（ホーム専用：1枚ズレ防止）
+           - 2枚以上：横スクロール
+           - 1枚：単発表示（偏り防止）
+           - 旧データ(post.image)：単発表示
+      ====================== -->
+
+      {% if post.images and post.images|length >= 2 %}
+        <!-- 複数（横スクロール） -->
         <div class="post-images">
           <div class="post-images-track">
             {% for img in post.images %}
               <div class="post-image">
-                <img src="{{ img }}">
+                <img src="{{ img }}" alt="投稿画像">
               </div>
             {% endfor %}
           </div>
         </div>
+
+      {% elif post.images and post.images|length == 1 %}
+        <!-- 1枚（単発：ズレ防止） -->
+        <div class="post-image">
+          <img src="{{ post.images[0] }}" alt="投稿画像">
+        </div>
+
       {% elif post.image %}
-        <!-- 互換：古い投稿 -->
-        <div class="post-images">
-          <div class="post-images-track">
-            <div class="post-image">
-              <img src="{{ post.image }}">
-            </div>
-          </div>
+        <!-- 旧データ（単発） -->
+        <div class="post-image">
+          <img src="{{ post.image }}" alt="投稿画像">
         </div>
       {% endif %}
-
       <!-- 🔥 ボタン列 -->
       <div class="post-actions">
 
