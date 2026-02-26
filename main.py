@@ -2548,24 +2548,23 @@ def report_post(
         if not user_id:
             return RedirectResponse("/login", status_code=303)
 
-        # 🔥 reason空対策
         if not reason:
             return RedirectResponse(f"/report/{post_id}", status_code=303)
 
-        # 🔥 post存在チェック（これ重要）
         cur.execute("SELECT 1 FROM posts WHERE id=%s", (post_id,))
         if cur.fetchone() is None:
             return RedirectResponse("/", status_code=303)
 
+        # 🔥ここ修正（::uuid消す）
         cur.execute("""
             INSERT INTO reports (post_id, reporter_id, reason, detail)
-            VALUES (%s, %s::uuid, %s, %s)
+            VALUES (%s, %s, %s, %s)
         """, (post_id, user_id, reason, detail or ""))
 
         db.commit()
 
     except Exception as e:
-        print("REPORT ERROR:", e)  # ←ログ出る
+        print("REPORT ERROR:", e)
 
     finally:
         cur.close()
