@@ -2,39 +2,82 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>通報 | Carbum</title>
+  <title>通報一覧 | Admin | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=1">
+  <link rel="stylesheet" href="/static/style.css?v=4000">
 </head>
 <body>
 
 {% include "_nav.html" %}
 
-<main class="container">
+<main class="container" style="max-width: 1100px; margin: 0 auto; padding: 24px;">
+  <h1 style="margin: 24px 0;">通報一覧</h1>
 
-  <h2>通報</h2>
+  {% if reports and reports|length > 0 %}
+    <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse: collapse;">
+        <thead>
+          <tr>
+            <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">ID</th>
+            <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">投稿</th>
+            <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">理由</th>
+            <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">詳細</th>
+            <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">通報者</th>
+            <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">日時</th>
+            <th style="text-align:left; padding:10px; border-bottom:1px solid #ddd;">操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in reports %}
+            {# r = (id, post_id, reason, detail, created_at, display_name, handle) #}
+            <tr>
+              <td style="padding:10px; border-bottom:1px solid #eee;">{{ r[0] }}</td>
 
-  <form method="post" action="/report/{{ post_id }}">
+              <td style="padding:10px; border-bottom:1px solid #eee;">
+                {% if r[1] %}
+                  <a href="/post/{{ r[1] }}">/post/{{ r[1] }}</a>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
 
-    <div style="margin-bottom:10px;">
-      <select name="reason" required>
-        <option value="">理由を選択</option>
-        <option value="spam">スパム</option>
-        <option value="abuse">暴言・不適切</option>
-        <option value="other">その他</option>
-      </select>
+              <td style="padding:10px; border-bottom:1px solid #eee;">{{ r[2] }}</td>
+
+              <td style="padding:10px; border-bottom:1px solid #eee; max-width: 420px; white-space: pre-wrap;">
+                {{ r[3] }}
+              </td>
+
+              <td style="padding:10px; border-bottom:1px solid #eee;">
+                {% if r[6] %}
+                  @{{ r[6] }}
+                {% elif r[5] %}
+                  {{ r[5] }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <td style="padding:10px; border-bottom:1px solid #eee;">{{ r[4] }}</td>
+
+              <td style="padding:10px; border-bottom:1px solid #eee;">
+                <form method="post" action="/admin/reports/delete/{{ r[0] }}" onsubmit="return confirm('この通報を削除しますか？');">
+                  <button type="submit" style="padding:8px 12px; border-radius:10px; border:1px solid #ddd;">
+                    削除
+                  </button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+  {% else %}
+    <p style="opacity:.8;">通報はまだありません。</p>
+  {% endif %}
 
-    <div style="margin-bottom:10px;">
-      <textarea name="detail" rows="4" placeholder="詳細（任意）"></textarea>
-    </div>
-
-    <button type="submit" class="primary-btn">
-      通報する
-    </button>
-
-  </form>
-
+  <div style="margin-top: 16px;">
+    <a href="/admin">← 管理ダッシュボードへ</a>
+  </div>
 </main>
 
 </body>

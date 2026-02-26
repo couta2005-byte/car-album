@@ -4,35 +4,39 @@
   <meta charset="UTF-8">
   <title>通報 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=4000">
 </head>
 <body>
 
 {% include "_nav.html" %}
 
-<main class="container">
-
-  <h2>通報</h2>
+<main class="container" style="max-width: 720px; margin: 0 auto; padding: 24px;">
+  <h1 style="text-align:center; margin: 24px 0;">通報</h1>
 
   <form method="post" action="/report/{{ post_id }}">
+    <div style="margin-bottom: 12px;">
+      <select name="reason" required style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd;">
+        <option value="">理由を選択</option>
+        <option value="spam">スパム</option>
+        <option value="abuse">暴言・不適切</option>
+        <option value="other">その他</option>
+      </select>
+    </div>
 
-    <select name="reason" required>
-      <option value="">理由を選択</option>
-      <option value="spam">スパム</option>
-      <option value="abuse">暴言・不適切</option>
-      <option value="other">その他</option>
-    </select>
+    <div style="margin-bottom: 16px;">
+      <textarea name="detail" placeholder="詳細（任意）"
+        style="width:100%; min-height:120px; padding:10px; border-radius:10px; border:1px solid #ddd;"></textarea>
+    </div>
 
-    <br><br>
-
-    <textarea name="detail" placeholder="詳細（任意）"></textarea>
-
-    <br><br>
-
-    <button type="submit">通報する</button>
-
+    <button type="submit"
+      style="width:100%; padding:14px; border:none; border-radius:999px; font-weight:700;">
+      通報する
+    </button>
   </form>
 
+  <div style="text-align:center; margin-top: 16px;">
+    <a href="/" style="opacity:.8;">戻る</a>
+  </div>
 </main>
 
 </body>
