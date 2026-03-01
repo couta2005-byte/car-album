@@ -225,6 +225,7 @@
 
           <a href="/user/{{ post.profile_key | urlencode }}" class="post-user">
             {{ post.display_name }}
+            {% if post.car %}（{{ post.car }}）{% endif %}
           </a>
 
         </div>
