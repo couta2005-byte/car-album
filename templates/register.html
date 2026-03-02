@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>新規登録 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=13">
+  <link rel="stylesheet" href="/static/style.css?v=14">
 </head>
 <body>
 
@@ -24,6 +24,10 @@
         パスワードは4文字以上で入力してください。
       {% elif error == "handle_taken" %}
         このIDはすでに使われています。
+      {% elif error == "invalid_email" %}
+        メール形式が不正です。
+      {% elif error == "email_taken" %}
+        このメールは既に登録されています。
       {% elif error == "failed" %}
         登録に失敗しました。時間をおいて再度お試しください。
       {% else %}
@@ -35,27 +39,31 @@
   <!-- ===== Register Form ===== -->
   <form action="/register" method="post" class="auth-form">
 
+    <!-- ✅ ログインID（インスタ方式） -->
     <label class="form-label">
       ログインID
       <input
         type="text"
         name="username"
         placeholder="例：carbum_user"
+        autocomplete="username"
         required
       >
     </label>
 
     <div class="form-help">
       ※ 英小文字・数字・「.」「_」のみ使用可（3〜20文字）<br>
-      ※ 日本語・大文字は使えません
+      ※ 日本語・大文字・スペース・絵文字は使えません
     </div>
 
+    <!-- ✅ パスワード -->
     <label class="form-label">
       パスワード
       <input
         type="password"
         name="password"
-        placeholder="パスワード"
+        placeholder="パスワード（4文字以上）"
+        autocomplete="new-password"
         required
       >
     </label>
@@ -64,9 +72,27 @@
       ※ 4文字以上
     </div>
 
+    <!-- ✅ メール -->
+    <label class="form-label">
+      メールアドレス
+      <input
+        type="email"
+        name="email"
+        placeholder="example@gmail.com"
+        autocomplete="email"
+        required
+      >
+    </label>
+
+    <div class="form-help">
+      ※ ログインに使用できます
+    </div>
+
+    <!-- ボタン -->
     <button type="submit" class="primary-btn" style="width:100%; margin-top:16px;">
       登録する
     </button>
+
   </form>
 
   <div style="margin-top:18px; text-align:center; font-size:14px;">

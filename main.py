@@ -290,6 +290,15 @@ def init_db():
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS handle TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP;")
+        
+        # ---- users email ----
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT;")
+
+        cur.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS users_email_unique
+        ON users(email)
+        WHERE email IS NOT NULL;
+        """)
 
         # 👇管理者 & BAN（ここ重要）
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;")
@@ -1772,7 +1781,7 @@ def post(
     return redirect_back(request, "/")
 
 # ======================
-# ✅ auth（pbkdf2） + ✅ インスタ方式：handleでもログインOK
+# ✅ auth（pbkdf2） + ✅ email/handle/username ログイン
 # ======================
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
@@ -1781,14 +1790,16 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
     db = get_db()
     cur = db.cursor()
     try:
-        # ===== handleログイン =====
-        h = normalize_login_id(login_id_raw)
-        if h:
+        row = None
+
+        # ===== emailログイン（最優先）=====
+        if "@" in login_id_raw:
             cur.execute(
-                "SELECT password, id, username, is_banned FROM users WHERE handle=%s",
-                (h,)
+                "SELECT password, id, username, is_banned FROM users WHERE email=%s",
+                (login_id_raw.lower(),)
             )
             row = cur.fetchone()
+
             if row:
                 if row[3]:
                     return RedirectResponse("/login?error=banned", status_code=303)
@@ -1800,8 +1811,34 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
                     res = RedirectResponse("/", status_code=303)
                     res.set_cookie("user", quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
                     res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
-
                     return res
+
+                # emailは存在するがPW違い
+                return RedirectResponse("/login?error=invalid", status_code=303)
+
+        # ===== handleログイン =====
+        h = normalize_login_id(login_id_raw)
+        if h:
+            cur.execute(
+                "SELECT password, id, username, is_banned FROM users WHERE handle=%s",
+                (h,)
+            )
+            row = cur.fetchone()
+
+            if row:
+                if row[3]:
+                    return RedirectResponse("/login?error=banned", status_code=303)
+
+                if pwd_context.verify(password, row[0]):
+                    user_id = str(row[1])
+                    real_username = row[2]
+
+                    res = RedirectResponse("/", status_code=303)
+                    res.set_cookie("user", quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
+                    res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
+                    return res
+
+                return RedirectResponse("/login?error=invalid", status_code=303)
 
         # ===== usernameログイン =====
         cur.execute(
@@ -1810,36 +1847,49 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         )
         row = cur.fetchone()
 
+        if not row:
+            return RedirectResponse("/login?error=invalid", status_code=303)
+
+        if row[3]:
+            return RedirectResponse("/login?error=banned", status_code=303)
+
+        if not pwd_context.verify(password, row[0]):
+            return RedirectResponse("/login?error=invalid", status_code=303)
+
+        user_id = str(row[1])
+        real_username = row[2]
+
+        res = RedirectResponse("/", status_code=303)
+        res.set_cookie("user", quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
+        res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
+        return res
+
     finally:
-        cur.close()
-        db.close()
-
-    if not row:
-        return RedirectResponse("/login?error=invalid", status_code=303)
-
-    if row[3]:
-        return RedirectResponse("/login?error=banned", status_code=303)
-
-    if not pwd_context.verify(password, row[0]):
-        return RedirectResponse("/login?error=invalid", status_code=303)
-
-    user_id = str(row[1])
-    real_username = row[2]
-
-    res = RedirectResponse("/", status_code=303)
-    res.set_cookie("user", quote(real_username), httponly=True, secure=is_https_request(request), samesite="lax")
-    res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
-
-    return res
-
+        try:
+            cur.close()
+        except:
+            pass
+        try:
+            db.close()
+        except:
+            pass
 @app.post("/register")
-def register(request: Request, username: str = Form(...), password: str = Form(...)):
+def register(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    email: str = Form(...)
+):
     login_id = normalize_login_id(username)
     if not login_id:
         return RedirectResponse("/register?error=invalid_id", status_code=303)
 
     if len(password) < 4 or len(password) > 256:
         return RedirectResponse("/register?error=invalid_pw", status_code=303)
+
+    email = (email or "").strip().lower()
+    if not email or "@" not in email:
+        return RedirectResponse("/register?error=invalid_email", status_code=303)
 
     hashed = pwd_context.hash(password)
 
@@ -1849,16 +1899,22 @@ def register(request: Request, username: str = Form(...), password: str = Form(.
 
         if h is None:
             raise RuntimeError("bad_handle")
+
         if not is_handle_available(db, h):
             raise RuntimeError("handle_taken")
 
+        # 🔥 email重複チェック
+        cur.execute("SELECT 1 FROM users WHERE email=%s LIMIT 1", (email,))
+        if cur.fetchone():
+            raise RuntimeError("email_taken")
+
         cur.execute("""
-            INSERT INTO users (username, password, display_name, handle, created_at)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO users (username, password, display_name, handle, created_at, email)
+            VALUES (%s, %s, %s, %s, %s, %s)
             RETURNING id
-        """, (login_id, hashed, display_name, h, utcnow_naive()))
-        new_id = cur.fetchone()[0]
-        return str(new_id)
+        """, (login_id, hashed, display_name, h, utcnow_naive(), email))
+
+        return str(cur.fetchone()[0])
 
     try:
         new_user_id = run_db(_do)
@@ -1866,15 +1922,16 @@ def register(request: Request, username: str = Form(...), password: str = Form(.
         msg = str(e)
         if "handle_taken" in msg:
             return RedirectResponse("/register?error=handle_taken", status_code=303)
+        if "email_taken" in msg:
+            return RedirectResponse("/register?error=email_taken", status_code=303)
         if "bad_handle" in msg:
             return RedirectResponse("/register?error=invalid_id", status_code=303)
         return RedirectResponse("/register?error=failed", status_code=303)
 
     res = RedirectResponse("/", status_code=303)
-    res.set_cookie(key="user", value=quote(login_id), httponly=True, secure=is_https_request(request), samesite="lax")
-    res.set_cookie(key="uid", value=new_user_id, httponly=True, secure=is_https_request(request), samesite="lax")
+    res.set_cookie("user", quote(login_id), httponly=True, secure=is_https_request(request), samesite="lax")
+    res.set_cookie("uid", new_user_id, httponly=True, secure=is_https_request(request), samesite="lax")
     return res
-
 @app.post("/logout")
 def logout():
     res = RedirectResponse("/", status_code=303)
