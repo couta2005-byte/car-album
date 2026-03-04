@@ -2805,3 +2805,48 @@ def sitemap():
 </urlset>
 """
     return Response(content=xml, media_type="application/xml")
+
+@app.get("/api/dm/{room_id}")
+def api_dm(room_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
+
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return {"messages":[]}
+
+        cur.execute("""
+            SELECT
+                m.id,
+                m.sender_id,
+                m.body,
+                m.media_url,
+                m.media_type,
+                m.created_at
+            FROM dm_messages m
+            WHERE m.room_id=%s
+            ORDER BY m.created_at ASC
+        """,(room_id,))
+
+        rows = cur.fetchall()
+
+        messages = []
+
+        for r in rows:
+            messages.append({
+                "id": str(r[0]),
+                "sender_id": str(r[1]),
+                "body": r[2],
+                "media_url": r[3],
+                "media_type": r[4],
+                "created_at": fmt_jst(r[5]),
+                "is_me": str(r[1]) == me_user_id
+            })
+
+    finally:
+        cur.close()
+        db.close()
+
+    return {"messages":messages}
