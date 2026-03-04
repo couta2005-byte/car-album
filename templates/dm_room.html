@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>DM | Carbum</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/static/style.css?v=2">
+<link rel="stylesheet" href="/static/style.css?v=3">
 
 <style>
 
@@ -74,7 +74,7 @@ display:block;
 .dm-form{
 margin-top:10px;
 display:flex;
-gap:8px;
+gap:6px;
 align-items:center;
 }
 
@@ -83,6 +83,7 @@ flex:1;
 padding:8px;
 border:1px solid #ccc;
 border-radius:6px;
+min-width:0;
 }
 
 .dm-send{
@@ -94,6 +95,27 @@ border-radius:6px;
 cursor:pointer;
 }
 
+/* ファイル入力を小さく */
+
+.dm-form input[type=file]{
+width:110px;
+font-size:12px;
+}
+
+/* モバイル最適化 */
+
+@media (max-width:600px){
+
+.dm-box{
+height:55vh;
+}
+
+.dm-form input[type=file]{
+width:90px;
+}
+
+}
+
 </style>
 
 </head>
@@ -103,10 +125,6 @@ cursor:pointer;
 {% include "_nav.html" %}
 
 <main class="container dm-container">
-
-<!-- ======================
-DM HEADER
-====================== -->
 
 <div class="dm-header">
 
@@ -122,10 +140,6 @@ DM HEADER
 </div>
 
 </div>
-
-<!-- ======================
-DM LIST
-====================== -->
 
 <div id="dmBox" class="dm-box">
 
@@ -165,10 +179,6 @@ DM LIST
 
 </div>
 
-<!-- ======================
-SEND FORM
-====================== -->
-
 <form
 action="/dm/{{ room_id }}/send"
 method="post"
@@ -199,12 +209,63 @@ accept="image/*,video/*"
 
 <script>
 
-/* ======================
-DM自動スクロール
-====================== */
+const box = document.getElementById("dmBox")
 
-const box = document.getElementById("dmBox");
-box.scrollTop = box.scrollHeight;
+function renderMessage(m){
+
+let media=""
+
+if(m.media_type==="image"){
+media=`<img src="${m.media_url}" class="dm-media">`
+}
+
+if(m.media_type==="video"){
+media=`<video controls class="dm-media">
+<source src="${m.media_url}">
+</video>`
+}
+
+return `
+<div class="dm-msg ${m.is_me ? "me":""}">
+<div>
+<div class="dm-bubble">
+${m.body ? `<div>${m.body}</div>` : ""}
+${media}
+</div>
+<div class="dm-time">${m.created_at}</div>
+</div>
+</div>
+`
+}
+
+async function updateDM(){
+
+try{
+
+const res = await fetch("/api/dm/{{ room_id }}")
+const data = await res.json()
+
+box.innerHTML=""
+
+data.messages.forEach(m=>{
+box.innerHTML += renderMessage(m)
+})
+
+box.scrollTop = box.scrollHeight
+
+}catch(e){
+console.log("dm update error")
+}
+
+}
+
+/* 初回スクロール */
+
+box.scrollTop = box.scrollHeight
+
+/* リアルタイム更新 */
+
+setInterval(updateDM,1500)
 
 </script>
 
