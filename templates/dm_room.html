@@ -4,114 +4,139 @@
 <meta charset="UTF-8">
 <title>DM | Carbum</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/static/style.css?v=4">
+<link rel="stylesheet" href="/static/style.css?v=5">
 
 <style>
 
+/* ===== Container ===== */
+
 .dm-container{
-max-width:700px;
+max-width:620px;
 margin:auto;
 }
+
+/* ===== Header ===== */
 
 .dm-header{
 display:flex;
 align-items:center;
-gap:10px;
-margin-bottom:10px;
+gap:12px;
+margin-bottom:14px;
+padding-bottom:10px;
+border-bottom:1px solid #eee;
 }
 
 .dm-icon{
-width:36px;
-height:36px;
+width:40px;
+height:40px;
 border-radius:50%;
 object-fit:cover;
 }
 
+/* ===== Message Area ===== */
+
 .dm-box{
-border:1px solid #ddd;
-border-radius:10px;
-padding:12px;
-height:60vh;
+height:65vh;
 overflow-y:auto;
-background:#fafafa;
+padding:14px;
+background:#f7f7f8;
+border-radius:14px;
 }
 
+/* ===== Message Row ===== */
+
 .dm-msg{
-margin-bottom:12px;
 display:flex;
+margin-bottom:12px;
 }
 
 .dm-msg.me{
 justify-content:flex-end;
 }
 
+/* ===== Bubble ===== */
+
 .dm-bubble{
-padding:10px 12px;
-border-radius:12px;
-max-width:260px;
-background:#eee;
+padding:10px 14px;
+border-radius:16px;
+max-width:70%;
 font-size:14px;
+line-height:1.45;
 word-break:break-word;
+background:#fff;
+box-shadow:0 1px 3px rgba(0,0,0,.08);
 }
 
 .dm-msg.me .dm-bubble{
-background:#d2f4ff;
+background:#1d9bf0;
+color:#fff;
 }
+
+/* ===== Time ===== */
 
 .dm-time{
 font-size:11px;
 color:#888;
-margin-top:3px;
+margin-top:4px;
 }
+
+/* ===== Media ===== */
 
 .dm-media{
 margin-top:6px;
-border-radius:6px;
-max-width:240px;
+border-radius:10px;
+max-width:220px;
 display:block;
 }
 
+/* ===== Form ===== */
+
 .dm-form{
-margin-top:10px;
 display:flex;
-gap:6px;
+gap:8px;
 align-items:center;
+margin-top:12px;
 }
+
+/* ===== Input ===== */
 
 .dm-input{
 flex:1;
-padding:8px;
+padding:10px 14px;
+border-radius:999px;
 border:1px solid #ccc;
-border-radius:6px;
-min-width:0;
+font-size:14px;
 }
 
-.dm-send{
-padding:8px 14px;
-border:none;
-background:#000;
-color:#fff;
-border-radius:6px;
-cursor:pointer;
-}
-
-/* ファイル入力 */
+/* ===== File ===== */
 
 .dm-form input[type=file]{
-width:110px;
+width:85px;
 font-size:12px;
 }
 
-/* モバイル */
+/* ===== Send ===== */
+
+.dm-send{
+padding:10px 16px;
+border:none;
+background:#000;
+color:#fff;
+border-radius:999px;
+cursor:pointer;
+font-weight:700;
+}
+
+/* ===== Mobile ===== */
 
 @media (max-width:600px){
 
 .dm-box{
-height:55vh;
+height:60vh;
 }
 
 .dm-form input[type=file]{
-width:90px;
+width:70px;
 }
 
 }
@@ -269,11 +294,7 @@ console.log("dm update error")
 
 }
 
-/* 初回スクロール */
-
 box.scrollTop = box.scrollHeight
-
-/* リアルタイム更新 */
 
 setInterval(updateDM,1500)
 
