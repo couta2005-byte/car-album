@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>DM | Carbum</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/static/style.css?v=3">
+<link rel="stylesheet" href="/static/style.css?v=4">
 
 <style>
 
@@ -95,14 +95,14 @@ border-radius:6px;
 cursor:pointer;
 }
 
-/* ファイル入力を小さく */
+/* ファイル入力 */
 
 .dm-form input[type=file]{
 width:110px;
 font-size:12px;
 }
 
-/* モバイル最適化 */
+/* モバイル */
 
 @media (max-width:600px){
 
@@ -211,6 +211,8 @@ accept="image/*,video/*"
 
 const box = document.getElementById("dmBox")
 
+let lastCount = {{ messages|length }}
+
 function renderMessage(m){
 
 let media=""
@@ -245,16 +247,24 @@ try{
 const res = await fetch("/api/dm/{{ room_id }}")
 const data = await res.json()
 
-box.innerHTML=""
+if(data.messages.length > lastCount){
 
-data.messages.forEach(m=>{
-box.innerHTML += renderMessage(m)
-})
+for(let i = lastCount; i < data.messages.length; i++){
+
+box.innerHTML += renderMessage(data.messages[i])
+
+}
+
+lastCount = data.messages.length
 
 box.scrollTop = box.scrollHeight
 
+}
+
 }catch(e){
+
 console.log("dm update error")
+
 }
 
 }
