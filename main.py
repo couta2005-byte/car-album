@@ -2033,11 +2033,13 @@ def dm_room(
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
+        # ルーム確認
         cur.execute("""
             SELECT user1_id, user2_id
             FROM dm_rooms
             WHERE id=%s AND (user1_id=%s OR user2_id=%s)
         """, (room_id, me_user_id, me_user_id))
+
         row = cur.fetchone()
         if not row:
             return RedirectResponse("/", status_code=303)
@@ -2045,6 +2047,7 @@ def dm_room(
         user1_id, user2_id = row
         other_user_id = user2_id if str(user1_id) == me_user_id else user1_id
 
+        # 相手ユーザー取得
         cur.execute("""
             SELECT u.id, u.username, u.display_name, u.handle, p.icon
             FROM users u
@@ -2053,6 +2056,7 @@ def dm_room(
         """, (other_user_id,))
         other = cur.fetchone()
 
+        # 既読処理
         cur.execute("""
             UPDATE dm_messages
             SET read_at = %s
@@ -2060,8 +2064,10 @@ def dm_room(
               AND sender_id <> %s
               AND read_at IS NULL
         """, (utcnow_naive(), room_id, me_user_id))
+
         db.commit()
 
+        # DM取得
         cur.execute("""
             SELECT
                 m.id,
@@ -2070,12 +2076,15 @@ def dm_room(
                 m.created_at,
                 u.username,
                 u.display_name,
-                u.handle
+                u.handle,
+                m.media_url,
+                m.media_type
             FROM dm_messages m
             JOIN users u ON u.id = m.sender_id
             WHERE m.room_id=%s
             ORDER BY m.created_at ASC
         """, (room_id,))
+
         rows = cur.fetchall()
 
         messages = []
@@ -2088,6 +2097,8 @@ def dm_room(
                 "username": r[4],
                 "display_name": r[5],
                 "handle": r[6],
+                "media_url": r[7],
+                "media_type": r[8],
                 "is_me": str(r[1]) == me_user_id,
             })
 
@@ -2113,7 +2124,6 @@ def dm_room(
         "unread_dm": unread_dm,
         "mode": "dm",
     })
-
 @app.post("/dm/start/{target_user_id}")
 def dm_start(
     target_user_id: str,

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>DM | Carbum</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/style.css?v=2">
 
 <style>
 
@@ -68,6 +68,7 @@ margin-top:3px;
 margin-top:6px;
 border-radius:6px;
 max-width:240px;
+display:block;
 }
 
 .dm-form{
@@ -84,6 +85,15 @@ border:1px solid #ccc;
 border-radius:6px;
 }
 
+.dm-send{
+padding:8px 14px;
+border:none;
+background:#000;
+color:#fff;
+border-radius:6px;
+cursor:pointer;
+}
+
 </style>
 
 </head>
@@ -93,6 +103,10 @@ border-radius:6px;
 {% include "_nav.html" %}
 
 <main class="container dm-container">
+
+<!-- ======================
+DM HEADER
+====================== -->
 
 <div class="dm-header">
 
@@ -109,6 +123,10 @@ border-radius:6px;
 
 </div>
 
+<!-- ======================
+DM LIST
+====================== -->
+
 <div id="dmBox" class="dm-box">
 
 {% for m in messages %}
@@ -123,16 +141,10 @@ border-radius:6px;
 <div>{{ m.body }}</div>
 {% endif %}
 
-<!-- 画像 -->
-{% if m.image_url %}
-<img src="{{ m.image_url }}" class="dm-media">
-{% endif %}
-
 {% if m.media_type == "image" %}
 <img src="{{ m.media_url }}" class="dm-media">
 {% endif %}
 
-<!-- 動画 -->
 {% if m.media_type == "video" %}
 <video controls class="dm-media">
 <source src="{{ m.media_url }}">
@@ -152,6 +164,10 @@ border-radius:6px;
 {% endfor %}
 
 </div>
+
+<!-- ======================
+SEND FORM
+====================== -->
 
 <form
 action="/dm/{{ room_id }}/send"
@@ -173,7 +189,7 @@ name="media"
 accept="image/*,video/*"
 >
 
-<button type="submit">
+<button type="submit" class="dm-send">
 送信
 </button>
 
@@ -182,6 +198,10 @@ accept="image/*,video/*"
 </main>
 
 <script>
+
+/* ======================
+DM自動スクロール
+====================== */
 
 const box = document.getElementById("dmBox");
 box.scrollTop = box.scrollHeight;
