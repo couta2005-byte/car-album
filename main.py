@@ -494,7 +494,8 @@ def init_db():
             FOREIGN KEY (room_id) REFERENCES dm_rooms(id)
         );
         """)
-
+        cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS media_url TEXT;")
+        cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS media_type TEXT;")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user1_idx ON dm_rooms(user1_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user2_idx ON dm_rooms(user2_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_messages_room_time_idx ON dm_messages(room_id, created_at);")
@@ -2155,12 +2156,11 @@ def dm_send(
     room_id: str,
     request: Request,
     body: str = Form(""),
+    media: UploadFile = File(None),
     user: str = Cookie(default=None),
     uid: str = Cookie(default=None),
 ):
     body = (body or "").strip()
-    if not body:
-        return RedirectResponse(f"/dm/{room_id}", status_code=303)
 
     db = get_db()
     cur = db.cursor()
@@ -2182,17 +2182,45 @@ def dm_send(
         if not cur.fetchone():
             return RedirectResponse("/", status_code=303)
 
+        media_url = None
+        media_type = None
+
+        if media and media.filename:
+
+            result = cloudinary.uploader.upload(
+                media.file,
+                folder="carbum/dm",
+                resource_type="auto"
+            )
+
+            media_url = result.get("secure_url")
+
+            if media.content_type.startswith("video"):
+                media_type = "video"
+            else:
+                media_type = "image"
+
         cur.execute("""
-            INSERT INTO dm_messages (id, room_id, sender_id, body, created_at)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (str(uuid.uuid4()), room_id, me_user_id, body, utcnow_naive()))
+            INSERT INTO dm_messages
+            (id, room_id, sender_id, body, media_url, media_type, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (
+            str(uuid.uuid4()),
+            room_id,
+            me_user_id,
+            body,
+            media_url,
+            media_type,
+            utcnow_naive()
+        ))
+
         db.commit()
+
     finally:
         cur.close()
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
-
 @app.get("/dm", response_class=HTMLResponse)
 def dm_list(
     request: Request,

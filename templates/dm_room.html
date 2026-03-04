@@ -1,41 +1,192 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>DM | Carbum</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+<meta charset="UTF-8">
+<title>DM | Carbum</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="/static/style.css">
+
+<style>
+
+.dm-container{
+max-width:700px;
+margin:auto;
+}
+
+.dm-header{
+display:flex;
+align-items:center;
+gap:10px;
+margin-bottom:10px;
+}
+
+.dm-icon{
+width:36px;
+height:36px;
+border-radius:50%;
+object-fit:cover;
+}
+
+.dm-box{
+border:1px solid #ddd;
+border-radius:10px;
+padding:12px;
+height:60vh;
+overflow-y:auto;
+background:#fafafa;
+}
+
+.dm-msg{
+margin-bottom:12px;
+display:flex;
+}
+
+.dm-msg.me{
+justify-content:flex-end;
+}
+
+.dm-bubble{
+padding:10px 12px;
+border-radius:12px;
+max-width:260px;
+background:#eee;
+font-size:14px;
+word-break:break-word;
+}
+
+.dm-msg.me .dm-bubble{
+background:#d2f4ff;
+}
+
+.dm-time{
+font-size:11px;
+color:#888;
+margin-top:3px;
+}
+
+.dm-media{
+margin-top:6px;
+border-radius:6px;
+max-width:240px;
+}
+
+.dm-form{
+margin-top:10px;
+display:flex;
+gap:8px;
+align-items:center;
+}
+
+.dm-input{
+flex:1;
+padding:8px;
+border:1px solid #ccc;
+border-radius:6px;
+}
+
+</style>
+
 </head>
+
 <body>
 
 {% include "_nav.html" %}
 
-<main class="container">
+<main class="container dm-container">
 
-  <h2 style="margin-bottom:12px;">
-    {{ other.display_name }}
-  </h2>
+<div class="dm-header">
 
-  <div style="border:1px solid #ddd; padding:12px; min-height:300px;">
-    {% for m in messages %}
-      <div style="margin-bottom:8px; text-align:{% if m.is_me %}right{% else %}left{% endif %};">
-        <span style="display:inline-block; padding:6px 10px; border-radius:6px; background:#f1f1f1;">
-          {{ m.body }}
-        </span>
-        <div style="font-size:11px; color:#888;">
-          {{ m.created_at }}
-        </div>
-      </div>
-    {% endfor %}
-  </div>
+{% if other.icon %}
+<img src="{{ other.icon }}" class="dm-icon">
+{% endif %}
 
-  <form action="/dm/{{ room_id }}/send" method="post" style="margin-top:12px; display:flex; gap:8px;">
-    <input name="body" required placeholder="メッセージ"
-           style="flex:1; padding:8px;">
-    <button type="submit">送信</button>
-  </form>
+<div>
+<strong>{{ other.display_name }}</strong>
+{% if other.handle %}
+<div style="font-size:12px;color:#888">@{{ other.handle }}</div>
+{% endif %}
+</div>
+
+</div>
+
+<div id="dmBox" class="dm-box">
+
+{% for m in messages %}
+
+<div class="dm-msg {% if m.is_me %}me{% endif %}">
+
+<div>
+
+<div class="dm-bubble">
+
+{% if m.body %}
+<div>{{ m.body }}</div>
+{% endif %}
+
+<!-- 画像 -->
+{% if m.image_url %}
+<img src="{{ m.image_url }}" class="dm-media">
+{% endif %}
+
+{% if m.media_type == "image" %}
+<img src="{{ m.media_url }}" class="dm-media">
+{% endif %}
+
+<!-- 動画 -->
+{% if m.media_type == "video" %}
+<video controls class="dm-media">
+<source src="{{ m.media_url }}">
+</video>
+{% endif %}
+
+</div>
+
+<div class="dm-time">
+{{ m.created_at }}
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+<form
+action="/dm/{{ room_id }}/send"
+method="post"
+enctype="multipart/form-data"
+class="dm-form"
+>
+
+<input
+name="body"
+class="dm-input"
+placeholder="メッセージ"
+autocomplete="off"
+>
+
+<input
+type="file"
+name="media"
+accept="image/*,video/*"
+>
+
+<button type="submit">
+送信
+</button>
+
+</form>
 
 </main>
+
+<script>
+
+const box = document.getElementById("dmBox");
+box.scrollTop = box.scrollHeight;
+
+</script>
 
 </body>
 </html>
