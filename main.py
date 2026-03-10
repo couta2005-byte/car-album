@@ -1779,8 +1779,13 @@ def post(
 
     # MAP表示期限
     map_expires_at = None
-    if latitude is not None and longitude is not None:
-        map_expires_at = utcnow_naive() + timedelta(hours=24)
+
+    # 画像がある場合のみMAP投稿
+    if main_image and latitude is not None and longitude is not None:
+       map_expires_at = utcnow_naive() + timedelta(hours=24)
+    else:
+        latitude = None
+        longitude = None
     def _do(db, cur):
         cur.execute("""
             INSERT INTO posts
