@@ -6,7 +6,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="/static/style.css?v=1">
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+
+<link rel="stylesheet"
+href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
 
 <style>
 
@@ -47,13 +55,10 @@ width:100%;
 height:120px;
 object-fit:cover;
 border-radius:10px;
-display:block;
 margin-bottom:8px;
 }
 
 .map-popup a{
-display:inline-block;
-margin-top:4px;
 font-size:13px;
 font-weight:700;
 text-decoration:none;
@@ -68,6 +73,7 @@ color:#777;
 </style>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
 
 </head>
 <body>
@@ -76,17 +82,14 @@ color:#777;
 
 <div class="map-page">
 
-<div class="map-title">
-Carbum MAP
-</div>
-
-<div class="map-desc">
-24時間以内の位置つき投稿を表示しています
-</div>
+<div class="map-title">Carbum MAP</div>
+<div class="map-desc">24時間以内の位置つき投稿を表示しています</div>
 
 <div id="map"></div>
 
-<div id="map-empty" class="map-empty" style="display:none;">
+<div id="map-empty"
+class="map-empty"
+style="display:none;">
 まだMAP投稿がありません
 </div>
 
@@ -94,16 +97,18 @@ Carbum MAP
 
 <script>
 
-const map = L.map('map').setView([43.77,142.36],12)
+const map = L.map("map").setView([43.77,142.36],12)
 
 L.tileLayer(
-'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 {
-attribution:'© OpenStreetMap contributors'
+attribution:"© OpenStreetMap"
 }
 ).addTo(map)
 
-let markers=[]
+
+// ★クラスタ
+const markers = L.markerClusterGroup()
 
 fetch("/api/map_posts")
 
@@ -122,22 +127,26 @@ const bounds=[]
 
 data.forEach(p=>{
 
-if(p.lat==null || p.lng==null)return
+if(!p.lat || !p.lng) return
 
 bounds.push([p.lat,p.lng])
 
-const popupHtml=`
+const popup = `
 <div class="map-popup">
-<img src="${p.image}" alt="post image">
+<img src="${p.image}">
 <a href="/post/${p.id}">投稿を見る</a>
 </div>
 `
 
-const marker=L.marker([p.lat,p.lng]).bindPopup(popupHtml)
+const marker = L.marker([p.lat,p.lng])
 
-markers.push(marker)
+marker.bindPopup(popup)
+
+markers.addLayer(marker)
 
 })
+
+map.addLayer(markers)
 
 if(bounds.length>0){
 
@@ -145,45 +154,16 @@ map.fitBounds(bounds,{padding:[30,30]})
 
 }
 
-updateMarkers()
-
 })
 
 .catch(err=>{
 
-console.error("map load error:",err)
+console.log(err)
 
 document.getElementById("map-empty").style.display="block"
-
-document.getElementById("map-empty").textContent="MAPの読み込みに失敗しました"
-
-})
-
-function updateMarkers(){
-
-const zoom=map.getZoom()
-
-markers.forEach(m=>{
-
-if(zoom>=15){
-
-if(!map.hasLayer(m)){
-m.addTo(map)
-}
-
-}else{
-
-if(map.hasLayer(m)){
-map.removeLayer(m)
-}
-
-}
+document.getElementById("map-empty").textContent="MAP読み込み失敗"
 
 })
-
-}
-
-map.on("zoomend",updateMarkers)
 
 </script>
 
