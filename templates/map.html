@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Carbum MAP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="/static/style.css?v=1">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+  <style>
+    .map-page{
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .map-title{
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .map-desc{
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 14px;
+    }
+
+    #map{
+      width: 100%;
+      height: 70vh;
+      min-height: 420px;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #ddd;
+      background: #f7f7f7;
+    }
+
+    .map-popup{
+      width: 170px;
+    }
+
+    .map-popup img{
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .map-popup a{
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .map-empty{
+      margin-top: 14px;
+      font-size: 14px;
+      color: #777;
+    }
+  </style>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+
+  {% include "_nav.html" %}
+
+  <div class="map-page">
+    <div class="map-title">Carbum MAP</div>
+    <div class="map-desc">24時間以内の位置つき投稿を表示しています</div>
+
+    <div id="map"></div>
+    <div id="map-empty" class="map-empty" style="display:none;">
+      まだMAP投稿がありません
+    </div>
+  </div>
+
+  <script>
+    const map = L.map('map').setView([43.77, 142.36], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    fetch("/api/map_posts")
+      .then(res => res.json())
+      .then(data => {
+        if (!data || data.length === 0) {
+          document.getElementById("map-empty").style.display = "block";
+          return;
+        }
+
+        const bounds = [];
+
+        data.forEach(p => {
+          if (p.lat == null || p.lng == null) return;
+
+          bounds.push([p.lat, p.lng]);
+
+          const popupHtml = `
+            <div class="map-popup">
+              <img src="${p.image}" alt="post image">
+              <a href="/post/${p.id}">投稿を見る</a>
+            </div>
+          `;
+
+          L.marker([p.lat, p.lng])
+            .addTo(map)
+            .bindPopup(popupHtml);
+        });
+
+        if (bounds.length > 0) {
+          map.fitBounds(bounds, { padding: [30, 30] });
+        }
+      })
+      .catch(err => {
+        console.error("map load error:", err);
+        document.getElementById("map-empty").style.display = "block";
+        document.getElementById("map-empty").textContent = "MAPの読み込みに失敗しました";
+      });
+  </script>
+
+</body>
+</html>

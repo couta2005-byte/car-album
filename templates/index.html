@@ -197,9 +197,17 @@
               class="comment-compact"
               placeholder="例：雪溶けたら今年もツーリング開始"
               required></textarea>
+    
+    <label style="display:block;margin-top:8px;">
+     <input type="checkbox" id="useLocation">
+   📍現在位置をMAPに表示（24時間）
+    </label>
 
+    <input type="hidden" name="latitude" id="lat">
+    <input type="hidden" name="longitude" id="lng">
     <button class="primary-btn post-submit">投稿</button>
-  </form>
+  
+</form>
   {% endif %}
 
   <!-- Posts -->
@@ -353,5 +361,41 @@ document.addEventListener("click", (e) => {
 });
 </script>
 
+<script>
+
+const box = document.getElementById("useLocation");
+
+if(box){
+
+box.addEventListener("change", () => {
+
+ if(!box.checked) return;
+
+ if(!navigator.geolocation){
+  alert("位置情報が使えません");
+  return;
+ }
+
+ navigator.geolocation.getCurrentPosition((pos)=>{
+
+  let lat = pos.coords.latitude;
+  let lng = pos.coords.longitude;
+
+  // 位置を少しぼかす（約50m）
+  const offset = ()=> (Math.random()-0.5)*0.001;
+
+  lat += offset();
+  lng += offset();
+
+  document.getElementById("lat").value = lat;
+  document.getElementById("lng").value = lng;
+
+ });
+
+});
+
+}
+
+</script>
 </body>
 </html>

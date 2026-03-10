@@ -11,6 +11,12 @@
       </a>
 
       {% if user %}
+        <!-- MAP -->
+        <a href="/map"
+           class="nav-link {% if mode=='map' %}active{% endif %}">
+          MAP
+        </a>
+
         <!-- ランキング -->
         <a href="/ranking?period=day"
            class="nav-link {% if mode and mode.startswith('ranking') %}active{% endif %}">
@@ -27,7 +33,7 @@
         </a>
 
         <!-- ✅ プロフィール（右上固定アイコン） -->
-        <a href="/user/{{ user | urlencode }}"
+        <a href="/user/{{ (me_handle if me_handle else user) | urlencode }}"
            class="nav-avatar-wrap"
            aria-label="プロフィール">
           {% if user_icon %}

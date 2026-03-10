@@ -344,14 +344,23 @@ def init_db():
 
         # posts.user_id
         cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS user_id UUID;")
+
         cur.execute("""
-            UPDATE posts p
-            SET user_id = u.id
-            FROM users u
-            WHERE p.user_id IS NULL AND p.username = u.username;
+        UPDATE posts p
+        SET user_id = u.id
+        FROM users u
+        WHERE p.user_id IS NULL
+        AND p.username = u.username;
         """)
+
         cur.execute("CREATE INDEX IF NOT EXISTS posts_user_id_idx ON posts(user_id);")
 
+        # ======================
+        # MAP投稿カラム
+        # ======================
+        cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;")
+        cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;")
+        cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS map_expires_at TIMESTAMP;")        
         # comments.user_id
         cur.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS user_id UUID;")
         cur.execute("""
@@ -1711,6 +1720,9 @@ def unfollow(key: str, user: str = Cookie(default=None), uid: str = Cookie(defau
 # ======================
 # post（user_idで保存） + ✅複数画像投稿対応
 # ======================
+# ======================
+# post（user_idで保存） + ✅複数画像投稿対応 + MAP投稿
+# ======================
 @app.post("/post")
 def post(
     request: Request,
@@ -1718,6 +1730,8 @@ def post(
     region: str = Form(""),
     car: str = Form(""),
     comment: str = Form(""),
+    latitude: float = Form(None),
+    longitude: float = Form(None),
     images: Optional[List[UploadFile]] = File(None),  # ✅ 複数
     image: UploadFile = File(None),                   # 互換（残す）
     user: str = Cookie(default=None),
@@ -1763,12 +1777,41 @@ def post(
     # 互換用：posts.image には先頭1枚
     main_image = image_urls[0] if image_urls else None
 
+    # MAP表示期限
+    map_expires_at = None
+    if latitude is not None and longitude is not None:
+        map_expires_at = utcnow_naive() + timedelta(hours=24)
     def _do(db, cur):
         cur.execute("""
-            INSERT INTO posts (username, user_id, maker, region, car, comment, image, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO posts
+            (
+                username,
+                user_id,
+                maker,
+                region,
+                car,
+                comment,
+                image,
+                created_at,
+                latitude,
+                longitude,
+                map_expires_at
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
-        """, (me_username, me_user_id, maker, region, car, comment, main_image, utcnow_naive()))
+        """, (
+            me_username,
+            me_user_id,
+            maker,
+            region,
+            car,
+            comment,
+            main_image,
+            utcnow_naive(),
+            latitude,
+            longitude,
+            map_expires_at
+        ))
         new_post_id = cur.fetchone()[0]
 
         # ✅ 複数画像保存
@@ -1780,7 +1823,6 @@ def post(
 
     run_db(_do)
     return redirect_back(request, "/")
-
 # ======================
 # ✅ auth（pbkdf2） + ✅ email/handle/username ログイン
 # ======================
@@ -2850,3 +2892,88 @@ def api_dm(room_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
         db.close()
 
     return {"messages":messages}
+# ======================
+# MAP投稿取得API
+# ======================
+@app.get("/api/map_posts")
+def map_posts():
+
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+
+        cur.execute("""
+
+            SELECT 
+                p.id,
+                p.latitude,
+                p.longitude,
+                COALESCE(
+                    p.image,
+                    (
+                        SELECT url
+                        FROM post_images
+                        WHERE post_id = p.id
+                        ORDER BY sort ASC
+                        LIMIT 1
+                    )
+                ) AS image
+
+            FROM posts p
+
+            WHERE p.map_expires_at IS NOT NULL
+              AND p.map_expires_at > (NOW() AT TIME ZONE 'UTC')
+              AND p.latitude IS NOT NULL
+              AND p.longitude IS NOT NULL
+
+            ORDER BY p.created_at DESC
+
+        """)
+
+        rows = cur.fetchall()
+
+        data = []
+
+        for r in rows:
+
+            data.append({
+                "id": r[0],
+                "lat": r[1],
+                "lng": r[2],
+                "image": r[3] or "/static/noimage.png"
+            })
+
+    finally:
+        cur.close()
+        db.close()
+
+    return data
+@app.get("/map", response_class=HTMLResponse)
+def map_page(
+    request: Request,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
+
+    db = get_db()
+
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
+    finally:
+        db.close()
+
+    return templates.TemplateResponse(
+        "map.html",
+        {
+            "request": request,
+            "user": me_username,
+            "me_user_id": me_user_id,
+            "me_handle": me_handle,
+            "user_icon": user_icon,
+            "unread_dm": unread_dm,
+        }
+    )
