@@ -70,6 +70,12 @@ font-size:14px;
 color:#777;
 }
 
+.user-map-icon{
+border-radius:50%;
+border:2px solid white;
+box-shadow:0 2px 6px rgba(0,0,0,0.3);
+}
+
 </style>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
@@ -106,8 +112,6 @@ attribution:"© OpenStreetMap"
 }
 ).addTo(map)
 
-
-// ★クラスタ
 const markers = L.markerClusterGroup()
 
 fetch("/api/map_posts")
@@ -131,6 +135,21 @@ if(!p.lat || !p.lng) return
 
 bounds.push([p.lat,p.lng])
 
+// ユーザーアイコン
+const icon = L.icon({
+
+iconUrl: p.user_icon ? p.user_icon : "/static/user.png",
+
+iconSize:[42,42],
+
+iconAnchor:[21,21],
+
+popupAnchor:[0,-20],
+
+className:"user-map-icon"
+
+})
+
 const popup = `
 <div class="map-popup">
 <img src="${p.image}">
@@ -138,7 +157,7 @@ const popup = `
 </div>
 `
 
-const marker = L.marker([p.lat,p.lng])
+const marker = L.marker([p.lat,p.lng],{icon:icon})
 
 marker.bindPopup(popup)
 
@@ -161,6 +180,7 @@ map.fitBounds(bounds,{padding:[30,30]})
 console.log(err)
 
 document.getElementById("map-empty").style.display="block"
+
 document.getElementById("map-empty").textContent="MAP読み込み失敗"
 
 })
