@@ -2960,15 +2960,22 @@ def map_posts():
                         ORDER BY sort ASC
                         LIMIT 1
                     )
-                ) AS image
+                ) AS image,
+
+                pr.icon
 
             FROM posts p
+
+            LEFT JOIN users u
+                ON p.user_id = u.id
+
+            LEFT JOIN profiles pr
+                ON pr.user_id = u.id
 
             WHERE
                 p.map_expires_at IS NOT NULL
                 AND p.map_expires_at > NOW()
 
-                -- 座標チェック
                 AND p.latitude IS NOT NULL
                 AND p.longitude IS NOT NULL
                 AND p.latitude BETWEEN -90 AND 90
@@ -2989,7 +2996,8 @@ def map_posts():
                 "id": r[0],
                 "lat": float(r[1]),
                 "lng": float(r[2]),
-                "image": r[3] if r[3] else "/static/noimage.png"
+                "image": r[3] if r[3] else "/static/noimage.png",
+                "user_icon": r[4] if r[4] else "/static/default-icon.png"
             })
 
         return data
