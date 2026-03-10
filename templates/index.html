@@ -192,14 +192,18 @@
       </select>
     </div>
 
-     <textarea name="comment"   
-    <label style="display:block;margin-top:8px;">
-     <input type="checkbox" id="useLocation">
+    <textarea name="comment"
+    rows="2"
+    class="comment-compact"
+    placeholder="コメント（任意）"></textarea>
+
+    <label class="map-toggle">
+    <input type="checkbox" id="useLocation">
    📍現在位置をMAPに表示（24時間）
     </label>
 
     <input type="hidden" name="latitude" id="lat">
-    <input type="hidden" name="longitude" id="lng">
+    <input type="hidden" name="longitude" id="lng"> 
     <button class="primary-btn post-submit">投稿</button>
   
 </form>
@@ -360,33 +364,45 @@ document.addEventListener("click", (e) => {
 
 const box = document.getElementById("useLocation");
 
-if(box){
+if (box) {
 
 box.addEventListener("change", () => {
 
- if(!box.checked) return;
+  if (!box.checked) {
+    document.getElementById("lat").value = "";
+    document.getElementById("lng").value = "";
+    return;
+  }
 
- if(!navigator.geolocation){
-  alert("位置情報が使えません");
-  return;
- }
+  if (!navigator.geolocation) {
+    alert("位置情報が使えません");
+    box.checked = false;
+    return;
+  }
 
- navigator.geolocation.getCurrentPosition((pos)=>{
+  navigator.geolocation.getCurrentPosition((pos) => {
 
-  let lat = pos.coords.latitude;
-  let lng = pos.coords.longitude;
+    let lat = pos.coords.latitude;
+    let lng = pos.coords.longitude;
 
-  // 位置を少しぼかす（約50m）
-  const offset = ()=> (Math.random()-0.5)*0.001;
+    const offset = () => (Math.random() - 0.5) * 0.001;
 
-  lat += offset();
-  lng += offset();
+    lat += offset();
+    lng += offset();
 
-  document.getElementById("lat").value = lat;
-  document.getElementById("lng").value = lng;
+    document.getElementById("lat").value = lat;
+    document.getElementById("lng").value = lng;
 
- });
+  }, () => {
 
+    alert("位置取得に失敗しました");
+    box.checked = false;
+
+  });
+
+});
+
+}
 });
 
 }
