@@ -1730,8 +1730,8 @@ def post(
     region: str = Form(""),
     car: str = Form(""),
     comment: str = Form(""),
-    latitude: float = Form(None),
-    longitude: float = Form(None),
+    latitude: Optional[str] = Form(None),
+    longitude: Optional[str] = Form(None),
     images: Optional[List[UploadFile]] = File(None),
     image: UploadFile = File(None),
     user: str = Cookie(default=None),
@@ -1753,15 +1753,23 @@ def post(
         cur.close()
         db.close()
 
-    # ✅ 互換：旧imageしか来ない場合は images に入れる
+    # =========================
+    # 画像受け取り（新旧互換）
+    # =========================
     files: List[UploadFile] = []
+
     if images:
         files.extend([f for f in images if f and f.filename])
+
     if (not files) and image and image.filename:
         files.append(image)
 
+    # =========================
+    # Cloudinaryアップロード
+    # =========================
     image_urls: List[str] = []
-    for f in files[:10]:  # 上限10枚
+
+    for f in files[:10]:
         result = cloudinary.uploader.upload(
             f.file,
             folder="carbum/posts",
@@ -1777,15 +1785,44 @@ def post(
     # 互換用：posts.image には先頭1枚
     main_image = image_urls[0] if image_urls else None
 
-    # MAP表示期限
+    # =========================
+    # 位置情報の空データ対策（安定版）
+    # =========================
+    latitude_val = None
+    longitude_val = None
+
+    try:
+        if latitude not in ("", None):
+            lat = float(latitude)
+            if -90 <= lat <= 90:
+                latitude_val = lat
+    except:
+        latitude_val = None
+
+    try:
+        if longitude not in ("", None):
+            lng = float(longitude)
+            if -180 <= lng <= 180:
+                longitude_val = lng
+    except:
+        longitude_val = None
+    # =========================
+    # MAPは「画像あり + 緯度経度あり」の時だけ有効
+    # =========================
     map_expires_at = None
 
-    # 画像がある場合のみMAP投稿
-    if main_image and latitude is not None and longitude is not None:
-       map_expires_at = utcnow_naive() + timedelta(hours=24)
-    else:
-        latitude = None
-        longitude = None
+    # MAPに出る条件
+    if main_image and latitude_val is not None and longitude_val is not None:
+        map_expires_at = utcnow_naive() + timedelta(hours=24)
+
+    # 画像なしの場合はMAP期限だけ消す（位置は保存）
+    if not main_image:
+        map_expires_at = None
+
+
+    # =========================
+    # DB保存
+    # =========================
     def _do(db, cur):
         cur.execute("""
             INSERT INTO posts
@@ -1813,13 +1850,12 @@ def post(
             comment,
             main_image,
             utcnow_naive(),
-            latitude,
-            longitude,
+            latitude_val,
+            longitude_val,
             map_expires_at
         ))
         new_post_id = cur.fetchone()[0]
 
-        # ✅ 複数画像保存
         for idx, url in enumerate(image_urls):
             cur.execute("""
                 INSERT INTO post_images (post_id, url, sort, created_at)
@@ -2914,6 +2950,7 @@ def map_posts():
                 p.id,
                 p.latitude,
                 p.longitude,
+
                 COALESCE(
                     p.image,
                     (
@@ -2927,10 +2964,16 @@ def map_posts():
 
             FROM posts p
 
-            WHERE p.map_expires_at IS NOT NULL
-              AND p.map_expires_at > (NOW() AT TIME ZONE 'UTC')
-              AND p.latitude IS NOT NULL
-              AND p.longitude IS NOT NULL
+            WHERE
+                p.map_expires_at IS NOT NULL
+                AND p.map_expires_at > NOW()
+
+                -- 座標チェック
+                AND p.latitude IS NOT NULL
+                AND p.longitude IS NOT NULL
+                AND p.latitude BETWEEN -90 AND 90
+                AND p.longitude BETWEEN -180 AND 180
+                AND NOT (p.latitude = 0 AND p.longitude = 0)
 
             ORDER BY p.created_at DESC
 
@@ -2944,16 +2987,20 @@ def map_posts():
 
             data.append({
                 "id": r[0],
-                "lat": r[1],
-                "lng": r[2],
-                "image": r[3] or "/static/noimage.png"
+                "lat": float(r[1]),
+                "lng": float(r[2]),
+                "image": r[3] if r[3] else "/static/noimage.png"
             })
+
+        return data
+
+    except Exception as e:
+        print("MAP API ERROR:", e)
+        return []
 
     finally:
         cur.close()
         db.close()
-
-    return data
 @app.get("/map", response_class=HTMLResponse)
 def map_page(
     request: Request,
