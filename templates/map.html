@@ -1,130 +1,191 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>Carbum MAP</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Carbum MAP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="/static/style.css?v=1">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="/static/style.css?v=1">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-  <style>
-    .map-page{
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 16px;
-    }
+<style>
 
-    .map-title{
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 12px;
-    }
+.map-page{
+max-width:900px;
+margin:0 auto;
+padding:16px;
+}
 
-    .map-desc{
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 14px;
-    }
+.map-title{
+font-size:22px;
+font-weight:700;
+margin-bottom:12px;
+}
 
-    #map{
-      width: 100%;
-      height: 70vh;
-      min-height: 420px;
-      border-radius: 14px;
-      overflow: hidden;
-      border: 1px solid #ddd;
-      background: #f7f7f7;
-    }
+.map-desc{
+font-size:14px;
+color:#666;
+margin-bottom:14px;
+}
 
-    .map-popup{
-      width: 170px;
-    }
+#map{
+width:100%;
+height:70vh;
+min-height:420px;
+border-radius:14px;
+overflow:hidden;
+border:1px solid #ddd;
+background:#f7f7f7;
+}
 
-    .map-popup img{
-      width: 100%;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 10px;
-      display: block;
-      margin-bottom: 8px;
-    }
+.map-popup{
+width:170px;
+}
 
-    .map-popup a{
-      display: inline-block;
-      margin-top: 4px;
-      font-size: 13px;
-      font-weight: 700;
-      text-decoration: none;
-    }
+.map-popup img{
+width:100%;
+height:120px;
+object-fit:cover;
+border-radius:10px;
+display:block;
+margin-bottom:8px;
+}
 
-    .map-empty{
-      margin-top: 14px;
-      font-size: 14px;
-      color: #777;
-    }
-  </style>
+.map-popup a{
+display:inline-block;
+margin-top:4px;
+font-size:13px;
+font-weight:700;
+text-decoration:none;
+}
 
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+.map-empty{
+margin-top:14px;
+font-size:14px;
+color:#777;
+}
+
+</style>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 </head>
 <body>
 
-  {% include "_nav.html" %}
+{% include "_nav.html" %}
 
-  <div class="map-page">
-    <div class="map-title">Carbum MAP</div>
-    <div class="map-desc">24時間以内の位置つき投稿を表示しています</div>
+<div class="map-page">
 
-    <div id="map"></div>
-    <div id="map-empty" class="map-empty" style="display:none;">
-      まだMAP投稿がありません
-    </div>
-  </div>
+<div class="map-title">
+Carbum MAP
+</div>
 
-  <script>
-    const map = L.map('map').setView([43.77, 142.36], 12);
+<div class="map-desc">
+24時間以内の位置つき投稿を表示しています
+</div>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+<div id="map"></div>
 
-    fetch("/api/map_posts")
-      .then(res => res.json())
-      .then(data => {
-        if (!data || data.length === 0) {
-          document.getElementById("map-empty").style.display = "block";
-          return;
-        }
+<div id="map-empty" class="map-empty" style="display:none;">
+まだMAP投稿がありません
+</div>
 
-        const bounds = [];
+</div>
 
-        data.forEach(p => {
-          if (p.lat == null || p.lng == null) return;
+<script>
 
-          bounds.push([p.lat, p.lng]);
+const map = L.map('map').setView([43.77,142.36],12)
 
-          const popupHtml = `
-            <div class="map-popup">
-              <img src="${p.image}" alt="post image">
-              <a href="/post/${p.id}">投稿を見る</a>
-            </div>
-          `;
+L.tileLayer(
+'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
+attribution:'© OpenStreetMap contributors'
+}
+).addTo(map)
 
-          L.marker([p.lat, p.lng])
-            .addTo(map)
-            .bindPopup(popupHtml);
-        });
+let markers=[]
 
-        if (bounds.length > 0) {
-          map.fitBounds(bounds, { padding: [30, 30] });
-        }
-      })
-      .catch(err => {
-        console.error("map load error:", err);
-        document.getElementById("map-empty").style.display = "block";
-        document.getElementById("map-empty").textContent = "MAPの読み込みに失敗しました";
-      });
-  </script>
+fetch("/api/map_posts")
+
+.then(res=>res.json())
+
+.then(data=>{
+
+if(!data || data.length===0){
+
+document.getElementById("map-empty").style.display="block"
+return
+
+}
+
+const bounds=[]
+
+data.forEach(p=>{
+
+if(p.lat==null || p.lng==null)return
+
+bounds.push([p.lat,p.lng])
+
+const popupHtml=`
+<div class="map-popup">
+<img src="${p.image}" alt="post image">
+<a href="/post/${p.id}">投稿を見る</a>
+</div>
+`
+
+const marker=L.marker([p.lat,p.lng]).bindPopup(popupHtml)
+
+markers.push(marker)
+
+})
+
+if(bounds.length>0){
+
+map.fitBounds(bounds,{padding:[30,30]})
+
+}
+
+updateMarkers()
+
+})
+
+.catch(err=>{
+
+console.error("map load error:",err)
+
+document.getElementById("map-empty").style.display="block"
+
+document.getElementById("map-empty").textContent="MAPの読み込みに失敗しました"
+
+})
+
+function updateMarkers(){
+
+const zoom=map.getZoom()
+
+markers.forEach(m=>{
+
+if(zoom>=15){
+
+if(!map.hasLayer(m)){
+m.addTo(map)
+}
+
+}else{
+
+if(map.hasLayer(m)){
+map.removeLayer(m)
+}
+
+}
+
+})
+
+}
+
+map.on("zoomend",updateMarkers)
+
+</script>
 
 </body>
 </html>
