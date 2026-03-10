@@ -48,7 +48,7 @@
 
     <label class="image-upload compact">
       <!-- ✅ 複数画像対応 -->
-      <input type="file" name="images" accept="image/*" multiple required>
+    <input type="file" name="images" accept="image/*" multiple> 
       <span class="image-upload-text">📸 写真を選択</span>
     </label>
 
@@ -192,12 +192,7 @@
       </select>
     </div>
 
-    <textarea name="comment"
-              rows="2"
-              class="comment-compact"
-              placeholder="例：雪溶けたら今年もツーリング開始"
-              required></textarea>
-    
+     <textarea name="comment"   
     <label style="display:block;margin-top:8px;">
      <input type="checkbox" id="useLocation">
    📍現在位置をMAPに表示（24時間）

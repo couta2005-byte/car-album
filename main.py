@@ -1732,8 +1732,8 @@ def post(
     comment: str = Form(""),
     latitude: float = Form(None),
     longitude: float = Form(None),
-    images: Optional[List[UploadFile]] = File(None),  # ✅ 複数
-    image: UploadFile = File(None),                   # 互換（残す）
+    images: Optional[List[UploadFile]] = File(None),
+    image: UploadFile = File(None),
     user: str = Cookie(default=None),
     uid: str = Cookie(default=None),
 ):
