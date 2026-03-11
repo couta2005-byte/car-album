@@ -5,7 +5,7 @@
 <title>Carbum MAP</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="/static/style.css?v=1">
+<link rel="stylesheet" href="/static/style.css?v=2">
 
 <link rel="stylesheet"
 href="https://unpkg.com/leaflet/dist/leaflet.css"/>
@@ -103,16 +103,48 @@ style="display:none;">
 
 <script>
 
-const map = L.map("map").setView([43.77,142.36],12)
+//////////////////////////////////////////////////
+// MAP 初期設定
+//////////////////////////////////////////////////
 
-L.tileLayer(
+const normalMap = L.tileLayer(
 "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
 {
 attribution:"© OpenStreetMap"
+})
+
+const satelliteMap = L.tileLayer(
+"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+{
+attribution:"Tiles © Esri"
+})
+
+const map = L.map("map",{
+center:[43.77,142.36],
+zoom:12,
+layers:[satelliteMap] // デフォルト航空写真
+})
+
+//////////////////////////////////////////////////
+// 地図切替
+//////////////////////////////////////////////////
+
+const baseMaps = {
+"航空写真": satelliteMap,
+"地図": normalMap
 }
-).addTo(map)
+
+L.control.layers(baseMaps).addTo(map)
+
+//////////////////////////////////////////////////
+// マーカークラスタ
+//////////////////////////////////////////////////
 
 const markers = L.markerClusterGroup()
+
+//////////////////////////////////////////////////
+// 投稿取得
+//////////////////////////////////////////////////
 
 fetch("/api/map_posts")
 
@@ -135,7 +167,10 @@ if(!p.lat || !p.lng) return
 
 bounds.push([p.lat,p.lng])
 
+//////////////////////////////////////////////////
 // ユーザーアイコン
+//////////////////////////////////////////////////
+
 const icon = L.icon({
 
 iconUrl: p.user_icon ? p.user_icon : "/static/user.png",
@@ -150,12 +185,20 @@ className:"user-map-icon"
 
 })
 
+//////////////////////////////////////////////////
+// ポップアップ
+//////////////////////////////////////////////////
+
 const popup = `
 <div class="map-popup">
 <img src="${p.image}">
 <a href="/post/${p.id}">投稿を見る</a>
 </div>
 `
+
+//////////////////////////////////////////////////
+// マーカー
+//////////////////////////////////////////////////
 
 const marker = L.marker([p.lat,p.lng],{icon:icon})
 
@@ -165,7 +208,15 @@ markers.addLayer(marker)
 
 })
 
+//////////////////////////////////////////////////
+// MAP追加
+//////////////////////////////////////////////////
+
 map.addLayer(markers)
+
+//////////////////////////////////////////////////
+// 自動ズーム
+//////////////////////////////////////////////////
 
 if(bounds.length>0){
 
