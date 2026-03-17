@@ -582,5 +582,34 @@ window.addEventListener("pageshow", () => {
   }
 });
 </script>
+<!-- ===== 投稿後スクリプトここまで ===== -->
+
+<!-- 画像拡大モーダル -->
+<div id="imgModal" class="img-modal">
+  <div class="img-modal-inner">
+    <img id="imgModalSrc" src="">
+  </div>
+</div>
+
+<script>
+// ===== 画像タップ拡大 =====
+const modal = document.getElementById("imgModal");
+const modalImg = document.getElementById("imgModalSrc");
+
+document.addEventListener("click", (e) => {
+  const img = e.target.closest(".post-image img, .post-images img");
+  if (!img) return;
+
+  modalImg.src = img.src;
+  modal.classList.add("open");
+});
+
+// 閉じる
+modal.addEventListener("click", () => {
+  modal.classList.remove("open");
+  modalImg.src = "";
+});
+</script>
+
 </body>
 </html>

@@ -1697,3 +1697,24 @@ margin-top:10px;
   height:100% !important;
   object-fit:cover !important;
 }
+/* ===== 画像拡大モーダル ===== */
+.img-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:16px;
+}
+
+.img-modal.open{
+  display:flex;
+}
+
+.img-modal img{
+  max-width:100%;
+  max-height:100%;
+  border-radius:12px;
+}
