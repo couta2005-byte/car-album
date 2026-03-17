@@ -159,7 +159,7 @@ async function loadMakers(selectId) {
 
   makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
 
-  const res = await fetch("/api/makers");
+  const res = await fetch("/api/makers?category=car");
   const makers = await res.json();
 
   makers.forEach((m) => {
