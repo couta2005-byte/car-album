@@ -1640,3 +1640,27 @@ margin-top:10px;
   font-size:13px;
   cursor:pointer;
 }
+/* ===== プレビュー修正 ===== */
+
+.preview-box{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+
+/* 画像サイズ制限 */
+.preview-img{
+  width:100px;
+  height:100px;
+  object-fit:cover;
+  border-radius:10px;
+}
+
+/* スマホ対応 */
+@media (max-width:480px){
+  .preview-img{
+    width:80px;
+    height:80px;
+  }
+}
