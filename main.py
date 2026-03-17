@@ -1467,6 +1467,7 @@ def get_cars_by_name(maker_name: str):
     db.close()
 
     return [{"name": c[0]} for c in cars]
+import csv
 @app.get("/api/cars/by-maker-id/{maker_id}")
 def get_cars_by_maker_id(maker_id: str):
     def _do(db, cur):
@@ -1548,6 +1549,34 @@ def init_cars():
             ON CONFLICT DO NOTHING;
         """)
         db.commit()
+    finally:
+        cur.close()
+        db.close()
+
+    return {"ok": True}
+@app.get("/init/cars/csv")
+def init_cars_csv():
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        with open("cars.csv", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+
+            i = 1
+            for row in reader:
+                maker_id = row["maker_id"]
+                name = row["name"]
+
+                cur.execute("""
+                    INSERT INTO car_models (id, maker_id, name)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT DO NOTHING
+                """, (f"{maker_id}_{i}", maker_id, name))
+                i += 1
+
+        db.commit()
+
     finally:
         cur.close()
         db.close()
@@ -2091,74 +2120,50 @@ def profile_edit(
 # ======================
 @app.post("/profile/cars/add")
 def add_user_car(
-    request: Request,
-    maker_id: str = Form(""),
-    car: str = Form(""),
+    maker_id: str = Form(...),
+    car: str = Form(...),
     set_primary: str = Form(""),
     user: str = Cookie(default=None),
     uid: str = Cookie(default=None),
 ):
-    maker_id = (maker_id or "").strip()
-    car = (car or "").strip()
-
     db = get_db()
     cur = db.cursor()
 
     try:
-        me_username, me_user_id = get_me_from_cookies(db, user, uid)
-        if not me_user_id:
+        _, user_id = get_me_from_cookies(db, user, uid)
+        if not user_id:
             return RedirectResponse("/login", status_code=303)
 
-        # 🚗 メーカー存在確認
+        # メーカー名取得
         cur.execute("SELECT name FROM makers WHERE id=%s", (maker_id,))
-        maker_row = cur.fetchone()
-        if not maker_row:
+        row = cur.fetchone()
+        if not row:
             return RedirectResponse("/profile/edit?error=invalid_maker", status_code=303)
 
-        maker_name = (maker_row[0] or "").strip()
+        maker_name = row[0]
 
-        # 🚗 車種チェック（maker_name ベース）
-        if not is_valid_maker_car(db, maker_name, car):
+        # 車種チェック
+        cur.execute("""
+            SELECT 1 FROM car_models
+            WHERE maker_id=%s AND name=%s
+        """, (maker_id, car))
+
+        if not cur.fetchone():
             return RedirectResponse("/profile/edit?error=invalid_car", status_code=303)
 
-        # 🚗 重複チェック
-        cur.execute("""
-            SELECT 1
-            FROM user_cars
-            WHERE user_id=%s AND maker=%s AND car_name=%s
-        """, (me_user_id, maker_name, car))
-        if cur.fetchone():
-            return RedirectResponse("/profile/edit?error=duplicate", status_code=303)
-
-        # 🚗 台数制限
-        cur.execute("SELECT COUNT(*) FROM user_cars WHERE user_id=%s", (me_user_id,))
-        count = cur.fetchone()[0]
-        if count >= 5:
-            return RedirectResponse("/profile/edit?error=max_cars", status_code=303)
-
-        is_primary = (set_primary == "1")
-
-        # まだ1台も無いなら自動でメイン
-        if count == 0:
-            is_primary = True
-
-        if is_primary:
-            cur.execute("UPDATE user_cars SET is_primary=FALSE WHERE user_id=%s", (me_user_id,))
-
+        # 登録
         cur.execute("""
             INSERT INTO user_cars (user_id, maker, car_name, is_primary)
             VALUES (%s, %s, %s, %s)
-        """, (me_user_id, maker_name, car, is_primary))
+        """, (user_id, maker_name, car, bool(set_primary)))
 
-        sync_profile_primary_car(db, me_user_id)
         db.commit()
 
     finally:
         cur.close()
         db.close()
 
-
-    return RedirectResponse("/profile/edit", status_code=303)
+    return RedirectResponse("/profile/edit?added=1", status_code=303)
 # ======================
 # 🚗 愛車削除
 # ======================

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=3001">
+  <link rel="stylesheet" href="/static/style.css?v=4000">
 </head>
 <body>
 
@@ -18,38 +18,13 @@
 
   <h2 class="page-title">プロフィール編集</h2>
 
-  <!-- 基本プロフィール -->
-  <form action="/profile/edit" method="post" enctype="multipart/form-data" class="profile-edit-form">
-
-    <label>表示名</label>
-    <input type="text" name="display_name" value="{{ display_name }}" maxlength="40">
-
-    <label>ハンドル（@なし）</label>
-    <input type="text" name="handle" value="{{ handle }}" placeholder="kumax">
-
-    <label>地域</label>
-    <input type="text" name="region" value="{{ profile[2] if profile else '' }}">
-
-    <label>自己紹介</label>
-    <textarea name="bio">{{ profile[3] if profile else '' }}</textarea>
-
-    <label>アイコン画像</label>
-    <input type="file" name="icon" accept="image/*">
-
-    <button type="submit" class="primary-btn">
-      保存する
-    </button>
-
-  </form>
-
   <!-- 🚗 愛車追加 -->
   <section style="margin-top:28px;">
-    <h3 style="margin-bottom:12px;">愛車を追加</h3>
+    <h3>愛車を追加</h3>
 
     <form action="/profile/cars/add" method="post" class="profile-edit-form">
 
       <label>メーカー</label>
-      <!-- ★ 修正：maker_id -->
       <select id="makerSelectAdd" name="maker_id" required>
         <option value="">メーカー選択</option>
       </select>
@@ -59,66 +34,19 @@
         <option value="">車種選択</option>
       </select>
 
-      <label style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+      <label>
         <input type="checkbox" name="set_primary" value="1">
         メイン愛車にする
       </label>
 
-      <button type="submit" class="primary-btn">
-        愛車を追加
-      </button>
+      <button type="submit" class="primary-btn">追加</button>
 
     </form>
-  </section>
-
-  <!-- 🚗 愛車一覧 -->
-  <section style="margin-top:28px;">
-    <h3 style="margin-bottom:12px;">登録済みの愛車</h3>
-
-    {% if my_cars and my_cars|length > 0 %}
-      <div style="display:flex;flex-direction:column;gap:12px;">
-
-        {% for c in my_cars %}
-        <div style="border:1px solid #ddd;border-radius:12px;padding:14px;background:#fff;">
-
-          <div style="font-weight:700;">
-            {{ c.maker }} / {{ c.car_name }}
-          </div>
-
-          {% if c.is_primary %}
-            <div style="font-size:12px;color:#fff;background:#111;display:inline-block;padding:3px 8px;border-radius:999px;margin-top:4px;">
-              メイン
-            </div>
-          {% endif %}
-
-          <div style="display:flex;gap:8px;margin-top:10px;">
-
-            {% if not c.is_primary %}
-            <form method="post" action="/profile/cars/primary/{{ c.id }}">
-              <button type="submit" class="primary-btn">メインにする</button>
-            </form>
-            {% endif %}
-
-            <form method="post" action="/profile/cars/delete/{{ c.id }}">
-              <button type="submit" class="delete-btn">削除</button>
-            </form>
-
-          </div>
-
-        </div>
-        {% endfor %}
-
-      </div>
-    {% else %}
-      <div>まだ愛車が登録されていません</div>
-    {% endif %}
-
   </section>
 
 </main>
 
 <script>
-// ===== メーカー取得 =====
 async function loadMakers() {
   const select = document.getElementById("makerSelectAdd");
   select.innerHTML = "<option value=''>メーカー選択</option>";
@@ -126,29 +54,24 @@ async function loadMakers() {
   const res = await fetch("/api/makers?category=car");
   const makers = await res.json();
 
-  makers.forEach((m) => {
+  makers.forEach(m => {
     const option = document.createElement("option");
-
-    // ★ 修正：IDを送る
-    option.value = m.id;
-
+    option.value = m.id; // ★重要
     option.textContent = m.name;
     select.appendChild(option);
   });
 }
 
-// ===== 車種取得 =====
 async function loadCars(makerId) {
   const select = document.getElementById("carSelectAdd");
   select.innerHTML = "<option value=''>車種選択</option>";
 
   if (!makerId) return;
 
-  // ★ IDベースで取得
   const res = await fetch(`/api/cars/by-maker-id/${makerId}`);
   const cars = await res.json();
 
-  cars.forEach((c) => {
+  cars.forEach(c => {
     const option = document.createElement("option");
     option.value = c.name;
     option.textContent = c.name;
@@ -156,17 +79,14 @@ async function loadCars(makerId) {
   });
 }
 
-// ===== 初期化 =====
 document.addEventListener("DOMContentLoaded", async () => {
-
-  const makerSelect = document.getElementById("makerSelectAdd");
+  const maker = document.getElementById("makerSelectAdd");
 
   await loadMakers();
 
-  makerSelect.addEventListener("change", async function () {
-    await loadCars(this.value);
+  maker.addEventListener("change", () => {
+    loadCars(maker.value);
   });
-
 });
 </script>
 
