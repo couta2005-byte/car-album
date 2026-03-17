@@ -1427,16 +1427,28 @@ def search(
 # 🚗 車種API（完全選択制）
 # ======================
 @app.get("/api/makers")
-def get_makers(category: str):
-    def _do(db, cur):
-        cur.execute("""
-            SELECT id, name
-            FROM makers
-            WHERE category = %s
-            ORDER BY name
-        """, (category,))
-        return [{"id": r[0], "name": r[1]} for r in cur.fetchall()]
-    return run_db(_do)
+def get_makers(category: Optional[str] = None):
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        if category:
+            cur.execute(
+                "SELECT id, name FROM makers WHERE category=%s ORDER BY name",
+                (category,)
+            )
+        else:
+            cur.execute(
+                "SELECT id, name FROM makers ORDER BY name"
+            )
+
+        rows = cur.fetchall()
+
+        return [{"id": r[0], "name": r[1]} for r in rows]
+
+    finally:
+        cur.close()
+        db.close()
 @app.get("/api/cars/by-name/{maker_name}")
 def get_cars_by_name(maker_name: str):
     def _do(db, cur):
