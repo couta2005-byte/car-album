@@ -1451,16 +1451,25 @@ def get_makers(category: Optional[str] = None):
         db.close()
 @app.get("/api/cars/by-name/{maker_name}")
 def get_cars_by_name(maker_name: str):
-    def _do(db, cur):
-        cur.execute("""
-            SELECT cm.name
-            FROM car_models cm
-            JOIN makers m ON cm.maker_id = m.id
-            WHERE m.name = %s
-            ORDER BY cm.name
-        """, (maker_name,))
-        return [{"name": r[0]} for r in cur.fetchall()]
-    return run_db(_do)
+    db = get_db()
+    cur = db.cursor()
+
+    # 日本語 → ID変換
+    cur.execute("SELECT id FROM makers WHERE name = %s", (maker_name,))
+    row = cur.fetchone()
+
+    if not row:
+        return []
+
+    maker_id = row[0]
+
+    cur.execute("SELECT name FROM car_models WHERE maker_id = %s", (maker_id,))
+    cars = cur.fetchall()
+
+    cur.close()
+    db.close()
+
+    return [{"name": c[0]} for c in cars]
 @app.get("/api/cars/by-maker/{maker_id}")
 def get_cars_by_maker(maker_id: str):
     def _do(db, cur):
@@ -1516,35 +1525,33 @@ def init_cars():
 
     try:
         cur.execute("""
-            INSERT INTO car_models (maker_id, name) VALUES
-            ('toyota','マークX'),
-            ('toyota','クラウン'),
-            ('toyota','86'),
-            ('toyota','プリウス'),
-            ('toyota','アルファード'),
+            INSERT INTO car_models (id, maker_id, name) VALUES
+            ('toyota_markx','toyota','マークX'),
+            ('toyota_crown','toyota','クラウン'),
+            ('toyota_86','toyota','86'),
+            ('toyota_prius','toyota','プリウス'),
+            ('toyota_alphard','toyota','アルファード'),
 
-            ('nissan','スカイライン'),
-            ('nissan','フェアレディZ'),
-            ('nissan','シルビア'),
+            ('nissan_skyline','nissan','スカイライン'),
+            ('nissan_z','nissan','フェアレディZ'),
+            ('nissan_silvia','nissan','シルビア'),
 
-            ('honda','シビック'),
-            ('honda','インテグラ'),
+            ('honda_civic','honda','シビック'),
+            ('honda_integra','honda','インテグラ'),
 
-            ('subaru','WRX'),
-            ('subaru','レガシィ'),
+            ('subaru_wrx','subaru','WRX'),
+            ('subaru_legacy','subaru','レガシィ'),
 
-            ('mazda','RX-8'),
-            ('mazda','ロードスター'),
+            ('mazda_rx8','mazda','RX-8'),
+            ('mazda_roadster','mazda','ロードスター'),
 
-            ('suzuki','スイフトスポーツ'),
+            ('suzuki_swift','suzuki','スイフトスポーツ'),
 
-            ('daihatsu','コペン')
+            ('daihatsu_copen','daihatsu','コペン')
 
             ON CONFLICT DO NOTHING;
         """)
-
         db.commit()
-
     finally:
         cur.close()
         db.close()
