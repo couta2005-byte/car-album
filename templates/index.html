@@ -603,16 +603,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("click", (e) => {
 
-    const img = e.target.closest(".post-image img, .post-images img");
+    // 🔥 ここに preview を追加
+    const img = e.target.closest(".post-image img, .post-images img, .preview-img");
     if (!img) return;
 
-    // 🔥 完全ブロック
     e.preventDefault();
     e.stopImmediatePropagation();
 
     modalImg.src = img.src;
     modal.classList.add("open");
-  }, true); // ←🔥 これが超重要（キャプチャフェーズ）
+  }, true);
 
   modal.addEventListener("click", (e) => {
     e.stopPropagation();
