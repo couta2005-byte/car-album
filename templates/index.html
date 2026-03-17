@@ -16,7 +16,7 @@
   <meta property="og:url" content="https://car-album-3.onrender.com/">
   <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
 
-  <link rel="stylesheet" href="/static/style.css?v=9999">
+  <link rel="stylesheet" href="/static/style.css?v=1004">
 </head>
 <body>
 
@@ -53,13 +53,22 @@
 
     <div id="preview" class="preview-box"></div>
 
-    <select id="makerSelect" name="maker" required>
-      <option value="">メーカー選択</option>
-    </select>
-
-    <select id="carSelect" name="car" required>
-      <option value="">車種選択</option>
-    </select>
+    {% if my_cars and my_cars|length > 0 %}
+      <select name="user_car_id" id="userCarSelect" required>
+        <option value="">愛車を選択</option>
+        {% for c in my_cars %}
+          <option value="{{ c.id }}" {% if c.is_primary %}selected{% endif %}>
+            {{ c.maker }} / {{ c.car_name }}{% if c.is_primary %}（メイン）{% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    {% else %}
+      <div class="empty-mycar-box" style="padding:12px;border:1px solid #ddd;border-radius:12px;background:#fafafa;margin-bottom:10px;">
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px;">愛車が未登録です</div>
+        <div style="font-size:13px;color:#666;margin-bottom:10px;">先にプロフィール編集から愛車を登録してください</div>
+        <a href="/profile/edit" class="primary-btn" style="display:inline-block;text-decoration:none;">愛車を登録する</a>
+      </div>
+    {% endif %}
 
     <textarea name="comment"
               rows="2"
@@ -74,7 +83,7 @@
     <input type="hidden" name="latitude" id="lat">
     <input type="hidden" name="longitude" id="lng">
 
-    <button class="primary-btn post-submit">投稿</button>
+    <button class="primary-btn post-submit" {% if not my_cars or my_cars|length == 0 %}disabled{% endif %}>投稿</button>
   </form>
   {% endif %}
 
@@ -255,7 +264,6 @@ if (!box || !form) {
 </script>
 
 <script>
-// ===== 画像プレビュー + 削除（完成版） =====
 const imageInput = document.getElementById("imageInput");
 const previewBox = document.getElementById("preview");
 
@@ -339,7 +347,6 @@ function updateInputFiles() {
 }
 </script>
 
-<!-- 投稿ボタン連打防止 -->
 <script>
 const submitForm = document.querySelector(".post-form");
 const submitBtn = document.querySelector(".post-submit");
@@ -352,7 +359,6 @@ if (submitForm && submitBtn) {
 }
 </script>
 
-<!-- ===== 投稿後シェアモーダル ===== -->
 <div id="shareModal" class="share-modal">
   <div class="share-box">
 
@@ -379,7 +385,6 @@ if (submitForm && submitBtn) {
 </div>
 
 <script>
-// ===== 投稿後シェア誘導（安定版） =====
 document.addEventListener("DOMContentLoaded", () => {
   const params = new URLSearchParams(window.location.search);
   const isPosted = params.get("posted");
@@ -418,7 +423,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 
 <script>
-// 🔥 戻る時に投稿ボタン復活
 window.addEventListener("pageshow", () => {
   const btn = document.querySelector(".post-submit");
   if (btn) {
@@ -428,7 +432,6 @@ window.addEventListener("pageshow", () => {
 });
 </script>
 
-<!-- 画像拡大モーダル -->
 <div id="imgModal" class="img-modal">
   <div class="img-modal-inner">
     <button id="imgModalClose" class="img-modal-close">&times;</button>
@@ -473,89 +476,6 @@ document.addEventListener("DOMContentLoaded", () => {
   function closeModal() {
     modal.classList.remove("open");
     modalImg.src = "";
-  }
-});
-</script>
-
-<script>
-// ===== メーカー / 車種 連動（my_maker / my_car 初期反映つき） =====
-const initialMaker = {{ (my_maker or "")|tojson }};
-const initialCar = {{ (my_car or "")|tojson }};
-
-async function loadMakers(selectedMaker = "") {
-  const makerSelect = document.getElementById("makerSelect");
-  const carSelect = document.getElementById("carSelect");
-
-  if (!makerSelect || !carSelect) return;
-
-  makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
-  carSelect.innerHTML = "<option value=''>車種選択</option>";
-
-  try {
-    const res = await fetch("/api/makers", { credentials: "same-origin" });
-    if (!res.ok) throw new Error("makers fetch failed");
-
-    const makers = await res.json();
-
-    makers.forEach((m) => {
-      const option = document.createElement("option");
-      option.value = m.name;
-      option.textContent = m.name;
-      if (selectedMaker && m.name === selectedMaker) {
-        option.selected = true;
-      }
-      makerSelect.appendChild(option);
-    });
-  } catch (err) {
-    console.error("メーカー取得失敗:", err);
-  }
-}
-
-async function loadCars(makerName, selectedCar = "") {
-  const carSelect = document.getElementById("carSelect");
-  if (!carSelect) return;
-
-  carSelect.innerHTML = "<option value=''>車種選択</option>";
-
-  if (!makerName) return;
-
-  try {
-    const res = await fetch(`/api/cars/by-name/${encodeURIComponent(makerName)}`, {
-      credentials: "same-origin"
-    });
-    if (!res.ok) throw new Error("cars fetch failed");
-
-    const cars = await res.json();
-
-    cars.forEach((c) => {
-      const option = document.createElement("option");
-      option.value = c.name;
-      option.textContent = c.name;
-      if (selectedCar && c.name === selectedCar) {
-        option.selected = true;
-      }
-      carSelect.appendChild(option);
-    });
-  } catch (err) {
-    console.error("車種取得失敗:", err);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  const makerSelect = document.getElementById("makerSelect");
-  const carSelect = document.getElementById("carSelect");
-
-  if (!makerSelect || !carSelect) return;
-
-  makerSelect.addEventListener("change", async function () {
-    const makerName = this.value;
-    await loadCars(makerName, "");
-  });
-
-  await loadMakers(initialMaker);
-
-  if (initialMaker) {
-    await loadCars(initialMaker, initialCar);
   }
 });
 </script>

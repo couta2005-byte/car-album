@@ -23,12 +23,15 @@ app = FastAPI()
 # ======================
 JST = timezone(timedelta(hours=9))
 
+
 def utcnow_naive() -> datetime:
     # DB保存/比較はUTC naiveで統一
     return datetime.utcnow()
 
+
 def fmt_jst(dt: Optional[datetime]) -> str:
     return ((dt + timedelta(hours=9)).strftime("%Y-%m-%d %H:%M") if dt else "")
+
 
 # ======================
 # password hash
@@ -47,12 +50,14 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 templates = Jinja2Templates(directory="templates")
 
+
 # Jinja2 filter: urlencode
 def jinja_urlencode(s: str) -> str:
     try:
         return quote(s)
     except Exception:
         return s
+
 
 templates.env.filters["urlencode"] = jinja_urlencode
 
@@ -62,6 +67,7 @@ templates.env.filters["urlencode"] = jinja_urlencode
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("DATABASE_URL is not set")
+
 
 def get_db():
     conn = psycopg2.connect(
@@ -75,6 +81,7 @@ def get_db():
     )
     conn.autocommit = False
     return conn
+
 
 def run_db(fn):
     db = get_db()
@@ -96,6 +103,7 @@ def run_db(fn):
         except:
             pass
 
+
 # ======================
 # Cloudinary
 # ======================
@@ -115,9 +123,11 @@ def is_https_request(request: Request) -> bool:
         return xf.split(",")[0].strip() == "https"
     return request.url.scheme == "https"
 
+
 # ✅ インスタ寄せ：ログインID(@ID)は「小文字 + 数字 + . _」のみ
 # 3〜20文字、先頭末尾が"."はNG、連続"..”もNG
 LOGIN_ID_RE = re.compile(r"^[a-z0-9._]{3,20}$")
+
 
 def normalize_login_id(s: str) -> Optional[str]:
     s = (s or "").strip()
@@ -132,6 +142,7 @@ def normalize_login_id(s: str) -> Optional[str]:
         return None
     return s
 
+
 def is_handle_available(db, handle: str, exclude_user_id: Optional[str] = None) -> bool:
     cur = db.cursor()
     try:
@@ -143,8 +154,10 @@ def is_handle_available(db, handle: str, exclude_user_id: Optional[str] = None) 
     finally:
         cur.close()
 
+
 def suggest_handle_from_login(login_id: str) -> Optional[str]:
     return normalize_login_id(login_id)
+
 
 # ======================
 # ✅ auth: uid cookie（UUID）を優先して自分を特定する
@@ -182,6 +195,7 @@ def get_me_from_cookies(db, user_cookie: Optional[str], uid_cookie: Optional[str
 
     return None, None
 
+
 def get_me_handle(db, me_user_id: Optional[str]) -> Optional[str]:
     if not me_user_id:
         return None
@@ -192,6 +206,7 @@ def get_me_handle(db, me_user_id: Optional[str]) -> Optional[str]:
         return row[0] if row else None
     finally:
         cur.close()
+
 
 # ✅ これが無いと nav にアイコン渡せない
 def get_my_icon(db, me_user_id: Optional[str]) -> Optional[str]:
@@ -204,6 +219,8 @@ def get_my_icon(db, me_user_id: Optional[str]) -> Optional[str]:
         return row[0] if row and row[0] else None
     finally:
         cur.close()
+
+
 # ======================
 # 🚗 maker/car validation helpers
 # ======================
@@ -247,12 +264,128 @@ def is_valid_maker_car(db, maker_name: str, car_name: str) -> bool:
         cur.close()
 
 
+# ======================
+# 🚗 複数台愛車 helpers
+# ======================
+def sync_profile_primary_car(db, user_id: str):
+    """
+    profiles.maker / car は旧UI互換用に
+    現在のメイン愛車を反映しておく
+    """
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            SELECT username
+            FROM users
+            WHERE id=%s
+        """, (user_id,))
+        u = cur.fetchone()
+        if not u:
+            return
+        username = u[0]
+
+        cur.execute("""
+            SELECT maker, car_name
+            FROM user_cars
+            WHERE user_id=%s
+            ORDER BY is_primary DESC, sort ASC, created_at ASC, id ASC
+            LIMIT 1
+        """, (user_id,))
+        row = cur.fetchone()
+
+        maker = row[0] if row else ""
+        car = row[1] if row else ""
+
+        cur.execute("""
+            INSERT INTO profiles (username, user_id, maker, car, region, bio)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            ON CONFLICT (username)
+            DO UPDATE SET
+                user_id=EXCLUDED.user_id,
+                maker=EXCLUDED.maker,
+                car=EXCLUDED.car
+        """, (username, user_id, maker, car, "", ""))
+    finally:
+        cur.close()
+
+
+def fetch_user_cars(db, user_id: Optional[str]) -> List[Dict[str, Any]]:
+    if not user_id:
+        return []
+
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            SELECT id, maker, car_name, is_primary, sort, created_at
+            FROM user_cars
+            WHERE user_id=%s
+            ORDER BY is_primary DESC, sort ASC, created_at ASC, id ASC
+        """, (user_id,))
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+
+    out: List[Dict[str, Any]] = []
+    for r in rows:
+        out.append({
+            "id": r[0],
+            "maker": r[1],
+            "car_name": r[2],
+            "is_primary": bool(r[3]),
+            "sort": int(r[4] or 0),
+            "created_at": fmt_jst(r[5]),
+        })
+    return out
+
+
+def fetch_user_car_by_id(db, user_id: str, user_car_id: int) -> Optional[Dict[str, Any]]:
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            SELECT id, maker, car_name, is_primary, sort, created_at
+            FROM user_cars
+            WHERE id=%s AND user_id=%s
+            LIMIT 1
+        """, (user_car_id, user_id))
+        row = cur.fetchone()
+    finally:
+        cur.close()
+
+    if not row:
+        return None
+
+    return {
+        "id": row[0],
+        "maker": row[1],
+        "car_name": row[2],
+        "is_primary": bool(row[3]),
+        "sort": int(row[4] or 0),
+        "created_at": fmt_jst(row[5]),
+    }
+
+
 def get_my_profile_car(db, me_user_id: Optional[str]) -> Tuple[str, str]:
+    """
+    旧テンプレ互換用
+    まず user_cars のメイン愛車を返す
+    なければ profiles を返す
+    """
     if not me_user_id:
         return "", ""
 
     cur = db.cursor()
     try:
+        cur.execute("""
+            SELECT maker, car_name
+            FROM user_cars
+            WHERE user_id=%s
+            ORDER BY is_primary DESC, sort ASC, created_at ASC, id ASC
+            LIMIT 1
+        """, (me_user_id,))
+        row = cur.fetchone()
+        if row:
+            return (row[0] or "", row[1] or "")
+
         cur.execute("""
             SELECT maker, car
             FROM profiles
@@ -264,6 +397,8 @@ def get_my_profile_car(db, me_user_id: Optional[str]) -> Tuple[str, str]:
         return (row[0] or "", row[1] or "")
     finally:
         cur.close()
+
+
 # ======================
 # ✅ DM helpers（ルーム作成/取得）
 # ======================
@@ -288,8 +423,9 @@ def get_or_create_dm_room_id(db, me_user_id: str, other_user_id: str) -> str:
     finally:
         cur.close()
 
+
 # ======================
-# DB init（壊さない段階移行：UUID追加＋既存データ埋め） + ✅DM追加 + ✅複数画像
+# DB init
 # ======================
 def init_db():
     def _do(db, cur):
@@ -349,7 +485,7 @@ def init_db():
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS handle TEXT;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMP;")
-        
+
         # ---- users email ----
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT;")
 
@@ -359,7 +495,7 @@ def init_db():
         WHERE email IS NOT NULL;
         """)
 
-        # 👇管理者 & BAN（ここ重要）
+        # 👇管理者 & BAN
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;")
         cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE;")
 
@@ -368,7 +504,7 @@ def init_db():
         cur.execute("UPDATE users SET id = gen_random_uuid() WHERE id IS NULL;")
         cur.execute("ALTER TABLE users ALTER COLUMN id SET DEFAULT gen_random_uuid();")
 
-        # ✅ 既存handleを小文字に正規化（今後の衝突を減らす）
+        # ✅ 既存handleを小文字に正規化
         cur.execute("UPDATE users SET handle = LOWER(handle) WHERE handle IS NOT NULL;")
 
         # handle unique（NULL複数OK）
@@ -400,26 +536,21 @@ def init_db():
         # ======================
         # ✅ 段階移行：各テーブルに user_id を追加して埋める
         # ======================
-
-        # posts.user_id
         cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS user_id UUID;")
-
         cur.execute("""
         UPDATE posts p
         SET user_id = u.id
         FROM users u
         WHERE p.user_id IS NULL
-        AND p.username = u.username;
+          AND p.username = u.username;
         """)
-
         cur.execute("CREATE INDEX IF NOT EXISTS posts_user_id_idx ON posts(user_id);")
 
-        # ======================
         # MAP投稿カラム
-        # ======================
         cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;")
         cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;")
-        cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS map_expires_at TIMESTAMP;")        
+        cur.execute("ALTER TABLE posts ADD COLUMN IF NOT EXISTS map_expires_at TIMESTAMP;")
+
         # comments.user_id
         cur.execute("ALTER TABLE comments ADD COLUMN IF NOT EXISTS user_id UUID;")
         cur.execute("""
@@ -479,9 +610,7 @@ def init_db():
             WHERE user_id IS NOT NULL;
         """)
 
-        # ======================
         # profiles.user_id
-        # ======================
         cur.execute("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS user_id UUID;")
         cur.execute("""
             UPDATE profiles pr
@@ -495,9 +624,7 @@ def init_db():
         WHERE user_id IS NOT NULL;
         """)
 
-        # ======================
         # ✅ 複数画像：post_images
-        # ======================
         cur.execute("""
         CREATE TABLE IF NOT EXISTS post_images (
             id SERIAL PRIMARY KEY,
@@ -513,8 +640,6 @@ def init_db():
             CREATE UNIQUE INDEX IF NOT EXISTS post_images_post_sort_unique
             ON post_images(post_id, sort);
         """)
-
-        # ✅ 既存の posts.image を post_images に移行（1回だけ入る）
         cur.execute("""
             INSERT INTO post_images (post_id, url, sort, created_at)
             SELECT p.id, p.image, 0, COALESCE(p.created_at, NOW())
@@ -525,9 +650,7 @@ def init_db():
               );
         """)
 
-        # ======================
         # 通報テーブル
-        # ======================
         cur.execute("""
         CREATE TABLE IF NOT EXISTS reports (
             id SERIAL PRIMARY KEY,
@@ -539,9 +662,7 @@ def init_db():
         );
         """)
 
-        # ======================
-        # ✅ DM tables（追加）
-        # ======================
+        # ✅ DM tables
         cur.execute("""
         CREATE TABLE IF NOT EXISTS dm_rooms (
             id UUID PRIMARY KEY,
@@ -564,50 +685,96 @@ def init_db():
         """)
         cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS media_url TEXT;")
         cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS media_type TEXT;")
+        cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP;")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user1_idx ON dm_rooms(user1_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user2_idx ON dm_rooms(user2_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_messages_room_time_idx ON dm_messages(room_id, created_at);")
- 
+
+        # 🚗 車種マスタ
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS makers (
+                id TEXT PRIMARY KEY,
+                name TEXT NOT NULL
+            );
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS car_models (
+                id TEXT PRIMARY KEY,
+                maker_id TEXT NOT NULL,
+                name TEXT NOT NULL
+            );
+        """)
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS makers_name_unique
+            ON makers(name);
+        """)
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS car_models_maker_name_unique
+            ON car_models(maker_id, name);
+        """)
 
         # ======================
-        # 🚗 車種マスタ（追加）
+        # 🚗 ユーザー複数台愛車テーブル
         # ======================
-        def init_car_master(cur):
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS makers (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL
-                );
-            """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS user_cars (
+                id SERIAL PRIMARY KEY,
+                user_id UUID NOT NULL,
+                maker TEXT NOT NULL,
+                car_name TEXT NOT NULL,
+                is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+                sort INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP NOT NULL DEFAULT NOW()
+            );
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS user_cars_user_id_idx ON user_cars(user_id);")
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS user_cars_user_id_maker_car_unique
+            ON user_cars(user_id, maker, car_name);
+        """)
 
-            cur.execute("""
-                CREATE TABLE IF NOT EXISTS car_models (
-                    id TEXT PRIMARY KEY,
-                    maker_id TEXT NOT NULL,
-                    name TEXT NOT NULL
-                );
-            """)
+        # 旧profilesの maker/car を user_cars に移行
+        cur.execute("""
+            INSERT INTO user_cars (user_id, maker, car_name, is_primary, sort, created_at)
+            SELECT p.user_id, p.maker, p.car, TRUE, 0, NOW()
+            FROM profiles p
+            WHERE p.user_id IS NOT NULL
+              AND COALESCE(TRIM(p.maker), '') <> ''
+              AND COALESCE(TRIM(p.car), '') <> ''
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM user_cars uc
+                  WHERE uc.user_id = p.user_id
+                    AND uc.maker = p.maker
+                    AND uc.car_name = p.car
+              );
+        """)
 
-            cur.execute("""
-                CREATE UNIQUE INDEX IF NOT EXISTS makers_name_unique
-                ON makers(name);
-            """)
+        # 各ユーザー最低1台だけ is_primary = TRUE に補正
+        cur.execute("""
+            WITH ranked AS (
+                SELECT
+                    id,
+                    user_id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY user_id
+                        ORDER BY is_primary DESC, sort ASC, created_at ASC, id ASC
+                    ) AS rn
+                FROM user_cars
+            )
+            UPDATE user_cars uc
+            SET is_primary = CASE WHEN ranked.rn = 1 THEN TRUE ELSE FALSE END
+            FROM ranked
+            WHERE ranked.id = uc.id;
+        """)
 
-            cur.execute("""
-                CREATE UNIQUE INDEX IF NOT EXISTS car_models_maker_name_unique
-                ON car_models(maker_id, name);
-            """)
-        
-        # ✅ DM 既読管理（Shell不要）
-        cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP;")
-
-        # 🚗 車種マスタ初期化
-        init_car_master(cur)
     run_db(_do)
+
 
 @app.on_event("startup")
 def startup():
     init_db()
+
 
 # ======================
 # common
@@ -619,6 +786,7 @@ def redirect_back(request: Request, fallback: str = "/"):
 
     referer = request.headers.get("referer")
     return RedirectResponse(referer or fallback, status_code=303)
+
 
 # ======================
 # ✅ nav DM unread helper
@@ -641,6 +809,7 @@ def has_unread_dm(db, me_user_id: Optional[str]) -> bool:
     finally:
         cur.close()
 
+
 # ======================
 # ✅ liked posts helper
 # ======================
@@ -654,6 +823,7 @@ def get_liked_posts(db, me_user_id: Optional[str], me_username: Optional[str]):
         return {r[0] for r in rows}
     finally:
         cur.close()
+
 
 # ======================
 # ✅ users search（検索ページ用）
@@ -709,6 +879,7 @@ def search_users(db, q: str, limit: int = 20) -> List[Dict[str, Any]]:
         })
     return out
 
+
 # ======================
 # ✅ 複数画像 fetch
 # ======================
@@ -732,6 +903,7 @@ def fetch_images_for_posts(db, post_ids: List[int]) -> Dict[int, List[str]]:
     for pid, url in rows:
         mp.setdefault(pid, []).append(url)
     return mp
+
 
 # ======================
 # comments fetch（一覧・ランキング用）
@@ -824,6 +996,7 @@ def fetch_comments_for_posts(db, post_ids: List[int], me_user_id: Optional[str])
         })
     return out
 
+
 # ======================
 # post_detail用（単体）
 # ======================
@@ -907,6 +1080,7 @@ def fetch_comments_for_post_detail(db, post_id: int, me_user_id: Optional[str]) 
         })
     return out
 
+
 # ======================
 # posts fetch（display_name/handle も返す） + ✅複数画像対応
 # ======================
@@ -975,8 +1149,8 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
             "region": r[6],
             "car": r[7],
             "comment": r[8],
-            "image": main_img,     # 互換：先頭1枚
-            "images": imgs,        # ✅ 複数画像
+            "image": main_img,
+            "images": imgs,
             "created_at": fmt_jst(r[10]),
             "likes": r[11],
             "user_icon": r[12],
@@ -984,6 +1158,7 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
             "comment_count": len(post_comments)
         })
     return posts
+
 
 # ======================
 # ★ recommend fetch（修正版） + ✅複数画像対応
@@ -1060,8 +1235,8 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
             "region": r[6],
             "car": r[7],
             "comment": r[8],
-            "image": main_img,     # 互換：先頭1枚
-            "images": imgs,        # ✅ 複数画像
+            "image": main_img,
+            "images": imgs,
             "created_at": fmt_jst(r[10]),
             "likes": r[11],
             "comment_count": len(post_comments),
@@ -1069,6 +1244,7 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
             "comments": post_comments,
         })
     return posts
+
 
 # ======================
 # top
@@ -1089,6 +1265,7 @@ def index(
         liked_posts = get_liked_posts(db, me_user_id, me_username)
         is_admin = is_admin_user(db, me_user_id)
         my_maker, my_car = get_my_profile_car(db, me_user_id)
+        my_cars = fetch_user_cars(db, me_user_id)
 
         if tab == "recommend":
             posts = fetch_posts_recommend(db, me_user_id)
@@ -1128,7 +1305,10 @@ def index(
         "is_admin": is_admin,
         "my_maker": my_maker,
         "my_car": my_car,
+        "my_cars": my_cars,
     })
+
+
 # ======================
 # auth pages（errorをテンプレに渡す）
 # ======================
@@ -1155,6 +1335,7 @@ def login_page(request: Request, user: str = Cookie(default=None), uid: str = Co
         "mode": "login"
     })
 
+
 @app.get("/register", response_class=HTMLResponse)
 def register_page(request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
@@ -1177,6 +1358,7 @@ def register_page(request: Request, user: str = Cookie(default=None), uid: str =
         "error": error,
         "mode": "register"
     })
+
 
 # ======================
 # search
@@ -1245,6 +1427,8 @@ def search(
         "region": region,
         "mode": "search"
     })
+
+
 # ======================
 # 🚗 車種API（完全選択制）
 # ======================
@@ -1272,6 +1456,20 @@ def get_cars_by_name(maker_name: str):
         """, (maker_name,))
         return [{"name": r[0]} for r in cur.fetchall()]
     return run_db(_do)
+
+
+@app.get("/api/my/cars")
+def api_my_cars(user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+    db = get_db()
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return []
+        return fetch_user_cars(db, me_user_id)
+    finally:
+        db.close()
+
+
 # ======================
 # following TL
 # ======================
@@ -1289,6 +1487,7 @@ def following(request: Request, user: str = Cookie(default=None), uid: str = Coo
         liked_posts = get_liked_posts(db, me_user_id, me_username)
         is_admin = is_admin_user(db, me_user_id)
         my_maker, my_car = get_my_profile_car(db, me_user_id)
+        my_cars = fetch_user_cars(db, me_user_id)
 
         posts = fetch_posts(
             db, me_user_id,
@@ -1313,7 +1512,10 @@ def following(request: Request, user: str = Cookie(default=None), uid: str = Coo
         "is_admin": is_admin,
         "my_maker": my_maker,
         "my_car": my_car,
+        "my_cars": my_cars,
     })
+
+
 # ======================
 # ranking
 # ======================
@@ -1367,6 +1569,7 @@ def ranking(
         "period": period
     })
 
+
 # ======================
 # post detail
 # ======================
@@ -1407,6 +1610,7 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
         "liked_posts": liked_posts,
         "mode": "post_detail"
     })
+
 
 # ======================
 # comment
@@ -1451,6 +1655,7 @@ def add_comment(
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
 
+
 # ======================
 # comment delete（自分のだけ）
 # ======================
@@ -1493,6 +1698,7 @@ def delete_comment(request: Request, comment_id: int, user: str = Cookie(default
     post_id = run_db(_do)
     fallback = f"/post/{post_id}" if post_id else "/"
     return redirect_back(request, fallback=fallback)
+
 
 # ======================
 # ✅ comment like API（リロード無し）
@@ -1539,6 +1745,7 @@ def api_comment_like(comment_id: int, request: Request, user: str = Cookie(defau
 
     return JSONResponse(run_db(_do))
 
+
 # ======================
 # profile（/user/{key} は handle優先で解決）
 # ======================
@@ -1555,6 +1762,7 @@ def resolve_user_by_key(db, key: str):
     finally:
         cur.close()
 
+
 # ===== 管理者判定 =====
 def is_admin_user(db, user_id: Optional[str]) -> bool:
     if not user_id:
@@ -1566,6 +1774,7 @@ def is_admin_user(db, user_id: Optional[str]) -> bool:
         return bool(row and row[0])
     finally:
         cur.close()
+
 
 @app.get("/user/{key}", response_class=HTMLResponse)
 def profile(request: Request, key: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
@@ -1594,6 +1803,7 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         prof = cur.fetchone()
 
         posts = fetch_posts(db, me_user_id, "WHERE p.user_id=%s", (target_user_id,))
+        target_user_cars = fetch_user_cars(db, target_user_id)
 
         cur.execute("SELECT COUNT(*) FROM follows WHERE follower_id=%s", (target_user_id,))
         follow_count = cur.fetchone()[0]
@@ -1632,7 +1842,9 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         "mode": "profile",
         "posts": posts,
         "is_admin": is_admin,
+        "user_cars": target_user_cars,
     })
+
 
 # ======================
 # profile edit page（GET）
@@ -1666,6 +1878,8 @@ def profile_edit_page(
         )
         u = cur.fetchone()
 
+        my_cars = fetch_user_cars(db, me_user_id)
+
     finally:
         cur.close()
         db.close()
@@ -1682,20 +1896,21 @@ def profile_edit_page(
             "display_name": u[0] if u else "",
             "handle": u[1] if u else "",
             "profile": profile,
+            "my_cars": my_cars,
             "mode": "profile_edit",
         }
     )
 
+
 # ======================
-# profile edit（icon + display_name/handle）
+# profile edit（icon + display_name/handle + region/bio）
+# ※ 愛車自体の追加削除は別ルート
 # ======================
 @app.post("/profile/edit")
 def profile_edit(
     request: Request,
     display_name: str = Form(""),
     handle: str = Form(""),
-    maker: str = Form(""),
-    car: str = Form(""),
     region: str = Form(""),
     bio: str = Form(""),
     icon: UploadFile = File(None),
@@ -1707,14 +1922,6 @@ def profile_edit(
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
-
-        maker = (maker or "").strip()
-        car = (car or "").strip()
-
-        if maker or car:
-            if not is_valid_maker_car(db, maker, car):
-                return RedirectResponse("/profile/edit", status_code=303)
-
     finally:
         db.close()
 
@@ -1723,6 +1930,13 @@ def profile_edit(
         display_name = me_username
     if len(display_name) > 40:
         display_name = display_name[:40]
+
+    region = (region or "").strip()
+    bio = (bio or "").strip()
+    if len(region) > 100:
+        region = region[:100]
+    if len(bio) > 500:
+        bio = bio[:500]
 
     handle_norm = normalize_login_id(handle)
 
@@ -1752,6 +1966,8 @@ def profile_edit(
             WHERE id=%s
         """, (display_name, final_handle, me_user_id))
 
+        primary_maker, primary_car = get_my_profile_car(db, me_user_id)
+
         if icon_url:
             cur.execute("""
                 INSERT INTO profiles (username, user_id, maker, car, region, bio, icon)
@@ -1764,7 +1980,7 @@ def profile_edit(
                     region=EXCLUDED.region,
                     bio=EXCLUDED.bio,
                     icon=EXCLUDED.icon
-            """, (me_username, me_user_id, maker, car, region, bio, icon_url))
+            """, (me_username, me_user_id, primary_maker, primary_car, region, bio, icon_url))
         else:
             cur.execute("""
                 INSERT INTO profiles (username, user_id, maker, car, region, bio)
@@ -1776,7 +1992,7 @@ def profile_edit(
                     car=EXCLUDED.car,
                     region=EXCLUDED.region,
                     bio=EXCLUDED.bio
-            """, (me_username, me_user_id, maker, car, region, bio))
+            """, (me_username, me_user_id, primary_maker, primary_car, region, bio))
 
         cur.execute("SELECT handle FROM users WHERE id=%s", (me_user_id,))
         row = cur.fetchone()
@@ -1785,6 +2001,149 @@ def profile_edit(
     new_handle = run_db(_do)
     key = new_handle if new_handle else me_username
     return RedirectResponse(f"/user/{quote(key)}", status_code=303)
+
+
+# ======================
+# 🚗 愛車追加
+# ======================
+@app.post("/profile/cars/add")
+def add_user_car(
+    request: Request,
+    maker: str = Form(""),
+    car: str = Form(""),
+    set_primary: str = Form(""),
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
+    db = get_db()
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        maker = (maker or "").strip()
+        car = (car or "").strip()
+
+        if not is_valid_maker_car(db, maker, car):
+            return RedirectResponse("/profile/edit?error=invalid_car", status_code=303)
+    finally:
+        db.close()
+
+    set_primary_bool = str(set_primary).lower() in ("1", "true", "on", "yes")
+
+    def _do(db, cur):
+        cur.execute("SELECT COUNT(*) FROM user_cars WHERE user_id=%s", (me_user_id,))
+        cnt = cur.fetchone()[0]
+
+        cur.execute("""
+            SELECT 1
+            FROM user_cars
+            WHERE user_id=%s AND maker=%s AND car_name=%s
+            LIMIT 1
+        """, (me_user_id, maker, car))
+        if cur.fetchone() is not None:
+            return
+
+        is_primary = set_primary_bool or cnt == 0
+
+        if is_primary:
+            cur.execute("UPDATE user_cars SET is_primary=FALSE WHERE user_id=%s", (me_user_id,))
+
+        cur.execute("""
+            INSERT INTO user_cars (user_id, maker, car_name, is_primary, sort, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (me_user_id, maker, car, is_primary, cnt, utcnow_naive()))
+
+        sync_profile_primary_car(db, me_user_id)
+
+    run_db(_do)
+    return RedirectResponse("/profile/edit?added=1", status_code=303)
+
+
+# ======================
+# 🚗 愛車削除
+# ======================
+@app.post("/profile/cars/delete/{car_id}")
+def delete_user_car(
+    car_id: int,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
+    db = get_db()
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+    finally:
+        db.close()
+
+    def _do(db, cur):
+        cur.execute("""
+            SELECT is_primary
+            FROM user_cars
+            WHERE id=%s AND user_id=%s
+        """, (car_id, me_user_id))
+        row = cur.fetchone()
+        if not row:
+            return
+
+        was_primary = bool(row[0])
+
+        cur.execute("DELETE FROM user_cars WHERE id=%s AND user_id=%s", (car_id, me_user_id))
+
+        if was_primary:
+            cur.execute("""
+                SELECT id
+                FROM user_cars
+                WHERE user_id=%s
+                ORDER BY sort ASC, created_at ASC, id ASC
+                LIMIT 1
+            """, (me_user_id,))
+            next_row = cur.fetchone()
+            if next_row:
+                cur.execute("UPDATE user_cars SET is_primary=TRUE WHERE id=%s", (next_row[0],))
+
+        sync_profile_primary_car(db, me_user_id)
+
+    run_db(_do)
+    return RedirectResponse("/profile/edit?deleted=1", status_code=303)
+
+
+# ======================
+# 🚗 メイン愛車変更
+# ======================
+@app.post("/profile/cars/primary/{car_id}")
+def set_primary_user_car(
+    car_id: int,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
+    db = get_db()
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+    finally:
+        db.close()
+
+    def _do(db, cur):
+        cur.execute("""
+            SELECT 1
+            FROM user_cars
+            WHERE id=%s AND user_id=%s
+            LIMIT 1
+        """, (car_id, me_user_id))
+        if cur.fetchone() is None:
+            return
+
+        cur.execute("UPDATE user_cars SET is_primary=FALSE WHERE user_id=%s", (me_user_id,))
+        cur.execute("UPDATE user_cars SET is_primary=TRUE WHERE id=%s AND user_id=%s", (car_id, me_user_id))
+        sync_profile_primary_car(db, me_user_id)
+
+    run_db(_do)
+    return RedirectResponse("/profile/edit?primary=1", status_code=303)
+
+
 # ======================
 # follow / unfollow（handleでもOK）
 # ======================
@@ -1797,6 +2156,7 @@ def resolve_target_user(db, key: str):
     target_handle = row[3]
     target_key = target_handle if target_handle else target_username
     return target_user_id, target_username, target_key
+
 
 @app.post("/follow/{key}")
 def follow(key: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
@@ -1827,6 +2187,7 @@ def follow(key: str, user: str = Cookie(default=None), uid: str = Cookie(default
     run_db(_do)
     return RedirectResponse(f"/user/{quote(target_key)}", status_code=303)
 
+
 @app.post("/unfollow/{key}")
 def unfollow(key: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     key = unquote(key)
@@ -1850,15 +2211,14 @@ def unfollow(key: str, user: str = Cookie(default=None), uid: str = Cookie(defau
     run_db(_do)
     return RedirectResponse(f"/user/{quote(target_key)}", status_code=303)
 
+
 # ======================
-# post（user_idで保存） + ✅複数画像投稿対応
-# ======================
-# ======================
-# post（user_idで保存） + ✅複数画像投稿対応 + MAP投稿
+# post（user_car_id優先）
 # ======================
 @app.post("/post")
 def post(
     request: Request,
+    user_car_id: Optional[str] = Form(None),
     maker: str = Form(""),
     region: str = Form(""),
     car: str = Form(""),
@@ -1882,21 +2242,37 @@ def post(
         if row and row[0]:
             return RedirectResponse("/", status_code=303)
 
-        maker = (maker or "").strip()
-        car = (car or "").strip()
         region = (region or "").strip()
         comment = (comment or "").strip()
 
-        if not is_valid_maker_car(db, maker, car):
-            return RedirectResponse("/", status_code=303)
+        final_maker = ""
+        final_car = ""
+
+        car_id_int = None
+        try:
+            if user_car_id not in (None, "", "null"):
+                car_id_int = int(user_car_id)
+        except:
+            car_id_int = None
+
+        if car_id_int is not None:
+            selected_car = fetch_user_car_by_id(db, me_user_id, car_id_int)
+            if not selected_car:
+                return RedirectResponse("/", status_code=303)
+            final_maker = (selected_car["maker"] or "").strip()
+            final_car = (selected_car["car_name"] or "").strip()
+        else:
+            maker = (maker or "").strip()
+            car = (car or "").strip()
+            if not is_valid_maker_car(db, maker, car):
+                return RedirectResponse("/", status_code=303)
+            final_maker = maker
+            final_car = car
 
     finally:
         cur.close()
         db.close()
 
-    # =========================
-    # 画像受け取り（新旧互換）
-    # =========================
     files: List[UploadFile] = []
 
     if images:
@@ -1905,9 +2281,6 @@ def post(
     if (not files) and image and image.filename:
         files.append(image)
 
-    # =========================
-    # Cloudinaryアップロード
-    # =========================
     image_urls: List[str] = []
 
     for f in files[:10]:
@@ -1923,12 +2296,8 @@ def post(
         if url:
             image_urls.append(url)
 
-    # 互換用：posts.image には先頭1枚
     main_image = image_urls[0] if image_urls else None
 
-    # =========================
-    # 位置情報の空データ対策
-    # =========================
     latitude_val = None
     longitude_val = None
 
@@ -1948,9 +2317,6 @@ def post(
     except:
         longitude_val = None
 
-    # =========================
-    # MAPは「画像あり + 緯度経度あり」の時だけ有効
-    # =========================
     map_expires_at = None
 
     if main_image and latitude_val is not None and longitude_val is not None:
@@ -1959,9 +2325,6 @@ def post(
     if not main_image:
         map_expires_at = None
 
-    # =========================
-    # DB保存
-    # =========================
     def _do(db, cur):
         cur.execute("""
             INSERT INTO posts
@@ -1983,9 +2346,9 @@ def post(
         """, (
             me_username,
             me_user_id,
-            maker,
+            final_maker,
             region,
-            car,
+            final_car,
             comment,
             main_image,
             utcnow_naive(),
@@ -2005,6 +2368,8 @@ def post(
 
     new_post_id = run_db(_do)
     return RedirectResponse(f"/?posted=1&post_id={new_post_id}", status_code=303)
+
+
 # ======================
 # ✅ auth（pbkdf2） + ✅ email/handle/username ログイン
 # ======================
@@ -2038,7 +2403,6 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
                     res.set_cookie("uid", user_id, httponly=True, secure=is_https_request(request), samesite="lax")
                     return res
 
-                # emailは存在するがPW違い
                 return RedirectResponse("/login?error=invalid", status_code=303)
 
         # ===== handleログイン =====
@@ -2098,6 +2462,8 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
             db.close()
         except:
             pass
+
+
 @app.post("/register")
 def register(
     request: Request,
@@ -2128,7 +2494,6 @@ def register(
         if not is_handle_available(db, h):
             raise RuntimeError("handle_taken")
 
-        # 🔥 email重複チェック
         cur.execute("SELECT 1 FROM users WHERE email=%s LIMIT 1", (email,))
         if cur.fetchone():
             raise RuntimeError("email_taken")
@@ -2157,12 +2522,15 @@ def register(
     res.set_cookie("user", quote(login_id), httponly=True, secure=is_https_request(request), samesite="lax")
     res.set_cookie("uid", new_user_id, httponly=True, secure=is_https_request(request), samesite="lax")
     return res
+
+
 @app.post("/logout")
 def logout():
     res = RedirectResponse("/", status_code=303)
     res.delete_cookie("user")
     res.delete_cookie("uid")
     return res
+
 
 # ======================
 # likes API（リロード無し）: user_idベース
@@ -2205,6 +2573,7 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
 
     return JSONResponse(run_db(_do))
 
+
 # ======================
 # delete post（自分のだけ）
 # ======================
@@ -2230,11 +2599,11 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
         """, (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
-        # ✅ post_images は ON DELETE CASCADE で消える
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
     run_db(_do)
     return redirect_back(request, fallback="/")
+
 
 # ======================
 # ✅ DM（HTMLで完全に動かす版）
@@ -2257,7 +2626,6 @@ def dm_room(
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
-        # ルーム確認
         cur.execute("""
             SELECT user1_id, user2_id
             FROM dm_rooms
@@ -2271,7 +2639,6 @@ def dm_room(
         user1_id, user2_id = row
         other_user_id = user2_id if str(user1_id) == me_user_id else user1_id
 
-        # 相手ユーザー取得
         cur.execute("""
             SELECT u.id, u.username, u.display_name, u.handle, p.icon
             FROM users u
@@ -2280,7 +2647,6 @@ def dm_room(
         """, (other_user_id,))
         other = cur.fetchone()
 
-        # 既読処理
         cur.execute("""
             UPDATE dm_messages
             SET read_at = %s
@@ -2291,7 +2657,6 @@ def dm_room(
 
         db.commit()
 
-        # DM取得
         cur.execute("""
             SELECT
                 m.id,
@@ -2348,6 +2713,8 @@ def dm_room(
         "unread_dm": unread_dm,
         "mode": "dm",
     })
+
+
 @app.post("/dm/start/{target_user_id}")
 def dm_start(
     target_user_id: str,
@@ -2385,6 +2752,7 @@ def dm_start(
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
 
+
 @app.post("/dm/{room_id}/send")
 def dm_send(
     room_id: str,
@@ -2420,7 +2788,6 @@ def dm_send(
         media_type = None
 
         if media and media.filename:
-
             result = cloudinary.uploader.upload(
                 media.file,
                 folder="carbum/dm",
@@ -2429,7 +2796,7 @@ def dm_send(
 
             media_url = result.get("secure_url")
 
-            if media.content_type.startswith("video"):
+            if media.content_type and media.content_type.startswith("video"):
                 media_type = "video"
             else:
                 media_type = "image"
@@ -2455,6 +2822,8 @@ def dm_send(
         db.close()
 
     return RedirectResponse(f"/dm/{room_id}", status_code=303)
+
+
 @app.get("/dm", response_class=HTMLResponse)
 def dm_list(
     request: Request,
@@ -2540,6 +2909,7 @@ def dm_list(
         }
     )
 
+
 # =========================
 # フォロー一覧
 # =========================
@@ -2595,6 +2965,7 @@ def following_page(
         "user_icon": user_icon,
         "unread_dm": unread_dm,
     })
+
 
 # =========================
 # フォロワー一覧
@@ -2652,11 +3023,10 @@ def followers_page(
         "unread_dm": unread_dm,
     })
 
+
 # ======================
 # ADMIN（最終版）
 # ======================
-
-# ===== Dashboard =====
 @app.get("/admin", response_class=HTMLResponse)
 def admin_dashboard(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
@@ -2687,7 +3057,7 @@ def admin_dashboard(request: Request, user: str = Cookie(None), uid: str = Cooki
         "mode": "admin",
     })
 
-# ===== Users =====
+
 @app.get("/admin/users", response_class=HTMLResponse)
 def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
@@ -2720,7 +3090,7 @@ def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(No
         "mode": "admin",
     })
 
-# ===== ユーザー削除（完全安全）=====
+
 @app.post("/admin/users/delete/{user_id}")
 def admin_delete_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
@@ -2759,6 +3129,7 @@ def admin_delete_user(request: Request, user_id: str, user: str = Cookie(None), 
             WHERE user1_id=%s OR user2_id=%s
         """, (user_id, user_id))
 
+        cur.execute("DELETE FROM user_cars WHERE user_id=%s", (user_id,))
         cur.execute("DELETE FROM posts WHERE user_id=%s", (user_id,))
         cur.execute("DELETE FROM profiles WHERE user_id=%s", (user_id,))
         cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
@@ -2766,7 +3137,7 @@ def admin_delete_user(request: Request, user_id: str, user: str = Cookie(None), 
     run_db(_do)
     return RedirectResponse("/admin/users", status_code=303)
 
-# ===== 管理者昇格 =====
+
 @app.post("/admin/promote/{user_id}")
 def admin_promote_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
@@ -2780,7 +3151,7 @@ def admin_promote_user(request: Request, user_id: str, user: str = Cookie(None),
     run_db(lambda db, cur: cur.execute("UPDATE users SET is_admin=TRUE WHERE id=%s", (user_id,)))
     return RedirectResponse("/admin/users", status_code=303)
 
-# ===== 管理者解除 =====
+
 @app.post("/admin/demote/{user_id}")
 def admin_demote_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
@@ -2796,7 +3167,7 @@ def admin_demote_user(request: Request, user_id: str, user: str = Cookie(None), 
     run_db(lambda db, cur: cur.execute("UPDATE users SET is_admin=FALSE WHERE id=%s", (user_id,)))
     return RedirectResponse("/admin/users", status_code=303)
 
-# ===== BAN =====
+
 @app.post("/admin/ban/{user_id}")
 def admin_ban_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
@@ -2812,6 +3183,7 @@ def admin_ban_user(request: Request, user_id: str, user: str = Cookie(None), uid
     run_db(lambda db, cur: cur.execute("UPDATE users SET is_banned=TRUE WHERE id=%s", (user_id,)))
     return RedirectResponse("/admin/users", status_code=303)
 
+
 @app.post("/admin/unban/{user_id}")
 def admin_unban_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
@@ -2825,7 +3197,7 @@ def admin_unban_user(request: Request, user_id: str, user: str = Cookie(None), u
     run_db(lambda db, cur: cur.execute("UPDATE users SET is_banned=FALSE WHERE id=%s", (user_id,)))
     return RedirectResponse("/admin/users", status_code=303)
 
-# ===== Posts =====
+
 @app.get("/admin/posts", response_class=HTMLResponse)
 def admin_posts(request: Request, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
@@ -2856,7 +3228,7 @@ def admin_posts(request: Request, user: str = Cookie(None), uid: str = Cookie(No
         "mode": "admin",
     })
 
-# ===== 投稿削除 =====
+
 @app.post("/admin/posts/delete/{post_id}")
 def admin_delete_post(request: Request, post_id: int, user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
@@ -2876,11 +3248,11 @@ def admin_delete_post(request: Request, post_id: int, user: str = Cookie(None), 
         """, (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
-        # ✅ post_images は ON DELETE CASCADE
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
     run_db(_do)
     return RedirectResponse("/admin/posts", status_code=303)
+
 
 # ======================
 # report
@@ -2899,6 +3271,7 @@ def report_page(request: Request, post_id: int, user: str = Cookie(None), uid: s
         "request": request,
         "post_id": post_id
     })
+
 
 @app.post("/report/{post_id}")
 def report_post(
@@ -2939,6 +3312,7 @@ def report_post(
         db.close()
 
     return RedirectResponse("/", status_code=303)
+
 
 # ======================
 # 通報一覧（admin）
@@ -2985,6 +3359,7 @@ def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(
         "mode": "admin",
     })
 
+
 @app.post("/admin/reports/delete/{report_id}")
 def admin_delete_report(
     request: Request,
@@ -3010,6 +3385,7 @@ def admin_delete_report(
 
     return RedirectResponse("/admin/reports", status_code=303)
 
+
 # ======================
 # sitemap.xml
 # ======================
@@ -3030,6 +3406,7 @@ def sitemap():
 """
     return Response(content=xml, media_type="application/xml")
 
+
 @app.get("/api/dm/{room_id}")
 def api_dm(room_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
 
@@ -3039,7 +3416,7 @@ def api_dm(room_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
     try:
         _, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
-            return {"messages":[]}
+            return {"messages": []}
 
         cur.execute("""
             SELECT
@@ -3052,7 +3429,7 @@ def api_dm(room_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
             FROM dm_messages m
             WHERE m.room_id=%s
             ORDER BY m.created_at ASC
-        """,(room_id,))
+        """, (room_id,))
 
         rows = cur.fetchall()
 
@@ -3073,7 +3450,9 @@ def api_dm(room_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
         cur.close()
         db.close()
 
-    return {"messages":messages}
+    return {"messages": messages}
+
+
 # ======================
 # MAP投稿取得API
 # ======================
@@ -3084,9 +3463,7 @@ def map_posts():
     cur = db.cursor()
 
     try:
-
         cur.execute("""
-
             SELECT 
                 p.id,
                 p.latitude,
@@ -3124,7 +3501,6 @@ def map_posts():
                 AND NOT (p.latitude = 0 AND p.longitude = 0)
 
             ORDER BY p.created_at DESC
-
         """)
 
         rows = cur.fetchall()
@@ -3132,7 +3508,6 @@ def map_posts():
         data = []
 
         for r in rows:
-
             data.append({
                 "id": r[0],
                 "lat": float(r[1]),
@@ -3150,6 +3525,8 @@ def map_posts():
     finally:
         cur.close()
         db.close()
+
+
 @app.get("/map", response_class=HTMLResponse)
 def map_page(
     request: Request,
