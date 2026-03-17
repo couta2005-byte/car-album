@@ -48,10 +48,13 @@
 
     <label class="image-upload compact">
       <!-- ✅ 複数画像対応 -->
-    <input type="file" name="images" accept="image/*" multiple> 
-      <span class="image-upload-text">📸 写真を選択</span>
-    </label>
+    <input type="file" id="imageInput" name="images" accept="image/*" multiple> 
+    <span class="image-upload-text">📸 写真を選択</span>
 
+    
+    </label>
+    
+    <div id="preview" class="preview-box"></div>
     <input name="car"
            class="input-normal"
            placeholder="車名・バイク名（例：マークX / MT-07）"
@@ -361,46 +364,223 @@ document.addEventListener("click", (e) => {
 </script>
 
 <script>
-
 const box = document.getElementById("useLocation");
 const form = document.querySelector(".post-form");
 
-if (box && form){
+// ⭐ 先に定義してからチェック
+if (!box || !form) {
+  console.log("form or checkbox not found");
+} else {
 
-form.addEventListener("submit",(e)=>{
+  form.addEventListener("submit",(e)=>{
 
- if(!box.checked) return;
+    if(!box.checked) return;
 
- if(!navigator.geolocation){
-  alert("位置情報が使えません");
-  return;
- }
+    if(!navigator.geolocation){
+      alert("位置情報が使えません");
+      return;
+    }
 
- e.preventDefault();
+    e.preventDefault();
 
- navigator.geolocation.getCurrentPosition((pos)=>{
+    navigator.geolocation.getCurrentPosition((pos)=>{
 
-  let lat = pos.coords.latitude;
-  let lng = pos.coords.longitude;
+      let lat = pos.coords.latitude;
+      let lng = pos.coords.longitude;
 
-  const offset = ()=> (Math.random()-0.5)*0.001;
+      const offset = ()=> (Math.random()-0.5)*0.001;
 
-  lat += offset();
-  lng += offset();
+      lat += offset();
+      lng += offset();
 
-  document.getElementById("lat").value = lat;
-  document.getElementById("lng").value = lng;
+      document.getElementById("lat").value = lat;
+      document.getElementById("lng").value = lng;
 
-  form.submit();
+      form.submit();
 
- },()=>{
+    },()=>{
 
-  alert("位置取得に失敗しました");
- });
+      alert("位置取得に失敗しました");
+    });
 
-});
+  });
 
 }
+</script>
+<script>
+// ===== 画像プレビュー + 削除（完成版） =====
+const imageInput = document.getElementById("imageInput");
+const previewBox = document.getElementById("preview");
+
+let selectedFiles = [];
+
+if (imageInput) {
+  imageInput.addEventListener("change", (e) => {
+    selectedFiles = Array.from(e.target.files || []);
+    renderPreview();
+  });
+}
+
+function renderPreview() {
+  if (!previewBox) return;
+
+  previewBox.innerHTML = "";
+
+  if (selectedFiles.length === 0) {
+    updateInputFiles();
+    return;
+  }
+
+  const count = document.createElement("div");
+  count.style.fontSize = "13px";
+  count.style.width = "100%";
+  count.style.color = "#666";
+  count.textContent = `${selectedFiles.length}枚選択中`;
+  previewBox.appendChild(count);
+
+  selectedFiles.forEach((file, idx) => {
+    if (!file.type.startsWith("image/")) return;
+
+    const wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+    wrapper.style.display = "inline-block";
+
+    const img = document.createElement("img");
+    img.className = "preview-img";
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "×";
+    removeBtn.style.position = "absolute";
+    removeBtn.style.top = "4px";
+    removeBtn.style.right = "6px";
+    removeBtn.style.background = "rgba(0,0,0,0.6)";
+    removeBtn.style.color = "#fff";
+    removeBtn.style.fontSize = "12px";
+    removeBtn.style.padding = "2px 6px";
+    removeBtn.style.border = "none";
+    removeBtn.style.borderRadius = "50%";
+    removeBtn.style.cursor = "pointer";
+    removeBtn.style.lineHeight = "1";
+
+    removeBtn.addEventListener("click", () => {
+      selectedFiles = selectedFiles.filter((_, i) => i !== idx);
+      updateInputFiles();
+      renderPreview();
+    });
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(removeBtn);
+    previewBox.appendChild(wrapper);
+  });
+
+  updateInputFiles();
+}
+
+function updateInputFiles() {
+  if (!imageInput) return;
+
+  const dt = new DataTransfer();
+  selectedFiles.forEach((file) => dt.items.add(file));
+  imageInput.files = dt.files;
+}
+</script>
+
+<!-- 投稿ボタン連打防止 -->
+<script>
+// 投稿ボタン連打防止（安全版）
+const submitForm = document.querySelector(".post-form");
+const submitBtn = document.querySelector(".post-submit");
+
+if (submitForm && submitBtn){
+  submitForm.addEventListener("submit", ()=>{
+    submitBtn.disabled = true;
+    submitBtn.textContent = "投稿中...";
+  });
+}
+</script>
+<!-- ===== 投稿後シェアモーダル ===== -->
+<div id="shareModal" class="share-modal">
+  <div class="share-box">
+
+    <div class="share-title">
+      投稿完了！🚗✨
+    </div>
+
+    <div class="share-text">
+      この投稿をXでシェアしませんか？
+    </div>
+
+    <a id="shareBtn"
+       href="#"
+       target="_blank"
+       class="share-x-btn">
+       Xでシェアする
+    </a>
+
+    <button id="closeShare" class="share-skip">
+      あとで
+    </button>
+
+  </div>
+</div>
+<script>
+// ===== 投稿後シェア誘導（完全最終版） =====
+
+const params = new URLSearchParams(window.location.search);
+const isPosted = params.get("posted");
+
+// 🔥 一度だけ表示制御
+const alreadyShown = sessionStorage.getItem("shareShown");
+
+if (isPosted === "1" && !alreadyShown) {
+
+  const modal = document.getElementById("shareModal");
+  const closeBtn = document.getElementById("closeShare");
+  const shareBtn = document.getElementById("shareBtn");
+
+  const postId = params.get("post_id");
+
+  const url = postId
+    ? window.location.origin + "/post/" + postId
+    : window.location.origin;
+
+  const text = "Carbumに投稿しました🚗✨\n車好きはチェック👇";
+
+  shareBtn.href =
+    "https://twitter.com/intent/tweet?text=" +
+    encodeURIComponent(text) +
+    "&url=" + encodeURIComponent(url);
+
+  modal.classList.add("show");
+
+  // 🔥 一回だけ表示
+  sessionStorage.setItem("shareShown", "1");
+
+  closeBtn.addEventListener("click", () => {
+    modal.classList.remove("show");
+  });
+
+  // 🔥 URLクリーン
+  const cleanUrl = window.location.pathname;
+  window.history.replaceState({}, "", cleanUrl);
+}
+</script>
+<script>
+// 🔥 戻る時に投稿ボタン復活（完全版）
+window.addEventListener("pageshow", () => {
+  const btn = document.querySelector(".post-submit");
+  if (btn){
+    btn.disabled = false;
+    btn.textContent = "投稿";
+  }
+});
 </script>
 </body>
 </html>
