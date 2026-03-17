@@ -1483,7 +1483,32 @@ def api_my_cars(user: str = Cookie(default=None), uid: str = Cookie(default=None
         return fetch_user_cars(db, me_user_id)
     finally:
         db.close()
+# 👇 ここに追加！！！！
+@app.get("/init/makers")
+def init_makers():
+    db = get_db()
+    cur = db.cursor()
 
+    try:
+        cur.execute("""
+            INSERT INTO makers (id, name, category) VALUES
+            ('toyota','トヨタ','car'),
+            ('nissan','日産','car'),
+            ('honda','ホンダ','car'),
+            ('mazda','マツダ','car'),
+            ('subaru','スバル','car'),
+            ('suzuki','スズキ','car'),
+            ('daihatsu','ダイハツ','car')
+            ON CONFLICT (id) DO NOTHING;
+        """)
+
+        db.commit()
+
+    finally:
+        cur.close()
+        db.close()
+
+    return {"ok": True}
 
 # ======================
 # following TL
