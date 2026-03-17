@@ -2107,55 +2107,6 @@ def profile_edit(
 
 
 # ======================
-# 🚗 愛車追加
-# ======================
-@app.post("/profile/cars/add")
-def add_user_car(
-    maker_id: str = Form(...),
-    car: str = Form(...),
-    set_primary: str = Form(""),
-    user: str = Cookie(default=None),
-    uid: str = Cookie(default=None),
-):
-    db = get_db()
-    cur = db.cursor()
-
-    try:
-        _, user_id = get_me_from_cookies(db, user, uid)
-        if not user_id:
-            return RedirectResponse("/login", status_code=303)
-
-        # メーカー名取得
-        cur.execute("SELECT name FROM makers WHERE id=%s", (maker_id,))
-        row = cur.fetchone()
-        if not row:
-            return RedirectResponse("/profile/edit?error=invalid_maker", status_code=303)
-
-        maker_name = row[0]
-
-        # 車種チェック
-        cur.execute("""
-            SELECT 1 FROM car_models
-            WHERE maker_id=%s AND name=%s
-        """, (maker_id, car))
-
-        if not cur.fetchone():
-            return RedirectResponse("/profile/edit?error=invalid_car", status_code=303)
-
-        # 登録
-        cur.execute("""
-            INSERT INTO user_cars (user_id, maker, car_name, is_primary)
-            VALUES (%s, %s, %s, %s)
-        """, (user_id, maker_name, car, bool(set_primary)))
-
-        db.commit()
-
-    finally:
-        cur.close()
-        db.close()
-
-    return RedirectResponse("/profile/edit?added=1", status_code=303)
-# ======================
 # 🚗 愛車削除
 # ======================
 @app.post("/profile/cars/delete/{car_id}")

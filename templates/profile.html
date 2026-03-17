@@ -143,6 +143,54 @@
     </div>
 
   </section>
+<!-- ======================
+     🚗 愛車一覧
+====================== -->
+<section style="margin-top:14px;">
+
+  <h3 class="profile-section-title">愛車</h3>
+
+  {% if cars and cars|length > 0 %}
+    <div style="display:flex;flex-direction:column;gap:10px;">
+
+      {% for c in cars %}
+      <div style="
+        border:1px solid #e5e7eb;
+        border-radius:12px;
+        padding:12px;
+        background:#fff;
+      ">
+
+        <div style="font-weight:700;">
+          {{ c.maker }} / {{ c.car_name }}
+
+          {% if c.is_primary %}
+            <span style="
+              background:#111;
+              color:#fff;
+              padding:2px 8px;
+              border-radius:999px;
+              font-size:12px;
+              margin-left:6px;
+            ">
+              メイン
+            </span>
+          {% endif %}
+        </div>
+
+        <div style="font-size:12px;color:#666;margin-top:4px;">
+          {{ c.created_at }}
+        </div>
+
+      </div>
+      {% endfor %}
+
+    </div>
+  {% else %}
+    <p style="color:#888;">まだ愛車が登録されていません</p>
+  {% endif %}
+
+</section>
 
   <!-- ======================
        Posts
