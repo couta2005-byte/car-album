@@ -1664,3 +1664,24 @@ margin-top:10px;
     height:80px;
   }
 }
+/* ===== プレビュー完全修正 ===== */
+
+.preview-box{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+
+/* 🔥 ここが本体 */
+.preview-img{
+  width:100px !important;
+  height:100px !important;
+  object-fit:cover;
+  border-radius:10px;
+}
+
+/* wrapperも制限 */
+.preview-box div{
+  max-width:100px;
+}
