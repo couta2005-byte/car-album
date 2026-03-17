@@ -143,36 +143,22 @@
     </div>
 
   </section>
-<!-- ======================
-     🚗 愛車一覧
-====================== -->
+<!-- 🚗 愛車 -->
 <section style="margin-top:14px;">
 
   <h3 class="profile-section-title">愛車</h3>
 
-  {% if cars and cars|length > 0 %}
+  {% if user_cars and user_cars|length > 0 %}
     <div style="display:flex;flex-direction:column;gap:10px;">
 
-      {% for c in cars %}
-      <div style="
-        border:1px solid #e5e7eb;
-        border-radius:12px;
-        padding:12px;
-        background:#fff;
-      ">
+      {% for c in user_cars %}
+      <div style="border:1px solid #ddd;border-radius:12px;padding:12px;">
 
         <div style="font-weight:700;">
           {{ c.maker }} / {{ c.car_name }}
 
           {% if c.is_primary %}
-            <span style="
-              background:#111;
-              color:#fff;
-              padding:2px 8px;
-              border-radius:999px;
-              font-size:12px;
-              margin-left:6px;
-            ">
+            <span style="background:#111;color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:6px;">
               メイン
             </span>
           {% endif %}
