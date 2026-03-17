@@ -1685,3 +1685,15 @@ margin-top:10px;
   object-fit:cover !important;
   border-radius:10px !important;
 }
+/* ===== プレビュー完全固定 ===== */
+.preview-item{
+  width:90px;
+  height:90px;
+  flex: 0 0 90px;
+}
+
+.preview-item img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
