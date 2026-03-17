@@ -47,169 +47,35 @@
         class="post-form post-form-mobile">
 
     <label class="image-upload compact">
-      <!-- ✅ 複数画像対応 -->
-    <input type="file" id="imageInput" name="images" accept="image/*" multiple> 
-    <span class="image-upload-text">📸 写真を選択</span>
-
-    
+      <input type="file" id="imageInput" name="images" accept="image/*" multiple>
+      <span class="image-upload-text">📸 写真を選択</span>
     </label>
-    
+
     <div id="preview" class="preview-box"></div>
-    <input name="car"
-           class="input-normal"
-           placeholder="車名・バイク名（例：マークX / MT-07）"
-           required>
 
-    <div class="form-row big-selects">
-      <select name="maker" required>
-        <option value="">メーカー</option>
-        <option value="none">車・バイクなし</option>
+    <select id="makerSelect" name="maker" required>
+      <option value="">メーカー選択</option>
+    </select>
 
-        <optgroup label="日本車（四輪）">
-          <option value="toyota">トヨタ</option>
-          <option value="lexus">レクサス</option>
-          <option value="nissan">日産</option>
-          <option value="honda">ホンダ</option>
-          <option value="mazda">マツダ</option>
-          <option value="subaru">スバル</option>
-          <option value="mitsubishi">三菱</option>
-          <option value="suzuki">スズキ</option>
-          <option value="daihatsu">ダイハツ</option>
-          <option value="isuzu">いすゞ</option>
-        </optgroup>
-
-        <optgroup label="輸入車（四輪）">
-          <option value="benz">メルセデス・ベンツ</option>
-          <option value="bmw">BMW</option>
-          <option value="audi">アウディ</option>
-          <option value="vw">フォルクスワーゲン</option>
-          <option value="porsche">ポルシェ</option>
-          <option value="tesla">テスラ</option>
-          <option value="ford">フォード</option>
-          <option value="chevrolet">シボレー</option>
-          <option value="jeep">ジープ</option>
-          <option value="volvo">ボルボ</option>
-          <option value="mini">MINI</option>
-          <option value="fiat">フィアット</option>
-          <option value="peugeot">プジョー</option>
-        </optgroup>
-
-        <optgroup label="日本バイク">
-          <option value="honda_bike">ホンダ（バイク）</option>
-          <option value="yamaha_bike">ヤマハ</option>
-          <option value="suzuki_bike">スズキ（バイク）</option>
-          <option value="kawasaki_bike">カワサキ</option>
-        </optgroup>
-
-        <optgroup label="海外バイク">
-          <option value="harley">Harley-Davidson</option>
-          <option value="bmw_motorrad">BMW Motorrad</option>
-          <option value="ducati">Ducati</option>
-          <option value="triumph">Triumph</option>
-          <option value="ktm">KTM</option>
-          <option value="aprilia">Aprilia</option>
-          <option value="vespa">Vespa</option>
-          <option value="royal_enfield">Royal Enfield</option>
-          <option value="husqvarna">Husqvarna</option>
-          <option value="indian">Indian</option>
-          <option value="mv_agusta">MV Agusta</option>
-          <option value="moto_guzzi">Moto Guzzi</option>
-        </optgroup>
-
-        <optgroup label="その他">
-          <option value="other">その他・不明</option>
-        </optgroup>
-      </select>
-
-      <select name="region" required>
-        <option value="">地域</option>
-        <option value="overseas">海外</option>
-
-        <optgroup label="北海道・東北">
-          <option value="hokkaido">北海道</option>
-          <option value="aomori">青森県</option>
-          <option value="iwate">岩手県</option>
-          <option value="miyagi">宮城県</option>
-          <option value="akita">秋田県</option>
-          <option value="yamagata">山形県</option>
-          <option value="fukushima">福島県</option>
-        </optgroup>
-
-        <optgroup label="関東">
-          <option value="ibaraki">茨城県</option>
-          <option value="tochigi">栃木県</option>
-          <option value="gunma">群馬県</option>
-          <option value="saitama">埼玉県</option>
-          <option value="chiba">千葉県</option>
-          <option value="tokyo">東京都</option>
-          <option value="kanagawa">神奈川県</option>
-        </optgroup>
-
-        <optgroup label="中部">
-          <option value="niigata">新潟県</option>
-          <option value="toyama">富山県</option>
-          <option value="ishikawa">石川県</option>
-          <option value="fukui">福井県</option>
-          <option value="yamanashi">山梨県</option>
-          <option value="nagano">長野県</option>
-          <option value="gifu">岐阜県</option>
-          <option value="shizuoka">静岡県</option>
-          <option value="aichi">愛知県</option>
-        </optgroup>
-
-        <optgroup label="近畿">
-          <option value="mie">三重県</option>
-          <option value="shiga">滋賀県</option>
-          <option value="kyoto">京都府</option>
-          <option value="osaka">大阪府</option>
-          <option value="hyogo">兵庫県</option>
-          <option value="nara">奈良県</option>
-          <option value="wakayama">和歌山県</option>
-        </optgroup>
-
-        <optgroup label="中国">
-          <option value="tottori">鳥取県</option>
-          <option value="shimane">島根県</option>
-          <option value="okayama">岡山県</option>
-          <option value="hiroshima">広島県</option>
-          <option value="yamaguchi">山口県</option>
-        </optgroup>
-
-        <optgroup label="四国">
-          <option value="tokushima">徳島県</option>
-          <option value="kagawa">香川県</option>
-          <option value="ehime">愛媛県</option>
-          <option value="kochi">高知県</option>
-        </optgroup>
-
-        <optgroup label="九州・沖縄">
-          <option value="fukuoka">福岡県</option>
-          <option value="saga">佐賀県</option>
-          <option value="nagasaki">長崎県</option>
-          <option value="kumamoto">熊本県</option>
-          <option value="oita">大分県</option>
-          <option value="miyazaki">宮崎県</option>
-          <option value="kagoshima">鹿児島県</option>
-          <option value="okinawa">沖縄県</option>
-        </optgroup>
-      </select>
-    </div>
+    <select id="carSelect" name="car" required>
+      <option value="">車種選択</option>
+    </select>
 
     <textarea name="comment"
-    rows="2"
-    class="comment-compact"
-    placeholder="コメント（任意）"></textarea>
+              rows="2"
+              class="comment-compact"
+              placeholder="コメント（任意）"></textarea>
 
     <label class="map-toggle">
-    <input type="checkbox" id="useLocation">
-   📍現在位置をMAPに表示（24時間）
+      <input type="checkbox" id="useLocation">
+      📍現在位置をMAPに表示（24時間）
     </label>
 
     <input type="hidden" name="latitude" id="lat">
-    <input type="hidden" name="longitude" id="lng"> 
+    <input type="hidden" name="longitude" id="lng">
+
     <button class="primary-btn post-submit">投稿</button>
-  
-</form>
+  </form>
   {% endif %}
 
   <!-- Posts -->
@@ -246,15 +112,7 @@
       <div class="post-comment">{{ post.comment }}</div>
       {% endif %}
 
-      <!-- ======================
-           ✅ 画像表示（ホーム専用：1枚ズレ防止）
-           - 2枚以上：横スクロール
-           - 1枚：単発表示（偏り防止）
-           - 旧データ(post.image)：単発表示
-      ====================== -->
-
       {% if post.images and post.images|length >= 2 %}
-        <!-- 複数（横スクロール） -->
         <div class="post-images">
           <div class="post-images-track">
             {% for img in post.images %}
@@ -266,71 +124,65 @@
         </div>
 
       {% elif post.images and post.images|length == 1 %}
-        <!-- 1枚（単発：ズレ防止） -->
         <div class="post-image">
           <img src="{{ post.images[0] }}" alt="投稿画像">
         </div>
 
       {% elif post.image %}
-        <!-- 旧データ（単発） -->
         <div class="post-image">
           <img src="{{ post.image }}" alt="投稿画像">
         </div>
       {% endif %}
-      <!-- 🔥 ボタン列 -->
+
       <div class="post-actions">
 
-  <!-- 左 -->
-  <div class="actions-left">
+        <div class="actions-left">
 
-    {% if me_user_id == post.user_id %}
-    <form method="post" action="/delete/{{ post.id }}" class="inline-form">
-      <button type="submit" class="delete-btn">削除</button>
-    </form>
+          {% if me_user_id == post.user_id %}
+          <form method="post" action="/delete/{{ post.id }}" class="inline-form">
+            <button type="submit" class="delete-btn">削除</button>
+          </form>
 
-    {% elif is_admin and me_user_id != post.user_id %}
-    <form method="post" action="/admin/posts/delete/{{ post.id }}" class="inline-form">
-      <button type="submit" class="delete-btn" style="color:#ff4444;">
-        管理削除
-      </button>
-    </form>
+          {% elif is_admin and me_user_id != post.user_id %}
+          <form method="post" action="/admin/posts/delete/{{ post.id }}" class="inline-form">
+            <button type="submit" class="delete-btn" style="color:#ff4444;">
+              管理削除
+            </button>
+          </form>
 
-    {% elif me_user_id is not none %}
-    <a href="/report/{{ post.id }}" class="report-btn">通報</a>
-    {% endif %}
+          {% elif me_user_id is not none %}
+          <a href="/report/{{ post.id }}" class="report-btn">通報</a>
+          {% endif %}
 
-    <!-- ★ Xシェア -->
-    <a
-      href="https://twitter.com/intent/tweet?text=Carbumでこの車投稿を見つけた🚗&url=https://car-album-3.onrender.com/post/{{ post.id }}"
-      target="_blank"
-      class="report-btn">Xシェア</a>
+          <a
+            href="https://twitter.com/intent/tweet?text=Carbumでこの車投稿を見つけた🚗&url=https://car-album-3.onrender.com/post/{{ post.id }}"
+            target="_blank"
+            class="report-btn">Xシェア</a>
 
+        </div>
+
+        <div class="actions-right">
+
+          <a href="/post/{{ post.id }}#comments" class="action-btn">
+            💬 <span class="count">{{ post.comment_count }}</span>
+          </a>
+
+          <button type="button"
+                  class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
+                  data-post-id="{{ post.id }}">
+            <span class="heart heart-off">🤍</span>
+            <span class="heart heart-on">❤️</span>
+            <span class="like-count">{{ post.likes }}</span>
+          </button>
+
+        </div>
+
+      </div>
+
+    </article>
+
+    {% endfor %}
   </div>
-
-  <!-- 右 -->
-  <div class="actions-right">
-
-    <a href="/post/{{ post.id }}#comments" class="action-btn">
-      💬 <span class="count">{{ post.comment_count }}</span>
-    </a>
-
-    <button type="button"
-            class="like-btn {% if post.id in liked_posts %}liked{% endif %}"
-            data-post-id="{{ post.id }}">
-      <span class="heart heart-off">🤍</span>
-      <span class="heart heart-on">❤️</span>
-      <span class="like-count">{{ post.likes }}</span>
-    </button>
-
-  </div>
-
-</div> 
- 
-</article>
-
-{% endfor %}
-
-</div>
 </main>
 
 <!-- Like -->
@@ -359,38 +211,34 @@ document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
   if (!post) return;
 
-  // 🔥 ここが重要（画像クリック無効）
   if (e.target.closest(".like-btn, a, button, form, img")) return;
 
   location.href = post.dataset.href;
 });
 </script>
+
 <script>
 const box = document.getElementById("useLocation");
 const form = document.querySelector(".post-form");
 
-// ⭐ 先に定義してからチェック
 if (!box || !form) {
   console.log("form or checkbox not found");
 } else {
+  form.addEventListener("submit", (e) => {
+    if (!box.checked) return;
 
-  form.addEventListener("submit",(e)=>{
-
-    if(!box.checked) return;
-
-    if(!navigator.geolocation){
+    if (!navigator.geolocation) {
       alert("位置情報が使えません");
       return;
     }
 
     e.preventDefault();
 
-    navigator.geolocation.getCurrentPosition((pos)=>{
-
+    navigator.geolocation.getCurrentPosition((pos) => {
       let lat = pos.coords.latitude;
       let lng = pos.coords.longitude;
 
-      const offset = ()=> (Math.random()-0.5)*0.001;
+      const offset = () => (Math.random() - 0.5) * 0.001;
 
       lat += offset();
       lng += offset();
@@ -399,16 +247,13 @@ if (!box || !form) {
       document.getElementById("lng").value = lng;
 
       form.submit();
-
-    },()=>{
-
+    }, () => {
       alert("位置取得に失敗しました");
     });
-
   });
-
 }
 </script>
+
 <script>
 // ===== 画像プレビュー + 削除（完成版） =====
 const imageInput = document.getElementById("imageInput");
@@ -445,7 +290,7 @@ function renderPreview() {
 
     const wrapper = document.createElement("div");
     wrapper.style.position = "relative";
-   wrapper.className = "preview-item";
+    wrapper.className = "preview-item";
 
     const img = document.createElement("img");
     img.className = "preview-img";
@@ -496,17 +341,17 @@ function updateInputFiles() {
 
 <!-- 投稿ボタン連打防止 -->
 <script>
-// 投稿ボタン連打防止（安全版）
 const submitForm = document.querySelector(".post-form");
 const submitBtn = document.querySelector(".post-submit");
 
-if (submitForm && submitBtn){
-  submitForm.addEventListener("submit", ()=>{
+if (submitForm && submitBtn) {
+  submitForm.addEventListener("submit", () => {
     submitBtn.disabled = true;
     submitBtn.textContent = "投稿中...";
   });
 }
 </script>
+
 <!-- ===== 投稿後シェアモーダル ===== -->
 <div id="shareModal" class="share-modal">
   <div class="share-box">
@@ -532,119 +377,188 @@ if (submitForm && submitBtn){
 
   </div>
 </div>
+
 <script>
-// ===== 投稿後シェア誘導（完全最終版） =====
+// ===== 投稿後シェア誘導（安定版） =====
+document.addEventListener("DOMContentLoaded", () => {
+  const params = new URLSearchParams(window.location.search);
+  const isPosted = params.get("posted");
+  const alreadyShown = sessionStorage.getItem("shareShown");
 
-const params = new URLSearchParams(window.location.search);
-const isPosted = params.get("posted");
+  if (isPosted === "1" && !alreadyShown) {
+    const modal = document.getElementById("shareModal");
+    const closeBtn = document.getElementById("closeShare");
+    const shareBtn = document.getElementById("shareBtn");
 
-// 🔥 一度だけ表示制御
-const alreadyShown = sessionStorage.getItem("shareShown");
+    if (!modal || !closeBtn || !shareBtn) return;
 
-if (isPosted === "1" && !alreadyShown) {
+    const postId = params.get("post_id");
+    const url = postId
+      ? window.location.origin + "/post/" + postId
+      : window.location.origin;
 
-  const modal = document.getElementById("shareModal");
-  const closeBtn = document.getElementById("closeShare");
-  const shareBtn = document.getElementById("shareBtn");
+    const text = "Carbumに投稿しました🚗✨\n車好きはチェック👇";
 
-  const postId = params.get("post_id");
+    shareBtn.href =
+      "https://twitter.com/intent/tweet?text=" +
+      encodeURIComponent(text) +
+      "&url=" + encodeURIComponent(url);
 
-  const url = postId
-    ? window.location.origin + "/post/" + postId
-    : window.location.origin;
+    modal.classList.add("show");
+    sessionStorage.setItem("shareShown", "1");
 
-  const text = "Carbumに投稿しました🚗✨\n車好きはチェック👇";
+    closeBtn.addEventListener("click", () => {
+      modal.classList.remove("show");
+    });
 
-  shareBtn.href =
-    "https://twitter.com/intent/tweet?text=" +
-    encodeURIComponent(text) +
-    "&url=" + encodeURIComponent(url);
-
-  modal.classList.add("show");
-
-  // 🔥 一回だけ表示
-  sessionStorage.setItem("shareShown", "1");
-
-  closeBtn.addEventListener("click", () => {
-    modal.classList.remove("show");
-  });
-
-  // 🔥 URLクリーン
-  const cleanUrl = window.location.pathname;
-  window.history.replaceState({}, "", cleanUrl);
-}
+    const cleanUrl = window.location.pathname;
+    window.history.replaceState({}, "", cleanUrl);
+  }
+});
 </script>
+
 <script>
-// 🔥 戻る時に投稿ボタン復活（完全版）
+// 🔥 戻る時に投稿ボタン復活
 window.addEventListener("pageshow", () => {
   const btn = document.querySelector(".post-submit");
-  if (btn){
+  if (btn) {
     btn.disabled = false;
     btn.textContent = "投稿";
   }
 });
 </script>
-<!-- ===== 投稿後スクリプトここまで ===== -->
 
 <!-- 画像拡大モーダル -->
 <div id="imgModal" class="img-modal">
   <div class="img-modal-inner">
-
-    <!-- ×ボタン -->
     <button id="imgModalClose" class="img-modal-close">&times;</button>
-
     <img id="imgModalSrc" src="">
   </div>
 </div>
+
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-
   const modal = document.getElementById("imgModal");
   const modalImg = document.getElementById("imgModalSrc");
   const closeBtn = document.getElementById("imgModalClose");
 
   if (!modal || !modalImg) return;
 
-  // ===== 画像クリックで開く =====
   document.addEventListener("click", (e) => {
-
-    // モーダル内クリック無視
     if (e.target.closest("#imgModal")) return;
-
-    // プレビュー削除ボタン無視
     if (e.target.closest(".preview-item button")) return;
 
     const img = e.target.closest(".post-image img, .post-images img, .preview-img");
     if (!img) return;
 
     e.preventDefault();
-    e.stopPropagation(); // ← 修正ポイント
+    e.stopPropagation();
 
     modalImg.src = img.src;
     modal.classList.add("open");
-
   }, true);
 
-  // ===== 背景クリックで閉じる =====
   modal.addEventListener("click", (e) => {
     if (e.target !== modal) return;
     closeModal();
   });
 
-  // ===== ×ボタンで閉じる =====
-  if (closeBtn){
+  if (closeBtn) {
     closeBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       closeModal();
     });
   }
 
-  function closeModal(){
+  function closeModal() {
     modal.classList.remove("open");
     modalImg.src = "";
   }
-
 });
 </script>
+
+<script>
+// ===== メーカー / 車種 連動（my_maker / my_car 初期反映つき） =====
+const initialMaker = {{ (my_maker or "")|tojson }};
+const initialCar = {{ (my_car or "")|tojson }};
+
+async function loadMakers(selectedMaker = "") {
+  const makerSelect = document.getElementById("makerSelect");
+  const carSelect = document.getElementById("carSelect");
+
+  if (!makerSelect || !carSelect) return;
+
+  makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
+  carSelect.innerHTML = "<option value=''>車種選択</option>";
+
+  try {
+    const res = await fetch("/api/makers", { credentials: "same-origin" });
+    if (!res.ok) throw new Error("makers fetch failed");
+
+    const makers = await res.json();
+
+    makers.forEach((m) => {
+      const option = document.createElement("option");
+      option.value = m.name;
+      option.textContent = m.name;
+      if (selectedMaker && m.name === selectedMaker) {
+        option.selected = true;
+      }
+      makerSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("メーカー取得失敗:", err);
+  }
+}
+
+async function loadCars(makerName, selectedCar = "") {
+  const carSelect = document.getElementById("carSelect");
+  if (!carSelect) return;
+
+  carSelect.innerHTML = "<option value=''>車種選択</option>";
+
+  if (!makerName) return;
+
+  try {
+    const res = await fetch(`/api/cars/by-name/${encodeURIComponent(makerName)}`, {
+      credentials: "same-origin"
+    });
+    if (!res.ok) throw new Error("cars fetch failed");
+
+    const cars = await res.json();
+
+    cars.forEach((c) => {
+      const option = document.createElement("option");
+      option.value = c.name;
+      option.textContent = c.name;
+      if (selectedCar && c.name === selectedCar) {
+        option.selected = true;
+      }
+      carSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("車種取得失敗:", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const makerSelect = document.getElementById("makerSelect");
+  const carSelect = document.getElementById("carSelect");
+
+  if (!makerSelect || !carSelect) return;
+
+  makerSelect.addEventListener("change", async function () {
+    const makerName = this.value;
+    await loadCars(makerName, "");
+  });
+
+  await loadMakers(initialMaker);
+
+  if (initialMaker) {
+    await loadCars(initialMaker, initialCar);
+  }
+});
+</script>
+
 </body>
 </html>

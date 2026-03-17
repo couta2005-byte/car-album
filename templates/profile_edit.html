@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=1001">
+  <link rel="stylesheet" href="/static/style.css?v=1002">
 </head>
 <body>
 
@@ -18,7 +18,7 @@
 
   <h2 class="page-title">プロフィール編集</h2>
 
-  <form action="/profile/edit" method="post" enctype="multipart/form-data">
+  <form action="/profile/edit" method="post" enctype="multipart/form-data" class="profile-edit-form">
 
     <label>表示名</label>
     <input type="text" name="display_name" value="{{ display_name }}" maxlength="40">
@@ -27,10 +27,14 @@
     <input type="text" name="handle" value="{{ handle }}" placeholder="kumax">
 
     <label>メーカー</label>
-    <input type="text" name="maker" value="{{ profile[0] if profile else '' }}">
+    <select id="makerSelect" name="maker">
+      <option value="">メーカー選択</option>
+    </select>
 
     <label>車名</label>
-    <input type="text" name="car" value="{{ profile[1] if profile else '' }}">
+    <select id="carSelect" name="car">
+      <option value="">車種選択</option>
+    </select>
 
     <label>地域</label>
     <input type="text" name="region" value="{{ profile[2] if profile else '' }}">
@@ -48,6 +52,92 @@
   </form>
 
 </main>
+
+<script>
+const initialMaker = {{ (profile[0] if profile and profile[0] else "") | tojson }};
+const initialCar   = {{ (profile[1] if profile and profile[1] else "") | tojson }};
+
+async function loadMakers(selectedMaker = "") {
+  const makerSelect = document.getElementById("makerSelect");
+  const carSelect = document.getElementById("carSelect");
+
+  if (!makerSelect || !carSelect) return;
+
+  makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
+  carSelect.innerHTML = "<option value=''>車種選択</option>";
+
+  try {
+    const res = await fetch("/api/makers", { credentials: "same-origin" });
+    if (!res.ok) throw new Error("makers fetch failed");
+
+    const makers = await res.json();
+
+    makers.forEach((m) => {
+      const option = document.createElement("option");
+      option.value = m.name;
+      option.textContent = m.name;
+
+      if (selectedMaker && m.name === selectedMaker) {
+        option.selected = true;
+      }
+
+      makerSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("メーカー取得失敗:", err);
+  }
+}
+
+async function loadCars(makerName, selectedCar = "") {
+  const carSelect = document.getElementById("carSelect");
+  if (!carSelect) return;
+
+  carSelect.innerHTML = "<option value=''>車種選択</option>";
+
+  if (!makerName) return;
+
+  try {
+    const res = await fetch(`/api/cars/by-name/${encodeURIComponent(makerName)}`, {
+      credentials: "same-origin"
+    });
+    if (!res.ok) throw new Error("cars fetch failed");
+
+    const cars = await res.json();
+
+    cars.forEach((c) => {
+      const option = document.createElement("option");
+      option.value = c.name;
+      option.textContent = c.name;
+
+      if (selectedCar && c.name === selectedCar) {
+        option.selected = true;
+      }
+
+      carSelect.appendChild(option);
+    });
+  } catch (err) {
+    console.error("車種取得失敗:", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const makerSelect = document.getElementById("makerSelect");
+  const carSelect = document.getElementById("carSelect");
+
+  if (!makerSelect || !carSelect) return;
+
+  await loadMakers(initialMaker);
+
+  if (initialMaker) {
+    await loadCars(initialMaker, initialCar);
+  }
+
+  makerSelect.addEventListener("change", async function () {
+    const makerName = this.value;
+    await loadCars(makerName, "");
+  });
+});
+</script>
 
 </body>
 </html>

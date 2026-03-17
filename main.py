@@ -204,7 +204,66 @@ def get_my_icon(db, me_user_id: Optional[str]) -> Optional[str]:
         return row[0] if row and row[0] else None
     finally:
         cur.close()
+# ======================
+# 🚗 maker/car validation helpers
+# ======================
+def is_valid_maker(db, maker_name: str) -> bool:
+    maker_name = (maker_name or "").strip()
+    if not maker_name:
+        return False
 
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            SELECT 1
+            FROM makers
+            WHERE name = %s
+            LIMIT 1
+        """, (maker_name,))
+        return cur.fetchone() is not None
+    finally:
+        cur.close()
+
+
+def is_valid_maker_car(db, maker_name: str, car_name: str) -> bool:
+    maker_name = (maker_name or "").strip()
+    car_name = (car_name or "").strip()
+
+    if not maker_name or not car_name:
+        return False
+
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            SELECT 1
+            FROM car_models cm
+            JOIN makers m ON cm.maker_id = m.id
+            WHERE m.name = %s
+              AND cm.name = %s
+            LIMIT 1
+        """, (maker_name, car_name))
+        return cur.fetchone() is not None
+    finally:
+        cur.close()
+
+
+def get_my_profile_car(db, me_user_id: Optional[str]) -> Tuple[str, str]:
+    if not me_user_id:
+        return "", ""
+
+    cur = db.cursor()
+    try:
+        cur.execute("""
+            SELECT maker, car
+            FROM profiles
+            WHERE user_id = %s
+        """, (me_user_id,))
+        row = cur.fetchone()
+        if not row:
+            return "", ""
+        return (row[0] or "", row[1] or "")
+    finally:
+        cur.close()
 # ======================
 # ✅ DM helpers（ルーム作成/取得）
 # ======================
@@ -508,9 +567,42 @@ def init_db():
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user1_idx ON dm_rooms(user1_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user2_idx ON dm_rooms(user2_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_messages_room_time_idx ON dm_messages(room_id, created_at);")
+ 
+
+        # ======================
+        # 🚗 車種マスタ（追加）
+        # ======================
+        def init_car_master(cur):
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS makers (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL
+                );
+            """)
+
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS car_models (
+                    id TEXT PRIMARY KEY,
+                    maker_id TEXT NOT NULL,
+                    name TEXT NOT NULL
+                );
+            """)
+
+            cur.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS makers_name_unique
+                ON makers(name);
+            """)
+
+            cur.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS car_models_maker_name_unique
+                ON car_models(maker_id, name);
+            """)
+        
         # ✅ DM 既読管理（Shell不要）
         cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP;")
 
+        # 🚗 車種マスタ初期化
+        init_car_master(cur)
     run_db(_do)
 
 @app.on_event("startup")
@@ -995,6 +1087,8 @@ def index(
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
         liked_posts = get_liked_posts(db, me_user_id, me_username)
+        is_admin = is_admin_user(db, me_user_id)
+        my_maker, my_car = get_my_profile_car(db, me_user_id)
 
         if tab == "recommend":
             posts = fetch_posts_recommend(db, me_user_id)
@@ -1031,8 +1125,10 @@ def index(
         "liked_posts": liked_posts,
         "mode": "home",
         "tab": tab,
+        "is_admin": is_admin,
+        "my_maker": my_maker,
+        "my_car": my_car,
     })
-
 # ======================
 # auth pages（errorをテンプレに渡す）
 # ======================
@@ -1149,7 +1245,33 @@ def search(
         "region": region,
         "mode": "search"
     })
+# ======================
+# 🚗 車種API（完全選択制）
+# ======================
+@app.get("/api/makers")
+def get_makers():
+    def _do(db, cur):
+        cur.execute("""
+            SELECT name
+            FROM makers
+            ORDER BY name
+        """)
+        return [{"name": r[0]} for r in cur.fetchall()]
+    return run_db(_do)
 
+
+@app.get("/api/cars/by-name/{maker_name}")
+def get_cars_by_name(maker_name: str):
+    def _do(db, cur):
+        cur.execute("""
+            SELECT cm.name
+            FROM car_models cm
+            JOIN makers m ON cm.maker_id = m.id
+            WHERE m.name = %s
+            ORDER BY cm.name
+        """, (maker_name,))
+        return [{"name": r[0]} for r in cur.fetchall()]
+    return run_db(_do)
 # ======================
 # following TL
 # ======================
@@ -1164,13 +1286,15 @@ def following(request: Request, user: str = Cookie(default=None), uid: str = Coo
             return RedirectResponse("/login", status_code=303)
 
         unread_dm = has_unread_dm(db, me_user_id)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
+        is_admin = is_admin_user(db, me_user_id)
+        my_maker, my_car = get_my_profile_car(db, me_user_id)
 
         posts = fetch_posts(
             db, me_user_id,
             "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
             (me_user_id,)
         )
-        liked_posts = get_liked_posts(db, me_user_id, me_username)
     finally:
         db.close()
 
@@ -1185,9 +1309,11 @@ def following(request: Request, user: str = Cookie(default=None), uid: str = Coo
         "liked_posts": liked_posts,
         "mode": "home",
         "ranking_title": "",
-        "period": ""
+        "period": "",
+        "is_admin": is_admin,
+        "my_maker": my_maker,
+        "my_car": my_car,
     })
-
 # ======================
 # ranking
 # ======================
@@ -1581,6 +1707,14 @@ def profile_edit(
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
+
+        maker = (maker or "").strip()
+        car = (car or "").strip()
+
+        if maker or car:
+            if not is_valid_maker_car(db, maker, car):
+                return RedirectResponse("/profile/edit", status_code=303)
+
     finally:
         db.close()
 
@@ -1651,7 +1785,6 @@ def profile_edit(
     new_handle = run_db(_do)
     key = new_handle if new_handle else me_username
     return RedirectResponse(f"/user/{quote(key)}", status_code=303)
-
 # ======================
 # follow / unfollow（handleでもOK）
 # ======================
@@ -1749,6 +1882,14 @@ def post(
         if row and row[0]:
             return RedirectResponse("/", status_code=303)
 
+        maker = (maker or "").strip()
+        car = (car or "").strip()
+        region = (region or "").strip()
+        comment = (comment or "").strip()
+
+        if not is_valid_maker_car(db, maker, car):
+            return RedirectResponse("/", status_code=303)
+
     finally:
         cur.close()
         db.close()
@@ -1786,7 +1927,7 @@ def post(
     main_image = image_urls[0] if image_urls else None
 
     # =========================
-    # 位置情報の空データ対策（安定版）
+    # 位置情報の空データ対策
     # =========================
     latitude_val = None
     longitude_val = None
@@ -1806,19 +1947,17 @@ def post(
                 longitude_val = lng
     except:
         longitude_val = None
+
     # =========================
     # MAPは「画像あり + 緯度経度あり」の時だけ有効
     # =========================
     map_expires_at = None
 
-    # MAPに出る条件
     if main_image and latitude_val is not None and longitude_val is not None:
         map_expires_at = utcnow_naive() + timedelta(hours=24)
 
-    # 画像なしの場合はMAP期限だけ消す（位置は保存）
     if not main_image:
         map_expires_at = None
-
 
     # =========================
     # DB保存
@@ -1862,8 +2001,10 @@ def post(
                 VALUES (%s, %s, %s, %s)
             """, (new_post_id, url, idx, utcnow_naive()))
 
-    run_db(_do)
-    return redirect_back(request, "/")
+        return new_post_id
+
+    new_post_id = run_db(_do)
+    return RedirectResponse(f"/?posted=1&post_id={new_post_id}", status_code=303)
 # ======================
 # ✅ auth（pbkdf2） + ✅ email/handle/username ログイン
 # ======================
