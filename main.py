@@ -220,7 +220,6 @@ def get_my_icon(db, me_user_id: Optional[str]) -> Optional[str]:
     finally:
         cur.close()
 
-
 # ======================
 # 🚗 maker/car validation helpers
 # ======================
@@ -231,12 +230,7 @@ def is_valid_maker(db, maker_name: str) -> bool:
 
     cur = db.cursor()
     try:
-        cur.execute("""
-            SELECT 1
-            FROM makers
-            WHERE name = %s
-            LIMIT 1
-        """, (maker_name,))
+        cur.execute("SELECT 1 FROM makers WHERE name=%s LIMIT 1", (maker_name,))
         return cur.fetchone() is not None
     finally:
         cur.close()
@@ -262,8 +256,6 @@ def is_valid_maker_car(db, maker_name: str, car_name: str) -> bool:
         return cur.fetchone() is not None
     finally:
         cur.close()
-
-
 # ======================
 # 🚗 複数台愛車 helpers
 # ======================
@@ -697,6 +689,8 @@ def init_db():
                 name TEXT NOT NULL
             );
         """)
+        cur.execute("ALTER TABLE makers ADD COLUMN IF NOT EXISTS category TEXT;")
+
         cur.execute("""
             CREATE TABLE IF NOT EXISTS car_models (
                 id TEXT PRIMARY KEY,
@@ -1433,17 +1427,16 @@ def search(
 # 🚗 車種API（完全選択制）
 # ======================
 @app.get("/api/makers")
-def get_makers():
+def get_makers(category: str):
     def _do(db, cur):
         cur.execute("""
-            SELECT name
+            SELECT id, name
             FROM makers
+            WHERE category = %s
             ORDER BY name
-        """)
-        return [{"name": r[0]} for r in cur.fetchall()]
+        """, (category,))
+        return [{"id": r[0], "name": r[1]} for r in cur.fetchall()]
     return run_db(_do)
-
-
 @app.get("/api/cars/by-name/{maker_name}")
 def get_cars_by_name(maker_name: str):
     def _do(db, cur):
@@ -1456,7 +1449,17 @@ def get_cars_by_name(maker_name: str):
         """, (maker_name,))
         return [{"name": r[0]} for r in cur.fetchall()]
     return run_db(_do)
-
+@app.get("/api/cars/by-maker/{maker_id}")
+def get_cars_by_maker(maker_id: str):
+    def _do(db, cur):
+        cur.execute("""
+            SELECT name
+            FROM car_models
+            WHERE maker_id = %s
+            ORDER BY name
+        """, (maker_id,))
+        return [{"name": r[0]} for r in cur.fetchall()]
+    return run_db(_do)
 
 @app.get("/api/my/cars")
 def api_my_cars(user: str = Cookie(default=None), uid: str = Cookie(default=None)):
@@ -2009,57 +2012,73 @@ def profile_edit(
 @app.post("/profile/cars/add")
 def add_user_car(
     request: Request,
-    maker: str = Form(""),
+    maker_id: str = Form(""),
     car: str = Form(""),
     set_primary: str = Form(""),
     user: str = Cookie(default=None),
     uid: str = Cookie(default=None),
 ):
+    maker_id = (maker_id or "").strip()
+    car = (car or "").strip()
+
     db = get_db()
+    cur = db.cursor()
+
     try:
-        _, me_user_id = get_me_from_cookies(db, user, uid)
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        maker = (maker or "").strip()
-        car = (car or "").strip()
+        # 🚗 メーカー存在確認
+        cur.execute("SELECT name FROM makers WHERE id=%s", (maker_id,))
+        maker_row = cur.fetchone()
+        if not maker_row:
+            return RedirectResponse("/profile/edit?error=invalid_maker", status_code=303)
 
-        if not is_valid_maker_car(db, maker, car):
+        maker_name = (maker_row[0] or "").strip()
+
+        # 🚗 車種チェック（maker_name ベース）
+        if not is_valid_maker_car(db, maker_name, car):
             return RedirectResponse("/profile/edit?error=invalid_car", status_code=303)
-    finally:
-        db.close()
 
-    set_primary_bool = str(set_primary).lower() in ("1", "true", "on", "yes")
-
-    def _do(db, cur):
-        cur.execute("SELECT COUNT(*) FROM user_cars WHERE user_id=%s", (me_user_id,))
-        cnt = cur.fetchone()[0]
-
+        # 🚗 重複チェック
         cur.execute("""
             SELECT 1
             FROM user_cars
             WHERE user_id=%s AND maker=%s AND car_name=%s
-            LIMIT 1
-        """, (me_user_id, maker, car))
-        if cur.fetchone() is not None:
-            return
+        """, (me_user_id, maker_name, car))
+        if cur.fetchone():
+            return RedirectResponse("/profile/edit?error=duplicate", status_code=303)
 
-        is_primary = set_primary_bool or cnt == 0
+        # 🚗 台数制限
+        cur.execute("SELECT COUNT(*) FROM user_cars WHERE user_id=%s", (me_user_id,))
+        count = cur.fetchone()[0]
+        if count >= 5:
+            return RedirectResponse("/profile/edit?error=max_cars", status_code=303)
+
+        is_primary = (set_primary == "1")
+
+        # まだ1台も無いなら自動でメイン
+        if count == 0:
+            is_primary = True
 
         if is_primary:
             cur.execute("UPDATE user_cars SET is_primary=FALSE WHERE user_id=%s", (me_user_id,))
 
         cur.execute("""
-            INSERT INTO user_cars (user_id, maker, car_name, is_primary, sort, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s)
-        """, (me_user_id, maker, car, is_primary, cnt, utcnow_naive()))
+            INSERT INTO user_cars (user_id, maker, car_name, is_primary)
+            VALUES (%s, %s, %s, %s)
+        """, (me_user_id, maker_name, car, is_primary))
 
         sync_profile_primary_car(db, me_user_id)
+        db.commit()
 
-    run_db(_do)
-    return RedirectResponse("/profile/edit?added=1", status_code=303)
+    finally:
+        cur.close()
+        db.close()
 
 
+    return RedirectResponse("/profile/edit", status_code=303)
 # ======================
 # 🚗 愛車削除
 # ======================
@@ -2211,7 +2230,6 @@ def unfollow(key: str, user: str = Cookie(default=None), uid: str = Cookie(defau
     run_db(_do)
     return RedirectResponse(f"/user/{quote(target_key)}", status_code=303)
 
-
 # ======================
 # post（user_car_id優先）
 # ======================
@@ -2245,6 +2263,11 @@ def post(
         region = (region or "").strip()
         comment = (comment or "").strip()
 
+        if len(region) > 100:
+            region = region[:100]
+        if len(comment) > 2000:
+            comment = comment[:2000]
+
         final_maker = ""
         final_car = ""
 
@@ -2264,8 +2287,10 @@ def post(
         else:
             maker = (maker or "").strip()
             car = (car or "").strip()
+
             if not is_valid_maker_car(db, maker, car):
                 return RedirectResponse("/", status_code=303)
+
             final_maker = maker
             final_car = car
 
@@ -2318,12 +2343,8 @@ def post(
         longitude_val = None
 
     map_expires_at = None
-
     if main_image and latitude_val is not None and longitude_val is not None:
         map_expires_at = utcnow_naive() + timedelta(hours=24)
-
-    if not main_image:
-        map_expires_at = None
 
     def _do(db, cur):
         cur.execute("""
@@ -2599,6 +2620,7 @@ def delete_post(request: Request, post_id: int, user: str = Cookie(default=None)
         """, (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
+        cur.execute("DELETE FROM post_images WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
     run_db(_do)
@@ -3130,6 +3152,7 @@ def admin_delete_user(request: Request, user_id: str, user: str = Cookie(None), 
         """, (user_id, user_id))
 
         cur.execute("DELETE FROM user_cars WHERE user_id=%s", (user_id,))
+        cur.execute("DELETE FROM post_images WHERE post_id IN (SELECT id FROM posts WHERE user_id=%s)", (user_id,))
         cur.execute("DELETE FROM posts WHERE user_id=%s", (user_id,))
         cur.execute("DELETE FROM profiles WHERE user_id=%s", (user_id,))
         cur.execute("DELETE FROM users WHERE id=%s", (user_id,))
@@ -3248,6 +3271,7 @@ def admin_delete_post(request: Request, post_id: int, user: str = Cookie(None), 
         """, (post_id,))
         cur.execute("DELETE FROM comments WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM likes WHERE post_id=%s", (post_id,))
+        cur.execute("DELETE FROM post_images WHERE post_id=%s", (post_id,))
         cur.execute("DELETE FROM posts WHERE id=%s", (post_id,))
 
     run_db(_do)
