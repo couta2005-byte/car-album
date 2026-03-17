@@ -1509,7 +1509,47 @@ def init_makers():
         db.close()
 
     return {"ok": True}
+@app.get("/init/cars")
+def init_cars():
+    db = get_db()
+    cur = db.cursor()
 
+    try:
+        cur.execute("""
+            INSERT INTO car_models (maker_id, name) VALUES
+            ('toyota','マークX'),
+            ('toyota','クラウン'),
+            ('toyota','86'),
+            ('toyota','プリウス'),
+            ('toyota','アルファード'),
+
+            ('nissan','スカイライン'),
+            ('nissan','フェアレディZ'),
+            ('nissan','シルビア'),
+
+            ('honda','シビック'),
+            ('honda','インテグラ'),
+
+            ('subaru','WRX'),
+            ('subaru','レガシィ'),
+
+            ('mazda','RX-8'),
+            ('mazda','ロードスター'),
+
+            ('suzuki','スイフトスポーツ'),
+
+            ('daihatsu','コペン')
+
+            ON CONFLICT DO NOTHING;
+        """)
+
+        db.commit()
+
+    finally:
+        cur.close()
+        db.close()
+
+    return {"ok": True}
 # ======================
 # following TL
 # ======================
