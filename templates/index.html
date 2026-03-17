@@ -358,11 +358,13 @@ document.addEventListener("click", async (e) => {
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
   if (!post) return;
-  if (e.target.closest(".like-btn, a, button, form")) return;
+
+  // 🔥 ここが重要（画像クリック無効）
+  if (e.target.closest(".like-btn, a, button, form, img")) return;
+
   location.href = post.dataset.href;
 });
 </script>
-
 <script>
 const box = document.getElementById("useLocation");
 const form = document.querySelector(".post-form");
@@ -592,24 +594,33 @@ window.addEventListener("pageshow", () => {
 </div>
 
 <script>
-// ===== 画像タップ拡大 =====
-const modal = document.getElementById("imgModal");
-const modalImg = document.getElementById("imgModalSrc");
+document.addEventListener("DOMContentLoaded", () => {
 
-document.addEventListener("click", (e) => {
-  const img = e.target.closest(".post-image img, .post-images img");
-  if (!img) return;
+  const modal = document.getElementById("imgModal");
+  const modalImg = document.getElementById("imgModalSrc");
 
-  modalImg.src = img.src;
-  modal.classList.add("open");
-});
+  if (!modal || !modalImg) return;
 
-// 閉じる
-modal.addEventListener("click", () => {
-  modal.classList.remove("open");
-  modalImg.src = "";
+  document.addEventListener("click", (e) => {
+
+    const img = e.target.closest(".post-image img, .post-images img");
+    if (!img) return;
+
+    // 🔥 完全ブロック
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    modalImg.src = img.src;
+    modal.classList.add("open");
+  }, true); // ←🔥 これが超重要（キャプチャフェーズ）
+
+  modal.addEventListener("click", (e) => {
+    e.stopPropagation();
+    modal.classList.remove("open");
+    modalImg.src = "";
+  });
+
 });
 </script>
-
 </body>
 </html>
