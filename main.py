@@ -3606,3 +3606,58 @@ def map_page(
             "unread_dm": unread_dm,
         }
     )
+@app.get("/init/makers/full")
+def init_makers_full():
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        makers = [
+            ("toyota", "トヨタ"),
+            ("nissan", "日産"),
+            ("honda", "ホンダ"),
+            ("mazda", "マツダ"),
+            ("subaru", "スバル"),
+            ("suzuki", "スズキ"),
+            ("daihatsu", "ダイハツ"),
+            ("mitsubishi", "三菱"),
+            ("lexus", "レクサス"),
+            ("isuzu", "いすゞ"),
+            ("hino", "日野"),
+            ("ud_trucks", "UDトラックス"),
+
+            ("foreign_bmw", "BMW"),
+            ("foreign_mercedes", "メルセデス・ベンツ"),
+            ("foreign_audi", "アウディ"),
+            ("foreign_vw", "フォルクスワーゲン"),
+            ("foreign_porsche", "ポルシェ"),
+            ("foreign_mini", "MINI"),
+            ("foreign_volvo", "ボルボ"),
+            ("foreign_jaguar", "ジャガー"),
+            ("foreign_landrover", "ランドローバー"),
+            ("foreign_jeep", "ジープ"),
+            ("foreign_chevrolet", "シボレー"),
+            ("foreign_ford", "フォード"),
+            ("foreign_fiat", "フィアット"),
+            ("foreign_alfa", "アルファロメオ"),
+            ("foreign_abarth", "アバルト"),
+            ("foreign_peugeot", "プジョー"),
+            ("foreign_renault", "ルノー"),
+            ("foreign_tesla", "テスラ"),
+            ("foreign_byd", "BYD"),
+        ]
+
+        for m_id, name in makers:
+            cur.execute("""
+                INSERT INTO makers (id, name, category)
+                VALUES (%s, %s, 'car')
+                ON CONFLICT (id) DO NOTHING
+            """, (m_id, name))
+
+        db.commit()
+
+    finally:
+        cur.close()
+        db.close()
+
+    return {"ok": True}
