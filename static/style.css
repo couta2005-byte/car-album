@@ -1780,3 +1780,18 @@ margin-top:10px;
   line-height:1;
   box-shadow:0 4px 12px rgba(0,0,0,0.35);
 }
+.mycar-add-row {
+  display: flex;
+  gap: 8px;
+}
+
+.mycar-add-row select {
+  flex: 1;
+}
+
+.mycar-primary {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
