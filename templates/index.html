@@ -589,36 +589,60 @@ window.addEventListener("pageshow", () => {
 <!-- 画像拡大モーダル -->
 <div id="imgModal" class="img-modal">
   <div class="img-modal-inner">
+
+    <!-- ×ボタン -->
+    <button id="imgModalClose" class="img-modal-close">&times;</button>
+
     <img id="imgModalSrc" src="">
   </div>
 </div>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
   const modal = document.getElementById("imgModal");
   const modalImg = document.getElementById("imgModalSrc");
+  const closeBtn = document.getElementById("imgModalClose");
 
   if (!modal || !modalImg) return;
 
+  // ===== 画像クリックで開く =====
   document.addEventListener("click", (e) => {
 
-    // 🔥 ここに preview を追加
+    // モーダル内クリック無視
+    if (e.target.closest("#imgModal")) return;
+
+    // プレビュー削除ボタン無視
+    if (e.target.closest(".preview-item button")) return;
+
     const img = e.target.closest(".post-image img, .post-images img, .preview-img");
     if (!img) return;
 
     e.preventDefault();
-    e.stopImmediatePropagation();
+    e.stopPropagation(); // ← 修正ポイント
 
     modalImg.src = img.src;
     modal.classList.add("open");
+
   }, true);
 
+  // ===== 背景クリックで閉じる =====
   modal.addEventListener("click", (e) => {
-    e.stopPropagation();
+    if (e.target !== modal) return;
+    closeModal();
+  });
+
+  // ===== ×ボタンで閉じる =====
+  if (closeBtn){
+    closeBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      closeModal();
+    });
+  }
+
+  function closeModal(){
     modal.classList.remove("open");
     modalImg.src = "";
-  });
+  }
 
 });
 </script>

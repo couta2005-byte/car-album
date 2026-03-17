@@ -1737,3 +1737,46 @@ margin-top:10px;
   max-height:100%;
   border-radius:12px;
 }
+/* ===== 画像モーダル ===== */
+.img-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.img-modal.open{
+  display:flex;
+}
+
+.img-modal-inner{
+  position:relative;
+  max-width:95vw;
+  max-height:95vh;
+}
+
+.img-modal-inner img{
+  max-width:95vw;
+  max-height:95vh;
+  border-radius:12px;
+}
+
+/* ×ボタン */
+.img-modal-close{
+  position:absolute;
+  top:-12px;
+  right:-12px;
+  width:42px;
+  height:42px;
+  border:none;
+  border-radius:50%;
+  background:#fff;
+  color:#111;
+  font-size:28px;
+  cursor:pointer;
+  line-height:1;
+  box-shadow:0 4px 12px rgba(0,0,0,0.35);
+}
