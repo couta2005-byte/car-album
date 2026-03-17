@@ -240,9 +240,6 @@ def is_valid_maker_car(db, maker_name: str, car_name: str) -> bool:
     maker_name = (maker_name or "").strip()
     car_name = (car_name or "").strip()
 
-    if not maker_name or not car_name:
-        return False
-
     cur = db.cursor()
     try:
         cur.execute("""
@@ -250,7 +247,7 @@ def is_valid_maker_car(db, maker_name: str, car_name: str) -> bool:
             FROM car_models cm
             JOIN makers m ON cm.maker_id = m.id
             WHERE m.name = %s
-              AND cm.name = %s
+              AND cm.name ILIKE %s
             LIMIT 1
         """, (maker_name, car_name))
         return cur.fetchone() is not None
@@ -1470,8 +1467,8 @@ def get_cars_by_name(maker_name: str):
     db.close()
 
     return [{"name": c[0]} for c in cars]
-@app.get("/api/cars/by-maker/{maker_id}")
-def get_cars_by_maker(maker_id: str):
+@app.get("/api/cars/by-maker-id/{maker_id}")
+def get_cars_by_maker_id(maker_id: str):
     def _do(db, cur):
         cur.execute("""
             SELECT name
@@ -1481,7 +1478,6 @@ def get_cars_by_maker(maker_id: str):
         """, (maker_id,))
         return [{"name": r[0]} for r in cur.fetchall()]
     return run_db(_do)
-
 @app.get("/api/my/cars")
 def api_my_cars(user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
