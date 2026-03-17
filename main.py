@@ -1419,10 +1419,9 @@ def search(
         "mode": "search"
     })
 
-
-# ======================
-# 🚗 車種API（完全選択制）
-# ======================
+# =========================
+# makers API
+# =========================
 @app.get("/api/makers")
 def get_makers(category: Optional[str] = None):
     db = get_db()
@@ -1430,83 +1429,103 @@ def get_makers(category: Optional[str] = None):
 
     try:
         if category:
-            cur.execute(
-                "SELECT id, name FROM makers WHERE category=%s ORDER BY name",
-                (category,)
-            )
+            cur.execute("""
+                SELECT id, name
+                FROM makers
+                WHERE category = %s
+                ORDER BY name
+            """, (category,))
         else:
-            cur.execute(
-                "SELECT id, name FROM makers ORDER BY name"
-            )
+            cur.execute("""
+                SELECT id, name
+                FROM makers
+                ORDER BY name
+            """)
 
         rows = cur.fetchall()
-
         return [{"id": r[0], "name": r[1]} for r in rows]
 
     finally:
         cur.close()
         db.close()
-@app.get("/api/cars/by-name/{maker_name}")
-def get_cars_by_name(maker_name: str):
+
+
+# =========================
+# 車種取得（maker_id）
+# =========================
+@app.get("/api/cars/by-maker-id/{maker_id}")
+def get_cars_by_maker_id(maker_id: str):
     db = get_db()
     cur = db.cursor()
 
-    # 日本語 → ID変換
-    cur.execute("SELECT id FROM makers WHERE name = %s", (maker_name,))
-    row = cur.fetchone()
-
-    if not row:
-        return []
-
-    maker_id = row[0]
-
-    cur.execute("SELECT name FROM car_models WHERE maker_id = %s", (maker_id,))
-    cars = cur.fetchall()
-
-    cur.close()
-    db.close()
-
-    return [{"name": c[0]} for c in cars]
-import csv
-@app.get("/api/cars/by-maker-id/{maker_id}")
-def get_cars_by_maker_id(maker_id: str):
-    def _do(db, cur):
+    try:
         cur.execute("""
             SELECT name
             FROM car_models
             WHERE maker_id = %s
             ORDER BY name
         """, (maker_id,))
-        return [{"name": r[0]} for r in cur.fetchall()]
-    return run_db(_do)
-@app.get("/api/my/cars")
-def api_my_cars(user: str = Cookie(default=None), uid: str = Cookie(default=None)):
-    db = get_db()
-    try:
-        _, me_user_id = get_me_from_cookies(db, user, uid)
-        if not me_user_id:
-            return []
-        return fetch_user_cars(db, me_user_id)
+
+        rows = cur.fetchall()
+        return [{"name": r[0]} for r in rows]
+
     finally:
+        cur.close()
         db.close()
-# 👇 ここに追加！！！！
-@app.get("/init/makers")
-def init_makers():
+
+
+# =========================
+# 愛車追加（完全安定版）
+# =========================
+@app.post("/profile/cars/add")
+def add_user_car(
+    maker_id: str = Form(...),
+    car: str = Form(...),
+    set_primary: str = Form(""),
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
     db = get_db()
     cur = db.cursor()
 
     try:
+        # ===== ログインチェック =====
+        _, user_id = get_me_from_cookies(db, user, uid)
+        if not user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        # ===== maker存在チェック =====
+        cur.execute("SELECT name FROM makers WHERE id=%s", (maker_id,))
+        row = cur.fetchone()
+        if not row:
+            return RedirectResponse("/profile/edit?error=invalid_maker", status_code=303)
+
+        maker_name = row[0]
+
+        # ===== 車種チェック =====
         cur.execute("""
-            INSERT INTO makers (id, name, category) VALUES
-            ('toyota','トヨタ','car'),
-            ('nissan','日産','car'),
-            ('honda','ホンダ','car'),
-            ('mazda','マツダ','car'),
-            ('subaru','スバル','car'),
-            ('suzuki','スズキ','car'),
-            ('daihatsu','ダイハツ','car')
-            ON CONFLICT (id) DO NOTHING;
-        """)
+            SELECT 1 FROM car_models
+            WHERE maker_id=%s AND name=%s
+        """, (maker_id, car))
+
+        if not cur.fetchone():
+            return RedirectResponse("/profile/edit?error=invalid_car", status_code=303)
+
+        # ===== メイン指定なら他を解除 =====
+        if set_primary:
+            cur.execute("""
+                UPDATE user_cars
+                SET is_primary = FALSE
+                WHERE user_id = %s
+            """, (user_id,))
+
+        # ===== INSERT（重複OKにする） =====
+        cur.execute("""
+            INSERT INTO user_cars (user_id, maker, car_name, is_primary)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (user_id, maker, car_name)
+            DO UPDATE SET is_primary = EXCLUDED.is_primary
+        """, (user_id, maker_name, car, bool(set_primary)))
 
         db.commit()
 
@@ -1514,46 +1533,14 @@ def init_makers():
         cur.close()
         db.close()
 
-    return {"ok": True}
-@app.get("/init/cars")
-def init_cars():
-    db = get_db()
-    cur = db.cursor()
+    return RedirectResponse("/profile/edit?added=1", status_code=303)
 
-    try:
-        cur.execute("""
-            INSERT INTO car_models (id, maker_id, name) VALUES
-            ('toyota_markx','toyota','マークX'),
-            ('toyota_crown','toyota','クラウン'),
-            ('toyota_86','toyota','86'),
-            ('toyota_prius','toyota','プリウス'),
-            ('toyota_alphard','toyota','アルファード'),
 
-            ('nissan_skyline','nissan','スカイライン'),
-            ('nissan_z','nissan','フェアレディZ'),
-            ('nissan_silvia','nissan','シルビア'),
+# =========================
+# CSV投入（車種大量追加）
+# =========================
+import csv
 
-            ('honda_civic','honda','シビック'),
-            ('honda_integra','honda','インテグラ'),
-
-            ('subaru_wrx','subaru','WRX'),
-            ('subaru_legacy','subaru','レガシィ'),
-
-            ('mazda_rx8','mazda','RX-8'),
-            ('mazda_roadster','mazda','ロードスター'),
-
-            ('suzuki_swift','suzuki','スイフトスポーツ'),
-
-            ('daihatsu_copen','daihatsu','コペン')
-
-            ON CONFLICT DO NOTHING;
-        """)
-        db.commit()
-    finally:
-        cur.close()
-        db.close()
-
-    return {"ok": True}
 @app.get("/init/cars/csv")
 def init_cars_csv():
     db = get_db()
@@ -1565,14 +1552,18 @@ def init_cars_csv():
 
             i = 1
             for row in reader:
-                maker_id = row["maker_id"]
-                name = row["name"]
+                maker_id = (row.get("maker_id") or "").strip()
+                name = (row.get("name") or "").strip()
+
+                if not maker_id or not name:
+                    continue
 
                 cur.execute("""
                     INSERT INTO car_models (id, maker_id, name)
                     VALUES (%s, %s, %s)
                     ON CONFLICT DO NOTHING
                 """, (f"{maker_id}_{i}", maker_id, name))
+
                 i += 1
 
         db.commit()
