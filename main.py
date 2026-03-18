@@ -3635,3 +3635,31 @@ def reload_cars():
         db.close()
 
     return {"ok": True}
+
+@app.get("/profile/cars/add", response_class=HTMLResponse)
+def add_car_page(
+    request: Request,
+    user: str = Cookie(None),
+    uid: str = Cookie(None),
+):
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
+
+    finally:
+        db.close()
+
+    return templates.TemplateResponse("add_car.html", {
+        "request": request,
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "me_handle": me_handle,
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
+    })
