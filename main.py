@@ -257,22 +257,16 @@ def is_valid_maker_car(db, maker_name: str, car_name: str) -> bool:
 # 🚗 複数台愛車 helpers
 # ======================
 def sync_profile_primary_car(db, user_id: str):
-    """
-    profiles.maker / car は旧UI互換用に
-    現在のメイン愛車を反映しておく
-    """
     cur = db.cursor()
     try:
-        cur.execute("""
-            SELECT username
-            FROM users
-            WHERE id=%s
-        """, (user_id,))
+        # ユーザー取得
+        cur.execute("SELECT username FROM users WHERE id=%s", (user_id,))
         u = cur.fetchone()
         if not u:
             return
         username = u[0]
 
+        # メイン愛車取得
         cur.execute("""
             SELECT maker, car_name
             FROM user_cars
@@ -285,18 +279,19 @@ def sync_profile_primary_car(db, user_id: str):
         maker = row[0] if row else ""
         car = row[1] if row else ""
 
+        # 🔥ここが修正ポイント
         cur.execute("""
             INSERT INTO profiles (username, user_id, maker, car, region, bio)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            ON CONFLICT (username)
+            VALUES (%s, %s, %s, %s, '', '')
+            ON CONFLICT (user_id)
             DO UPDATE SET
-                user_id=EXCLUDED.user_id,
-                maker=EXCLUDED.maker,
-                car=EXCLUDED.car
-        """, (username, user_id, maker, car, "", ""))
+                username = EXCLUDED.username,
+                maker = EXCLUDED.maker,
+                car = EXCLUDED.car
+        """, (username, user_id, maker, car))
+
     finally:
         cur.close()
-
 
 def fetch_user_cars(db, user_id: Optional[str]) -> List[Dict[str, Any]]:
     if not user_id:
