@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=7001">
+  <link rel="stylesheet" href="/static/style.css?v=7002">
 </head>
 <body>
 
@@ -22,7 +22,7 @@
   <section style="margin-top:28px;">
     <h3>愛車を追加</h3>
 
-    <!-- 車 / 外車 / バイク -->
+    <!-- カテゴリ -->
     <div style="margin-bottom:12px;">
       <button type="button" onclick="loadMakers('japan_car')" class="primary-btn">🚗 国産車</button>
       <button type="button" onclick="loadMakers('foreign_car')" class="primary-btn">🌍 外車</button>
@@ -37,7 +37,7 @@
       </select>
 
       <label>車名</label>
-      <select id="carSelectAdd" name="car" required>
+      <select id="carSelectAdd" name="car" required disabled>
         <option value="">車種選択</option>
       </select>
 
@@ -68,8 +68,10 @@ async function loadMakers(category = currentCategory) {
   const makerSelect = document.getElementById("makerSelectAdd");
   const carSelect = document.getElementById("carSelectAdd");
 
+  // 初期化
   makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
   carSelect.innerHTML = "<option value=''>車種選択</option>";
+  carSelect.disabled = true; // ←重要
 
   try {
     const res = await fetch(`/api/makers?category=${category}`);
@@ -79,11 +81,8 @@ async function loadMakers(category = currentCategory) {
 
     makers.forEach((m) => {
       const option = document.createElement("option");
-
-      // ✅ これだけでOK（重要）
-      option.value = m.id;
+      option.value = m.id;     // ←超重要（id）
       option.textContent = m.name;
-
       makerSelect.appendChild(option);
     });
 
@@ -97,7 +96,10 @@ async function loadMakers(category = currentCategory) {
 // ======================
 async function loadCars(makerId) {
   const carSelect = document.getElementById("carSelectAdd");
+
+  // 初期化
   carSelect.innerHTML = "<option value=''>車種選択</option>";
+  carSelect.disabled = true;
 
   if (!makerId) return;
 
@@ -109,10 +111,13 @@ async function loadCars(makerId) {
 
     cars.forEach((c) => {
       const option = document.createElement("option");
-      option.value = c.name;
+      option.value = c.name;      // ←超重要
       option.textContent = c.name;
       carSelect.appendChild(option);
     });
+
+    // 🔥 ここが今回の核心
+    carSelect.disabled = false;
 
   } catch (e) {
     console.error("車種取得エラー", e);
@@ -126,7 +131,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   console.log("JS起動");
 
   const makerSelect = document.getElementById("makerSelectAdd");
-  if (!makerSelect) return;
 
   await loadMakers("japan_car");
 
