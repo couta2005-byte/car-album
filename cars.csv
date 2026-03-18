@@ -92,7 +92,6 @@ toyota,ヤリス
 toyota,ヤリスクロス
 toyota,ジャパンタクシー
 
-maker_id,name
 honda,1300
 honda,145
 honda,アヴァンシア
@@ -177,7 +176,6 @@ honda,クイント
 honda,WR-V
 honda,ZR-V
 
-maker_id,name
 nissan,180SX
 nissan,AD
 nissan,ADエキスパート
@@ -254,7 +252,6 @@ nissan,ルークス
 nissan,レパード
 nissan,ローレル
 
-maker_id,name
 mazda,AZ-1
 mazda,AZ-3
 mazda,AZ-オフロード
@@ -324,7 +321,6 @@ mazda,CX-80
 mazda,CX-90
 mazda,MPV
 
-maker_id,name
 subaru,BRZ
 subaru,DEX
 subaru,Justy
@@ -370,7 +366,6 @@ subaru,レックスバン
 subaru,ソルテラ
 subaru,クロストレック
 
-maker_id,name
 suzuki,Kei
 suzuki,MRワゴン
 suzuki,SX4
@@ -412,7 +407,7 @@ suzuki,ワゴンR
 suzuki,ワゴンRスティングレー
 suzuki,ワゴンRスマイル
 
-maker_id,name
+
 daihatsu,MAX
 daihatsu,YRV
 daihatsu,アトレー
@@ -459,7 +454,6 @@ daihatsu,ラガー
 daihatsu,リーザ
 daihatsu,ロッキー
 
-maker_id,name
 mitsubishi,3000GT
 mitsubishi,eKクロス
 mitsubishi,eKクロススペース
@@ -514,7 +508,6 @@ mitsubishi,ランサーセディア
 mitsubishi,ランサーワゴン
 mitsubishi,レグナム
 
-maker_id,name
 lexus,CT
 lexus,HS
 lexus,IS
@@ -748,7 +741,6 @@ foreign_byd,DOLPHIN
 foreign_byd,SEAL
 foreign_byd,SEALION 7
 
-maker_id,name
 100,CBR250R
 100,CBR250RR
 100,CBR400R
@@ -802,7 +794,6 @@ maker_id,name
 100,シャドウ750
 100,ゴールドウイング
 
-maker_id,name
 101,YZF-R125
 101,YZF-R15
 101,YZF-R25
@@ -854,7 +845,6 @@ maker_id,name
 101,ビーノ
 101,ギア
 
-maker_id,name
 102,Ninja125
 102,Ninja250
 102,Ninja400
@@ -903,7 +893,6 @@ maker_id,name
 102,GPZ900R
 102,GPZ400R
 
-maker_id,name
 103,GSX-R125
 103,GSX-R150
 103,GSX-R250

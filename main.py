@@ -1512,10 +1512,8 @@ def add_user_car(
     return RedirectResponse("/profile/edit?added=1", status_code=303)
 
 
-# =========================
-# CSV投入（車種大量追加）
-# =========================
 import csv
+import uuid
 
 @app.get("/init/cars/csv")
 def init_cars_csv():
@@ -1526,9 +1524,8 @@ def init_cars_csv():
         with open("cars.csv", newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
 
-            i = 1
             for row in reader:
-                maker_id = (row.get("maker_id") or "").strip()
+                maker_id = (row.get("maker_id") or "").strip().lower()
                 name = (row.get("name") or "").strip()
 
                 if not maker_id or not name:
@@ -1537,10 +1534,8 @@ def init_cars_csv():
                 cur.execute("""
                     INSERT INTO car_models (id, maker_id, name)
                     VALUES (%s, %s, %s)
-                    ON CONFLICT DO NOTHING
-                """, (f"{maker_id}_{i}", maker_id, name))
-
-                i += 1
+                    ON CONFLICT (maker_id, name) DO NOTHING
+                """, (str(uuid.uuid4()), maker_id, name))
 
         db.commit()
 
@@ -3588,6 +3583,8 @@ def get_cars_by_maker_id(maker_id: str):
     cur = db.cursor()
 
     try:
+        maker_id = (maker_id or "").strip().lower()
+
         cur.execute("""
             SELECT name
             FROM car_models
@@ -3596,8 +3593,45 @@ def get_cars_by_maker_id(maker_id: str):
         """, (maker_id,))
 
         rows = cur.fetchall()
-        return [{"name": r[0]} for r in rows]
+        return {
+            "maker_id": maker_id,
+            "count": len(rows),
+            "cars": [{"name": r[0]} for r in rows]
+        }
 
     finally:
         cur.close()
         db.close()
+@app.get("/admin/reload-cars")
+def reload_cars():
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        import csv, uuid
+
+        # 全削除 → 完全同期
+        cur.execute("DELETE FROM car_models")
+
+        with open("cars.csv", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+
+            for row in reader:
+                maker_id = (row.get("maker_id") or "").strip().lower()
+                name = (row.get("name") or "").strip()
+
+                if not maker_id or not name:
+                    continue
+
+                cur.execute("""
+                    INSERT INTO car_models (id, maker_id, name)
+                    VALUES (%s, %s, %s)
+                """, (str(uuid.uuid4()), maker_id, name))
+
+        db.commit()
+
+    finally:
+        cur.close()
+        db.close()
+
+    return {"ok": True}
