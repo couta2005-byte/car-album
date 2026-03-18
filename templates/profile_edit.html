@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=7002">
+  <link rel="stylesheet" href="/static/style.css?v=7003">
 </head>
 <body>
 
@@ -71,7 +71,7 @@ async function loadMakers(category = currentCategory) {
   // 初期化
   makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
   carSelect.innerHTML = "<option value=''>車種選択</option>";
-  carSelect.disabled = true; // ←重要
+  carSelect.disabled = true;
 
   try {
     const res = await fetch(`/api/makers?category=${category}`);
@@ -81,7 +81,7 @@ async function loadMakers(category = currentCategory) {
 
     makers.forEach((m) => {
       const option = document.createElement("option");
-      option.value = m.id;     // ←超重要（id）
+      option.value = m.id; // ←重要
       option.textContent = m.name;
       makerSelect.appendChild(option);
     });
@@ -92,7 +92,7 @@ async function loadMakers(category = currentCategory) {
 }
 
 // ======================
-// 車種取得
+// 車種取得（完全修正版）
 // ======================
 async function loadCars(makerId) {
   const carSelect = document.getElementById("carSelectAdd");
@@ -105,22 +105,32 @@ async function loadCars(makerId) {
 
   try {
     const res = await fetch(`/api/cars/by-maker-id/${makerId}`);
-    const cars = await res.json();
 
-    console.log("cars:", cars);
+    if (!res.ok) {
+      console.error("APIエラー", res.status);
+      carSelect.disabled = false;
+      return;
+    }
+
+    const data = await res.json();
+    console.log("cars:", data);
+
+    // 🔥 ここが今回の核心
+    const cars = data.cars || [];
 
     cars.forEach((c) => {
       const option = document.createElement("option");
-      option.value = c.name;      // ←超重要
+      option.value = c.name;
       option.textContent = c.name;
       carSelect.appendChild(option);
     });
 
-    // 🔥 ここが今回の核心
+    // 有効化
     carSelect.disabled = false;
 
   } catch (e) {
     console.error("車種取得エラー", e);
+    carSelect.disabled = false;
   }
 }
 
