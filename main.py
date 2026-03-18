@@ -3606,66 +3606,53 @@ def map_page(
             "unread_dm": unread_dm,
         }
     )
-@app.get("/init/makers/full")
-def init_makers_full():
+@app.get("/api/cars/by-maker-id/{maker_id}")
+def get_cars_by_maker_id(maker_id: str):
     db = get_db()
     cur = db.cursor()
 
     try:
-        makers = [
-            # 🚗 車
-            ("toyota", "トヨタ", "japan_car"),
-            ("nissan", "日産", "japan_car"),
-            ("honda", "ホンダ", "japan_car"),
-            ("mazda", "マツダ", "japan_car"),
-            ("subaru", "スバル", "japan_car"),
-            ("suzuki", "スズキ", "japan_car"),
-            ("daihatsu", "ダイハツ", "japan_car"),
-            ("mitsubishi", "三菱", "japan_car"),
-            ("lexus", "レクサス", "japan_car"),
-            ("isuzu", "いすゞ", "japan_car"),
-            ("hino", "日野", "japan_car"),
-            ("ud_trucks", "UDトラックス", "japan_car"),
+        # 🔥 ① 数字IDならname取得
+        cur.execute("SELECT name FROM makers WHERE id=%s", (maker_id,))
+        row = cur.fetchone()
 
-            # 🌍 外車
-            ("foreign_bmw", "BMW", "foreign_car"),
-            ("foreign_mercedes", "メルセデス・ベンツ", "foreign_car"),
-            ("foreign_audi", "アウディ", "foreign_car"),
-            ("foreign_vw", "フォルクスワーゲン", "foreign_car"),
-            ("foreign_porsche", "ポルシェ", "foreign_car"),
-            ("foreign_mini", "MINI", "foreign_car"),
-            ("foreign_volvo", "ボルボ", "foreign_car"),
-            ("foreign_jaguar", "ジャガー", "foreign_car"),
-            ("foreign_landrover", "ランドローバー", "foreign_car"),
-            ("foreign_jeep", "ジープ", "foreign_car"),
-            ("foreign_chevrolet", "シボレー", "foreign_car"),
-            ("foreign_ford", "フォード", "foreign_car"),
-            ("foreign_fiat", "フィアット", "foreign_car"),
-            ("foreign_alfa", "アルファロメオ", "foreign_car"),
-            ("foreign_abarth", "アバルト", "foreign_car"),
-            ("foreign_peugeot", "プジョー", "foreign_car"),
-            ("foreign_renault", "ルノー", "foreign_car"),
-            ("foreign_tesla", "テスラ", "foreign_car"),
-            ("foreign_byd", "BYD", "foreign_car"),
+        if row:
+            name = row[0]
 
-            # 🏍 バイク
-            ("honda_bike", "ホンダ（バイク）", "bike"),
-            ("yamaha", "ヤマハ", "bike"),
-            ("kawasaki", "カワサキ", "bike"),
-            ("suzuki_bike", "スズキ（バイク）", "bike"),
-        ]
+            # 🔥 ② name → maker_id変換
+            mapping = {
+                "トヨタ": "toyota",
+                "日産": "nissan",
+                "ホンダ": "honda",
+                "マツダ": "mazda",
+                "スバル": "subaru",
+                "三菱": "mitsubishi",
+                "スズキ": "suzuki",
+                "ダイハツ": "daihatsu",
+                "レクサス": "lexus",
+                "いすゞ": "isuzu",
+                "日野": "hino",
 
-        for m_id, name, category in makers:
-            cur.execute("""
-                INSERT INTO makers (id, name, category)
-                VALUES (%s, %s, %s)
-                ON CONFLICT (id) DO NOTHING
-            """, (m_id, name, category))
+                # バイク
+                "ホンダ（バイク）": "honda_bike",
+                "ヤマハ": "yamaha",
+                "カワサキ": "kawasaki",
+                "スズキ（バイク）": "suzuki_bike",
+            }
 
-        db.commit()
+            maker_id = mapping.get(name, maker_id)
+
+        # 🔥 ③ 検索
+        cur.execute("""
+            SELECT name
+            FROM car_models
+            WHERE maker_id = %s
+            ORDER BY name
+        """, (maker_id,))
+
+        rows = cur.fetchall()
+        return [{"name": r[0]} for r in rows]
 
     finally:
         cur.close()
         db.close()
-
-    return {"ok": True}
