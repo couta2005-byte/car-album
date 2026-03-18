@@ -3645,6 +3645,11 @@ def init_makers_full():
             ("foreign_renault", "ルノー"),
             ("foreign_tesla", "テスラ"),
             ("foreign_byd", "BYD"),
+      # 🏍 バイク
+            ("honda_bike", "ホンダ（バイク）", "bike"),
+            ("yamaha", "ヤマハ", "bike"),
+            ("kawasaki", "カワサキ", "bike"),
+            ("suzuki_bike", "スズキ（バイク）", "bike"),
         ]
 
         for m_id, name in makers:
