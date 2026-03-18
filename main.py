@@ -1432,7 +1432,7 @@ def get_makers(category: Optional[str] = None):
             cur.execute("""
                 SELECT id, name
                 FROM makers
-                WHERE category = %s
+                WHERE LOWER(TRIM(category)) = LOWER(%s)
                 ORDER BY name
             """, (category,))
         else:
@@ -1444,30 +1444,6 @@ def get_makers(category: Optional[str] = None):
 
         rows = cur.fetchall()
         return [{"id": r[0], "name": r[1]} for r in rows]
-
-    finally:
-        cur.close()
-        db.close()
-
-
-# =========================
-# 車種取得（maker_id）
-# =========================
-@app.get("/api/cars/by-maker-id/{maker_id}")
-def get_cars_by_maker_id(maker_id: str):
-    db = get_db()
-    cur = db.cursor()
-
-    try:
-        cur.execute("""
-            SELECT name
-            FROM car_models
-            WHERE maker_id = %s
-            ORDER BY name
-        """, (maker_id,))
-
-        rows = cur.fetchall()
-        return [{"name": r[0]} for r in rows]
 
     finally:
         cur.close()
@@ -3612,37 +3588,6 @@ def get_cars_by_maker_id(maker_id: str):
     cur = db.cursor()
 
     try:
-        # 🔥 ① 数字IDならname取得
-        cur.execute("SELECT name FROM makers WHERE id=%s", (maker_id,))
-        row = cur.fetchone()
-
-        if row:
-            name = row[0]
-
-            # 🔥 ② name → maker_id変換
-            mapping = {
-                "トヨタ": "toyota",
-                "日産": "nissan",
-                "ホンダ": "honda",
-                "マツダ": "mazda",
-                "スバル": "subaru",
-                "三菱": "mitsubishi",
-                "スズキ": "suzuki",
-                "ダイハツ": "daihatsu",
-                "レクサス": "lexus",
-                "いすゞ": "isuzu",
-                "日野": "hino",
-
-                # バイク
-                "ホンダ（バイク）": "honda_bike",
-                "ヤマハ": "yamaha",
-                "カワサキ": "kawasaki",
-                "スズキ（バイク）": "suzuki_bike",
-            }
-
-            maker_id = mapping.get(name, maker_id)
-
-        # 🔥 ③ 検索
         cur.execute("""
             SELECT name
             FROM car_models
