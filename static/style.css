@@ -1795,3 +1795,1800 @@ margin-top:10px;
   align-items: center;
   gap: 6px;
 }
+/* =========================
+   Reset / Base
+========================= */
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif;
+  background: #ffffff;
+  color: #0f1419;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: inherit; }
+button { font-family: inherit; }
+
+/* =========================
+   Header / Nav
+========================= */
+.header {
+  background: #000;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  gap: 12px;
+}
+
+/* ロゴ */
+.logo {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 900;
+  text-decoration: none;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+/* ナビ */
+.nav {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.nav-link {
+  color: #bbb;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 10px;
+}
+
+.nav-link:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.nav-link.active {
+  color: #1d9bf0;
+  background: rgba(29,155,240,0.12);
+}
+
+.logout-btn {
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.logout-btn:hover { opacity: 0.92; }
+
+/* --- Nav Avatar（クラスがあっても無くても効く保険） --- */
+.nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* これが無いとヘッダーで画像が巨大化する事故が出る */
+.header .nav img,
+.header-inner img {
+  max-width: 34px;
+  max-height: 34px;
+}
+
+.nav-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.nav-avatar.placeholder {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: block;
+  background: #666;
+}
+
+/* --- Nav DM unread dot --- */
+.dm-nav { position: relative; }
+
+.dm-unread-dot {
+  position: absolute;
+  top: 2px;
+  right: -6px;
+  width: 8px;
+  height: 8px;
+  background: #ff3b30;
+  border-radius: 50%;
+}
+
+/* =========================
+   Layout
+========================= */
+.container {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 12px 14px 32px;
+}
+
+main.container { margin-top: 16px; }
+
+/* =========================
+   Forms（共通）
+========================= */
+.post-form { margin-bottom: 16px; }
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.form-row.bottom { align-items: center; }
+
+@media (max-width: 600px) {
+  .form-row { flex-direction: column; }
+}
+
+input, textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 2px solid #cfd9de;
+  font-size: 14px;
+  margin-bottom: 10px;
+  background: #fff;
+  color: #0f1419;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  border-color: #1d9bf0;
+  box-shadow: 0 0 0 3px rgba(29,155,240,0.15);
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.primary-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 999px;
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.primary-btn:hover { opacity: 0.92; }
+
+/* =========================
+   Home Tabs
+========================= */
+.home-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 10px 0 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.home-tab {
+  padding: 10px 0;
+  font-weight: 600;
+  color: #888;
+  position: relative;
+  text-decoration: none;
+}
+
+.home-tab.active { color: #000; }
+
+.home-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: #000;
+  border-radius: 2px;
+}
+
+/* =========================
+   Home Search
+========================= */
+.home-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.home-search input { flex: 1; margin: 0; }
+
+.home-search button {
+  padding: 0 18px;
+  border-radius: 999px;
+  border: none;
+  background: #111827;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.home-search button:hover { opacity: 0.92; }
+
+@media (max-width: 600px) {
+  .home-search { flex-direction: column; }
+  .home-search button { height: 44px; }
+}
+
+/* =========================
+   Avatar（ユーザーアイコン）
+========================= */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #e5e7eb;
+  border: 1px solid rgba(15,20,25,0.06);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  border: 1px solid rgba(15,20,25,0.06);
+  display: inline-block;
+}
+
+/* =========================
+   Post Card（共通）
+========================= */
+.post, .post-card {
+  position: relative;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.post-top, .post-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.post-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.post-user {
+  font-weight: 900;
+  text-decoration: none;
+  color: #0f1419;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
+}
+
+.post-user:hover { text-decoration: underline; }
+
+.post-date, .post-time {
+  font-size: 12px;
+  color: #536471;
+  white-space: nowrap;
+}
+
+.post-text, .post-comment {
+  font-size: 14px;
+  line-height: 1.65;
+  margin-top: 6px;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+/* =========================
+   Image（暴走防止）
+========================= */
+.post-image {
+  position: relative;
+  z-index: 1;
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.post-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: zoom-in;
+}
+
+/* =========================
+   Actions（重要）
+========================= */
+/* ✅ これで「コメントといいね」を右寄せに固定 */
+.post-actions {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;  /* ← 右寄せ */
+  width: 100%;               /* ← 念のため */
+}
+
+.post-actions form { margin: 0; }
+
+/* Ranking側も右寄せに寄せたいならこれ */
+.ranking-actions {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+/* =========================
+   Buttons（統一）
+========================= */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  height: 38px;
+  padding: 0 14px;
+
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+
+  color: #111827;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+
+  transition: background .12s ease, border-color .12s ease, transform .06s ease, opacity .12s ease;
+}
+
+.action-btn:hover { background: #f7f7f8; }
+.action-btn:active { transform: scale(0.985); }
+
+.action-btn .count {
+  font-weight: 900;
+  min-width: 10px;
+  text-align: center;
+}
+
+
+.like-btn:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================
+   Delete / Follow Buttons
+========================= */
+.delete-btn, .follow-btn {
+  height: 38px;
+  border-radius: 999px;
+  padding: 0 14px;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+  border: 1px solid #cfd9de;
+  background: #fff;
+  color: #0f1419;
+}
+
+.delete-btn:hover, .follow-btn:hover { background: #f6f7f8; }
+
+.delete-btn { border-color: rgba(244,63,94,0.35); }
+.delete-btn:hover { background: rgba(244,63,94,0.08); }
+
+/* =========================
+   Back link
+========================= */
+.back-link {
+  display: inline-block;
+  margin: 6px 0 12px;
+  color: #0f1419;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.back-link:hover { text-decoration: underline; }
+
+/* =========================
+   Ranking Tabs
+========================= */
+.ranking-tabs {
+  display: flex;
+  gap: 10px;
+  margin: 8px 0 16px;
+}
+
+.ranking-tab {
+  flex: 1;
+  text-align: center;
+  padding: 11px 0;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+  background: #f3f4f6;
+  color: #333;
+  border: none;
+}
+
+.ranking-tab:hover { opacity: 0.92; }
+
+.ranking-tab.active {
+  background: #000;
+  color: #fff;
+}
+
+/* =========================
+   Search Page（必要分）
+========================= */
+.search-hero {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin: 8px 0 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.search-title {
+  font-size: 26px;
+  font-weight: 900;
+  margin: 2px 0 12px;
+}
+
+.search-bar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-input { width: 100%; margin: 0; }
+
+.search-btn {
+  border: none;
+  background: #1d9bf0;
+  color: #fff;
+  font-weight: 900;
+  border-radius: 999px;
+  padding: 12px 18px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.search-btn:hover { opacity: 0.92; }
+
+.search-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.search-section { margin: 14px 0 22px; }
+
+.section-title {
+  font-size: 16px;
+  font-weight: 900;
+  margin: 0 0 10px;
+  color: #0f1419;
+}
+
+.search-section .user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-section .user-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  text-decoration: none;
+}
+
+.search-section .user-pill:hover { background: #f7f7f8; }
+
+.user-pill-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
+}
+
+.user-name {
+  font-size: 15px;
+  font-weight: 900;
+  color: #0f1419;
+}
+
+.user-handle {
+  font-size: 13px;
+  font-weight: 800;
+  color: #536471;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.empty-note { color: #8899a6; margin: 0; font-size: 14px; }
+
+@media (max-width: 600px) {
+  .search-bar { flex-direction: column; align-items: stretch; }
+  .search-grid { grid-template-columns: 1fr; }
+  .search-btn { width: 100%; }
+}
+
+/* =========================
+   Profile（必要最低限）
+========================= */
+.inline-form { margin: 0; }
+
+.profile-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin: 10px 0 12px;
+}
+
+.profile-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width: 0;
+}
+
+.profile-avatar{
+  width:54px;
+  height:54px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  overflow:hidden;
+  background:#e5e7eb;
+}
+
+.profile-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.profile-idblock{ min-width:0; }
+
+.profile-name{
+  margin:0;
+  font-size:18px;
+  font-weight:900;
+  letter-spacing: .2px;
+  line-height: 1.15;
+}
+
+.profile-handle{
+  color:#536471;
+  font-size:13px;
+  margin-top:4px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.profile-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.profile-box{
+  margin:12px 0;
+  background:#fff;
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+
+.profile-stats{
+  display:flex;
+  justify-content:center;
+  gap:28px;
+  margin-top:14px;
+}
+
+.profile-stats .stat{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:13px;
+  font-weight:700;
+  color:#536471;
+}
+
+.profile-stats .stat-num{
+  font-size:17px;
+  font-weight:900;
+  color:#0f1419;
+  letter-spacing:.2px;
+}
+
+.profile-bio{
+  margin:12px 0 0;
+  white-space:pre-wrap;
+  color:#111827;
+  font-size:14px;
+  line-height:1.55;
+}
+
+/* DM button */
+.dm-btn{
+  height:38px;
+  padding:0 18px;
+  border-radius:999px;
+  border:none;
+  background: linear-gradient(135deg, #1d9bf0, #0a85d1);
+  color:#fff;
+  font-size:14px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow: 0 4px 12px rgba(29,155,240,0.35);
+}
+.dm-btn:hover{ opacity:.95; }
+
+/* =========================
+   DM List（カード化・崩れ防止）
+========================= */
+.dm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dm-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  text-decoration: none;
+  color: inherit;
+  transition: background .15s;
+}
+
+.dm-item:hover { background: #f7f7f8; }
+
+.dm-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #ddd;
+}
+
+.dm-icon img,
+.icon-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dm-body { flex: 1; min-width: 0; }
+
+.dm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.dm-name { font-weight: 900; }
+
+.dm-time { font-size: 12px; color: #777; white-space: nowrap; }
+
+.dm-preview {
+  font-size: 14px;
+  color: #555;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* =========================
+   Comment（最低限）
+========================= */
+.comment-section {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid #e6ecf0;
+}
+
+.comment-item {
+  background: #f7f9fb;
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  color: #0f1419;
+  border: 1px solid rgba(15,20,25,0.06);
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.comment-time {
+  font-size: 12px;
+  color: #8899a6;
+  white-space: nowrap;
+}
+
+.comment-body {
+  font-size: 14px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.comment-del-btn{
+  border:1px solid #ddd;
+  background:#fff;
+  border-radius:12px;
+  padding:6px 10px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+/* =========================
+   Image Modal（任意）
+========================= */
+.img-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.86);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:18px;
+}
+.img-modal.open{ display:flex; }
+
+.img-modal-inner{ max-width:100%; max-height:100%; }
+
+.img-modal img{
+  max-width:100%;
+  max-height:100%;
+  border-radius:16px;
+}
+/* =========================
+   Like Button (FINAL)
+========================= */
+.like-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+
+  height:38px;
+  padding:0 14px;
+  border-radius:999px;
+
+  background:#fff;
+  border:1px solid #e5e7eb;
+
+  font-size:14px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.like-btn.liked{
+  background:#ffe3ec;
+  border-color:#ff5a8a;
+}
+/* =========================
+   Like Heart Toggle（最終）
+========================= */
+
+/* 共通 */
+.like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ハート制御 */
+.like-btn .heart {
+  line-height: 1;
+  font-size: 16px;
+}
+
+.like-btn .heart-on {
+  display: none;            /* 通常は赤を隠す */
+}
+
+.like-btn.liked .heart-off {
+  display: none;            /* liked時は白を隠す */
+}
+
+.like-btn.liked .heart-on {
+  display: inline;          /* liked時は赤を表示 */
+}
+
+/* 色も連動 */
+.like-btn { color: #111827; }
+.like-btn.liked { color: #ff5a8a; }
+
+.like-btn .like-count {
+  font-weight: 900;
+}
+/* =========================
+   Ranking Card Layout（最終）
+========================= */
+
+/* ランキングカード全体 */
+.ranking-card{
+  background:#fff;
+  border-radius:18px;
+  padding:14px;
+  margin-bottom:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+
+/* 上段：順位＋アイコン＋名前：車名 */
+.ranking-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:15px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+/* 順位 */
+.rank-badge{
+  min-width:24px;
+  text-align:center;
+  font-size:18px;
+  font-weight:900;
+  color:#111827;
+}
+
+/* ランキング用ユーザー名 */
+.ranking-user{
+  font-weight:900;
+  text-decoration:none;
+  color:#0f1419;
+}
+
+.ranking-user:hover{
+  text-decoration:underline;
+}
+
+/* 車名 */
+.ranking-car{
+  font-weight:800;
+  color:#374151;
+}
+
+/* 画像は必ず下に */
+.ranking-card .post-image{
+  margin-top:8px;
+}
+
+/* 下段アクション（右寄せ） */
+.ranking-card .post-actions{
+  margin-top:10px;
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+/* =========================
+   Ranking Rank Badge
+========================= */
+.rank-badge{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:900;
+  font-size:14px;
+  color:#fff;
+  box-shadow:0 4px 10px rgba(0,0,0,.25);
+  flex:0 0 auto;
+}
+
+/* 🥇 */
+.rank-1{
+  background:linear-gradient(135deg,#ffd700,#ffb300);
+}
+/* 🥈 */
+.rank-2{
+  background:linear-gradient(135deg,#cfd8dc,#90a4ae);
+}
+/* 🥉 */
+.rank-3{
+  background:linear-gradient(135deg,#ffb74d,#f57c00);
+}
+/* 4位以下 */
+.rank-4,.rank-5,.rank-6,.rank-7,.rank-8,.rank-9,.rank-10{
+  background:linear-gradient(135deg,#9ca3af,#6b7280);
+}
+/* =========================
+   Ranking: Medal + Card Colors
+   (1位 金 / 2位 銀 / 3位 銅 / 4-10 白)
+   ※ style.css の末尾に貼る（上書き用）
+========================= */
+
+/* まずランキング投稿カードのベースを白に固定（4-10位用） */
+.ranking-post{
+  background:#fff !important;
+  border: 1px solid rgba(15,20,25,0.06);
+}
+
+/* 1位: 金 */
+.ranking-post.rank-1{
+  background: linear-gradient(135deg,#fff6bf,#ffd24d) !important;
+  border-color: rgba(255,200,0,0.25);
+}
+
+/* 2位: 銀 */
+.ranking-post.rank-2{
+  background: linear-gradient(135deg,#f5f7fa,#d6dde6) !important;
+  border-color: rgba(120,130,140,0.18);
+}
+
+/* 3位: 銅 */
+.ranking-post.rank-3{
+  background: linear-gradient(135deg,#ffd3b0,#c7773a) !important;
+  border-color: rgba(160,90,40,0.22);
+}
+
+/* ===== 順位バッジ（共通） ===== */
+.rank-badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  font-weight: 1000;
+  line-height: 1;
+  user-select:none;
+}
+
+/* 4位以降は小さめの丸でOK */
+.rank-badge.rank-4,
+.rank-badge.rank-5,
+.rank-badge.rank-6,
+.rank-badge.rank-7,
+.rank-badge.rank-8,
+.rank-badge.rank-9,
+.rank-badge.rank-10{
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  color:#fff;
+  background: linear-gradient(135deg,#9ca3af,#6b7280);
+  box-shadow: 0 6px 14px rgba(0,0,0,.18);
+}
+
+/* ===== 1-3位は「メダル」級にデカく・立体感 ===== */
+.rank-badge.rank-1,
+.rank-badge.rank-2,
+.rank-badge.rank-3{
+  width: 52px;
+  height: 52px;
+  font-size: 18px;
+  color:#1f2937;
+
+  /* 縁取り＋立体 */
+  border: 2px solid rgba(255,255,255,0.65);
+  box-shadow:
+    0 10px 20px rgba(0,0,0,.22),
+    inset 0 2px 4px rgba(255,255,255,.65),
+    inset 0 -10px 18px rgba(0,0,0,.10);
+
+  position: relative;
+  overflow: hidden;
+}
+
+/* メダルの“キラッ” */
+.rank-badge.rank-1::before,
+.rank-badge.rank-2::before,
+.rank-badge.rank-3::before{
+  content:"";
+  position:absolute;
+  inset:-20%;
+  transform: rotate(25deg);
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.00) 0%,
+    rgba(255,255,255,0.55) 45%,
+    rgba(255,255,255,0.00) 70%
+  );
+  opacity: .55;
+}
+
+/* 中央の光 */
+.rank-badge.rank-1::after,
+.rank-badge.rank-2::after,
+.rank-badge.rank-3::after{
+  content:"";
+  position:absolute;
+  width: 70%;
+  height: 70%;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 25%,
+    rgba(255,255,255,0.85),
+    rgba(255,255,255,0.00) 60%
+  );
+  top: 12%;
+  left: 12%;
+  opacity: .55;
+}
+
+/* 1位メダル色（ゴールド） */
+.rank-badge.rank-1{
+  background: radial-gradient(circle at 30% 25%, #fff6b7, #ffcc2f 55%, #d79a00 100%);
+  color:#2b1b00;
+}
+
+/* 2位メダル色（シルバー） */
+.rank-badge.rank-2{
+  background: radial-gradient(circle at 30% 25%, #ffffff, #d7dde6 55%, #9aa3ad 100%);
+  color:#111827;
+}
+
+/* 3位メダル色（ブロンズ） */
+.rank-badge.rank-3{
+  background: radial-gradient(circle at 30% 25%, #ffe1c8, #c07a3e 55%, #7a3f14 100%);
+  color:#2b1306;
+}
+
+/* バッジがデカくなった分、行のバランスだけ整える */
+.ranking-post .post-title{
+  gap: 12px;
+}
+/* =========================
+   Ranking Post Overlay（必須）
+========================= */
+
+/* ランキング投稿は相対位置 */
+.ranking-post{
+  position: relative;
+}
+
+/* 全体クリック用の透明リンク */
+.post-overlay{
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* 操作系は必ずオーバーレイより上に */
+.ranking-post .post-actions,
+.ranking-post .post-actions *,
+.ranking-post .avatar,
+.ranking-post .avatar *,
+.ranking-post .post-user{
+  position: relative;
+  z-index: 2;
+}
+/* ===== ranking overlay click fix ===== */
+.ranking-post{ position: relative; }
+
+.post-overlay{
+  position:absolute;
+  inset:0;
+  z-index:1;
+}
+
+.ranking-post .post-actions,
+.ranking-post .post-top,
+.ranking-post .post-text,
+.ranking-post .post-image{
+  position: relative;
+  z-index:2;
+}
+.post-form-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.image-upload {
+  border: 2px dashed #1d9bf0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.image-upload input {
+  display: none;
+}
+
+.image-upload-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d9bf0;
+}
+
+.post-submit {
+  font-size: 18px;
+  padding: 14px;
+}
+
+@media (max-width: 600px) {
+  .post-submit {
+    position: sticky;
+    bottom: 12px;
+  }
+}
+/* =========================
+   Post Form Emphasis
+========================= */
+
+/* メーカー・地域 横並び強化 */
+.big-selects {
+  display: flex;
+  gap: 12px;
+}
+
+.big-selects select {
+  flex: 1;
+  font-size: 17px;          /* ← デカく */
+  font-weight: 700;
+  padding: 16px 14px;      /* ← 高さを出す */
+  border-radius: 16px;
+  border-width: 2px;
+}
+
+/* モバイルでも横並び維持 */
+@media (max-width: 600px) {
+  .big-selects {
+    flex-direction: row;
+  }
+}
+/* =========================
+   Profile Improve
+========================= */
+
+/* 全体カード感を強める */
+.profile-box{
+  background:#fff;
+  border-radius:20px;
+  padding:16px;
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+
+/* タグ（車情報） */
+.profile-tags{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.tag{
+  background:#f3f4f6;
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:800;
+  color:#111827;
+}
+
+/* Bioを主役に */
+.profile-bio{
+  font-size:15px;
+  line-height:1.6;
+  margin-top:10px;
+  font-weight:500;
+}
+
+/* Statsを横ラインで区切る */
+.profile-stats{
+  display:flex;
+  justify-content:space-around;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid #e5e7eb;
+}
+
+.profile-stats .stat{
+  text-align:center;
+}
+
+.profile-stats .stat-num{
+  display:block;
+  font-size:18px;
+  font-weight:900;
+}
+/* ===== user list ===== */
+.user-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f5f5f5;
+  text-decoration: none;
+  color: #000;
+  transition: 0.2s;
+}
+
+.user-item:hover {
+  background: #e9e9e9;
+}
+
+.user-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-icon.fallback {
+  background: #ccc;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 600;
+}
+
+.user-handle {
+  font-size: 12px;
+  color: #666;
+}
+/* =========================
+   Admin UI
+========================= */
+.admin-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  margin: 10px 0 14px;
+}
+.admin-sub{
+  font-size: 13px;
+  opacity: .75;
+  margin-top: 4px;
+}
+.admin-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.admin-card{
+  background:#fff;
+  border:1px solid rgba(0,0,0,.08);
+  border-radius:16px;
+  overflow:hidden;
+}
+
+.admin-table-wrap{
+  width:100%;
+  overflow:auto;
+}
+
+.admin-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width: 820px; /* 横が狭い画面で崩れない */
+}
+.admin-table th,
+.admin-table td{
+  padding: 12px 12px;
+  border-bottom:1px solid rgba(0,0,0,.06);
+  vertical-align:middle;
+  white-space:nowrap;
+}
+.admin-table thead th{
+  font-size:12px;
+  opacity:.75;
+  text-align:left;
+  background: rgba(0,0,0,.02);
+}
+.t-center{ text-align:center; }
+.t-right{ text-align:right; }
+.mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+.usercell{ min-width: 220px; }
+.usercell-name{ font-weight: 700; }
+.usercell-sub{ font-size: 12px; opacity: .7; margin-top: 4px; }
+
+.badge{
+  display:inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  border:1px solid rgba(0,0,0,.08);
+}
+.badge-admin{ background: rgba(0,0,0,.06); }
+.badge-user{ background: rgba(0,0,0,.03); opacity:.85; }
+.badge-ban{ background: rgba(255,0,0,.07); }
+.badge-ok{ background: rgba(0,160,0,.07); }
+
+.row-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+/* 既存にbtnが無い場合の保険（あれば上書きされるだけ） */
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border:1px solid rgba(0,0,0,.12);
+  background:#fff;
+  cursor:pointer;
+  text-decoration:none;
+  font-weight:700;
+}
+.btn-sm{ padding: 7px 10px; border-radius: 10px; font-size: 12px; }
+.btn-ghost{ background:#fff; }
+.btn-danger{ background: rgba(255,0,0,.08); border-color: rgba(255,0,0,.18); }
+
+.post-actions{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:10px;
+}
+
+/* 左 */
+.actions-left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* 右 */
+.actions-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+/* 通報 */
+.report-btn{
+  font-size:12px;
+  padding:5px 10px;
+  border:1px solid #ddd;
+  border-radius:999px;
+  background:#fff;
+  color:#111;
+  text-decoration:none;
+}
+
+.report-btn:hover{
+  background:#f5f5f5;
+}
+/* =========================
+   Multiple Images (Carousel)
+   index.html の .post-images / .post-images-track 用
+========================= */
+
+/* 外枠：はみ出しを隠して角丸維持 */
+.post-images{
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+/* 横スクロール（スワイプ対応） */
+.post-images-track{
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 8px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* スクロールバー薄く（対応ブラウザのみ） */
+.post-images-track::-webkit-scrollbar{
+  height: 6px;
+}
+.post-images-track::-webkit-scrollbar-thumb{
+  background: rgba(0,0,0,0.18);
+  border-radius: 999px;
+}
+
+/* 1枚の枠（横に並ぶ） */
+.post-images .post-image{
+  flex: 0 0 88%;
+  max-width: 88%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f3f4f6;
+  scroll-snap-align: start;
+}
+
+/* 画像：高さが暴れないように揃える（見た目が安定する） */
+.post-images .post-image img{
+  width: 100%;
+  height: 320px;          /* ←ここで統一 */
+  object-fit: cover;      /* 画角は切れるけど見栄え最優先 */
+  display: block;
+  cursor: zoom-in;
+}
+
+/* PCで少し横幅を広げる */
+@media (min-width: 601px){
+  .post-images .post-image{
+    flex-basis: 70%;
+    max-width: 70%;
+  }
+  .post-images .post-image img{
+    height: 380px;
+  }
+}
+
+/* 旧 .post-image（単発表示）も同じ高さルールに寄せたいなら保険 */
+.post-image img{
+  object-fit: cover;
+}
+/* 画像プレビュー */
+.preview-box{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+margin-top:10px;
+}
+
+.preview-img{
+  width:90px;
+  height:90px;
+  object-fit:cover;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+
+/* =========================
+   FIX: post-actions競合バグ修正（最終）
+========================= */
+
+/* 親：左右に分離 */
+.post-actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:10px;
+  width:100%;
+}
+
+/* 左側 */
+.actions-left{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+/* 右側（いいね・コメント） */
+.actions-right{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-left:auto;
+}
+
+/* =========================
+   Share Modal
+========================= */
+.share-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.6);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.share-modal.show{
+  display:flex;
+}
+
+.share-box{
+  background:#fff;
+  border-radius:16px;
+  padding:24px;
+  width:90%;
+  max-width:320px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+}
+
+.share-title{
+  font-size:18px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+.share-text{
+  font-size:14px;
+  color:#555;
+  margin-bottom:16px;
+}
+
+.share-x-btn{
+  display:block;
+  background:#000;
+  color:#fff;
+  padding:12px;
+  border-radius:999px;
+  text-decoration:none;
+  font-weight:900;
+  margin-bottom:10px;
+}
+
+.share-skip{
+  border:none;
+  background:none;
+  color:#666;
+  font-size:13px;
+  cursor:pointer;
+}
+/* ===== プレビュー完全修正版 ===== */
+
+.preview-box{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+
+/* 🔥 1枚の枠 */
+.preview-item{
+  width:90px;
+  height:90px;
+  position:relative;
+  flex-shrink:0;
+}
+
+/* 🔥 画像 */
+.preview-img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:10px;
+  display:block;
+}
+
+/* 削除ボタン */
+.preview-item button{
+  position:absolute;
+  top:4px;
+  right:4px;
+  background:rgba(0,0,0,0.6);
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  font-size:12px;
+  padding:2px 6px;
+}
+/* ===== プレビュー強制FIX ===== */
+.preview-box img{
+  width:90px !important;
+  height:90px !important;
+  object-fit:cover !important;
+  border-radius:10px !important;
+}
+/* ===== プレビュー完全固定 ===== */
+.preview-item{
+  width:90px;
+  height:90px;
+  flex: 0 0 90px;
+}
+
+.preview-item img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+/* ===== 画像拡大モーダル ===== */
+.img-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+  padding:16px;
+}
+
+.img-modal.open{
+  display:flex;
+}
+
+.img-modal img{
+  max-width:100%;
+  max-height:100%;
+  border-radius:12px;
+}
+.img-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:99999;
+}
+
+.img-modal.open{
+  display:flex;
+}
+
+.img-modal img{
+  max-width:100%;
+  max-height:100%;
+  border-radius:12px;
+}
+/* ===== 画像モーダル ===== */
+.img-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+
+.img-modal.open{
+  display:flex;
+}
+
+.img-modal-inner{
+  position:relative;
+  max-width:95vw;
+  max-height:95vh;
+}
+
+.img-modal-inner img{
+  max-width:95vw;
+  max-height:95vh;
+  border-radius:12px;
+}
+
+/* ×ボタン */
+.img-modal-close{
+  position:absolute;
+  top:-12px;
+  right:-12px;
+  width:42px;
+  height:42px;
+  border:none;
+  border-radius:50%;
+  background:#fff;
+  color:#111;
+  font-size:28px;
+  cursor:pointer;
+  line-height:1;
+  box-shadow:0 4px 12px rgba(0,0,0,0.35);
+}
+.mycar-add-row {
+  display: flex;
+  gap: 8px;
+}
+
+.mycar-add-row select {
+  flex: 1;
+}
+
+.mycar-primary {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}

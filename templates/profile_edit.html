@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=7003">
+  <link rel="stylesheet" href="/static/style.css?v=8000">
 </head>
 <body>
 
@@ -18,137 +18,22 @@
 
   <h2 class="page-title">プロフィール編集</h2>
 
-  <!-- 🚗🏍 愛車追加 -->
-  <section style="margin-top:28px;">
-    <h3>愛車を追加</h3>
+  <form action="/profile/edit" method="post" class="profile-edit-form">
 
-    <!-- カテゴリ -->
-    <div style="margin-bottom:12px;">
-      <button type="button" onclick="loadMakers('japan_car')" class="primary-btn">🚗 国産車</button>
-      <button type="button" onclick="loadMakers('foreign_car')" class="primary-btn">🌍 外車</button>
-      <button type="button" onclick="loadMakers('bike')" class="primary-btn">🏍 バイク</button>
-    </div>
+    <label>表示名</label>
+    <input type="text" name="display_name" value="{{ profile.display_name or '' }}">
 
-    <form action="/profile/cars/add" method="post" class="profile-edit-form">
+    <label>地域</label>
+    <input type="text" name="location" value="{{ profile.location or '' }}">
 
-      <label>メーカー</label>
-      <select id="makerSelectAdd" name="maker_id" required>
-        <option value="">メーカー選択</option>
-      </select>
+    <label>自己紹介</label>
+    <textarea name="bio">{{ profile.bio or '' }}</textarea>
 
-      <label>車名</label>
-      <select id="carSelectAdd" name="car" required disabled>
-        <option value="">車種選択</option>
-      </select>
+    <button type="submit" class="primary-btn">保存</button>
 
-      <label>
-        <input type="checkbox" name="set_primary" value="1">
-        メイン愛車にする
-      </label>
-
-      <button type="submit" class="primary-btn">追加</button>
-
-    </form>
-  </section>
+  </form>
 
 </main>
-
-<script>
-// ======================
-// 状態
-// ======================
-let currentCategory = "japan_car";
-
-// ======================
-// メーカー取得
-// ======================
-async function loadMakers(category = currentCategory) {
-  currentCategory = category;
-
-  const makerSelect = document.getElementById("makerSelectAdd");
-  const carSelect = document.getElementById("carSelectAdd");
-
-  // 初期化
-  makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
-  carSelect.innerHTML = "<option value=''>車種選択</option>";
-  carSelect.disabled = true;
-
-  try {
-    const res = await fetch(`/api/makers?category=${category}`);
-    const makers = await res.json();
-
-    console.log("makers:", makers);
-
-    makers.forEach((m) => {
-      const option = document.createElement("option");
-      option.value = m.id; // ←重要
-      option.textContent = m.name;
-      makerSelect.appendChild(option);
-    });
-
-  } catch (e) {
-    console.error("メーカー取得エラー", e);
-  }
-}
-
-// ======================
-// 車種取得（完全修正版）
-// ======================
-async function loadCars(makerId) {
-  const carSelect = document.getElementById("carSelectAdd");
-
-  // 初期化
-  carSelect.innerHTML = "<option value=''>車種選択</option>";
-  carSelect.disabled = true;
-
-  if (!makerId) return;
-
-  try {
-    const res = await fetch(`/api/cars/by-maker-id/${makerId}`);
-
-    if (!res.ok) {
-      console.error("APIエラー", res.status);
-      carSelect.disabled = false;
-      return;
-    }
-
-    const data = await res.json();
-    console.log("cars:", data);
-
-    // 🔥 ここが今回の核心
-    const cars = data.cars || [];
-
-    cars.forEach((c) => {
-      const option = document.createElement("option");
-      option.value = c.name;
-      option.textContent = c.name;
-      carSelect.appendChild(option);
-    });
-
-    // 有効化
-    carSelect.disabled = false;
-
-  } catch (e) {
-    console.error("車種取得エラー", e);
-    carSelect.disabled = false;
-  }
-}
-
-// ======================
-// 初期化
-// ======================
-document.addEventListener("DOMContentLoaded", async () => {
-  console.log("JS起動");
-
-  const makerSelect = document.getElementById("makerSelectAdd");
-
-  await loadMakers("japan_car");
-
-  makerSelect.addEventListener("change", () => {
-    loadCars(makerSelect.value);
-  });
-});
-</script>
 
 </body>
 </html>
