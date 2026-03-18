@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=5000">
+  <link rel="stylesheet" href="/static/style.css?v=6000">
 </head>
 <body>
 
@@ -22,7 +22,7 @@
   <section style="margin-top:28px;">
     <h3>愛車を追加</h3>
 
-    <!-- 🔥 車 / バイク切替 -->
+    <!-- 車 / バイク切替 -->
     <div style="margin-bottom:12px;">
       <button type="button" onclick="loadMakers('japan_car')" class="primary-btn">🚗 車</button>
       <button type="button" onclick="loadMakers('bike')" class="primary-btn">🏍 バイク</button>
@@ -52,20 +52,52 @@
 
 </main>
 
-<!-- ======================
-     JS（完全版）
-====================== -->
 <script>
+// ======================
+// 🔥 maker変換マップ（超重要）
+// ======================
+const makerMap = {
+  // 日本車
+  "トヨタ": "toyota",
+  "日産": "nissan",
+  "ホンダ": "honda",
+  "マツダ": "mazda",
+  "スバル": "subaru",
+  "三菱": "mitsubishi",
+  "スズキ": "suzuki",
+  "ダイハツ": "daihatsu",
+  "レクサス": "lexus",
+  "いすゞ": "isuzu",
+  "日野": "hino",
+
+  // 外車（必要に応じて拡張）
+  "BMW": "foreign_bmw",
+  "メルセデス・ベンツ": "foreign_mercedes",
+  "アウディ": "foreign_audi",
+  "フォルクスワーゲン": "foreign_vw",
+  "ポルシェ": "foreign_porsche",
+  "MINI": "foreign_mini",
+
+  // バイク
+  "ヤマハ": "yamaha",
+  "カワサキ": "kawasaki",
+  "BMW Motorrad": "bmw_bike"
+};
+
+// ======================
+// 状態
+// ======================
 let currentCategory = "japan_car";
 
+// ======================
 // 🔥 メーカー取得
+// ======================
 async function loadMakers(category = currentCategory) {
   currentCategory = category;
 
   const makerSelect = document.getElementById("makerSelectAdd");
   const carSelect = document.getElementById("carSelectAdd");
 
-  // 初期化
   makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
   carSelect.innerHTML = "<option value=''>車種選択</option>";
 
@@ -77,7 +109,11 @@ async function loadMakers(category = currentCategory) {
 
     makers.forEach((m) => {
       const option = document.createElement("option");
-      option.value = m.id;         // 🔥 重要（nameじゃない）
+
+      // 🔥 ここが最重要（IDズレ解決）
+      const mapped = makerMap[m.name];
+      option.value = mapped || m.id;
+
       option.textContent = m.name;
       makerSelect.appendChild(option);
     });
@@ -87,7 +123,9 @@ async function loadMakers(category = currentCategory) {
   }
 }
 
+// ======================
 // 🔥 車種取得
+// ======================
 async function loadCars(makerId) {
   const carSelect = document.getElementById("carSelectAdd");
   carSelect.innerHTML = "<option value=''>車種選択</option>";
@@ -99,6 +137,10 @@ async function loadCars(makerId) {
     const cars = await res.json();
 
     console.log("cars:", cars);
+
+    if (!cars.length) {
+      console.warn("車種なし:", makerId);
+    }
 
     cars.forEach((c) => {
       const option = document.createElement("option");
@@ -112,14 +154,15 @@ async function loadCars(makerId) {
   }
 }
 
-// 🔥 初期化
+// ======================
+// 初期化
+// ======================
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("JS起動");
 
   const makerSelect = document.getElementById("makerSelectAdd");
   if (!makerSelect) return;
 
-  // 初期は車
   await loadMakers("japan_car");
 
   makerSelect.addEventListener("change", () => {
