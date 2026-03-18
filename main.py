@@ -3613,51 +3613,54 @@ def init_makers_full():
 
     try:
         makers = [
-            ("toyota", "トヨタ"),
-            ("nissan", "日産"),
-            ("honda", "ホンダ"),
-            ("mazda", "マツダ"),
-            ("subaru", "スバル"),
-            ("suzuki", "スズキ"),
-            ("daihatsu", "ダイハツ"),
-            ("mitsubishi", "三菱"),
-            ("lexus", "レクサス"),
-            ("isuzu", "いすゞ"),
-            ("hino", "日野"),
-            ("ud_trucks", "UDトラックス"),
+            # 🚗 車
+            ("toyota", "トヨタ", "japan_car"),
+            ("nissan", "日産", "japan_car"),
+            ("honda", "ホンダ", "japan_car"),
+            ("mazda", "マツダ", "japan_car"),
+            ("subaru", "スバル", "japan_car"),
+            ("suzuki", "スズキ", "japan_car"),
+            ("daihatsu", "ダイハツ", "japan_car"),
+            ("mitsubishi", "三菱", "japan_car"),
+            ("lexus", "レクサス", "japan_car"),
+            ("isuzu", "いすゞ", "japan_car"),
+            ("hino", "日野", "japan_car"),
+            ("ud_trucks", "UDトラックス", "japan_car"),
 
-            ("foreign_bmw", "BMW"),
-            ("foreign_mercedes", "メルセデス・ベンツ"),
-            ("foreign_audi", "アウディ"),
-            ("foreign_vw", "フォルクスワーゲン"),
-            ("foreign_porsche", "ポルシェ"),
-            ("foreign_mini", "MINI"),
-            ("foreign_volvo", "ボルボ"),
-            ("foreign_jaguar", "ジャガー"),
-            ("foreign_landrover", "ランドローバー"),
-            ("foreign_jeep", "ジープ"),
-            ("foreign_chevrolet", "シボレー"),
-            ("foreign_ford", "フォード"),
-            ("foreign_fiat", "フィアット"),
-            ("foreign_alfa", "アルファロメオ"),
-            ("foreign_abarth", "アバルト"),
-            ("foreign_peugeot", "プジョー"),
-            ("foreign_renault", "ルノー"),
-            ("foreign_tesla", "テスラ"),
-            ("foreign_byd", "BYD"),
-      # 🏍 バイク
+            # 🌍 外車
+            ("foreign_bmw", "BMW", "foreign_car"),
+            ("foreign_mercedes", "メルセデス・ベンツ", "foreign_car"),
+            ("foreign_audi", "アウディ", "foreign_car"),
+            ("foreign_vw", "フォルクスワーゲン", "foreign_car"),
+            ("foreign_porsche", "ポルシェ", "foreign_car"),
+            ("foreign_mini", "MINI", "foreign_car"),
+            ("foreign_volvo", "ボルボ", "foreign_car"),
+            ("foreign_jaguar", "ジャガー", "foreign_car"),
+            ("foreign_landrover", "ランドローバー", "foreign_car"),
+            ("foreign_jeep", "ジープ", "foreign_car"),
+            ("foreign_chevrolet", "シボレー", "foreign_car"),
+            ("foreign_ford", "フォード", "foreign_car"),
+            ("foreign_fiat", "フィアット", "foreign_car"),
+            ("foreign_alfa", "アルファロメオ", "foreign_car"),
+            ("foreign_abarth", "アバルト", "foreign_car"),
+            ("foreign_peugeot", "プジョー", "foreign_car"),
+            ("foreign_renault", "ルノー", "foreign_car"),
+            ("foreign_tesla", "テスラ", "foreign_car"),
+            ("foreign_byd", "BYD", "foreign_car"),
+
+            # 🏍 バイク
             ("honda_bike", "ホンダ（バイク）", "bike"),
             ("yamaha", "ヤマハ", "bike"),
             ("kawasaki", "カワサキ", "bike"),
             ("suzuki_bike", "スズキ（バイク）", "bike"),
         ]
 
-        for m_id, name in makers:
+        for m_id, name, category in makers:
             cur.execute("""
                 INSERT INTO makers (id, name, category)
-                VALUES (%s, %s, 'car')
+                VALUES (%s, %s, %s)
                 ON CONFLICT (id) DO NOTHING
-            """, (m_id, name))
+            """, (m_id, name, category))
 
         db.commit()
 
