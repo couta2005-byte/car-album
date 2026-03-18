@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=8001">
+  <link rel="stylesheet" href="/static/style.css?v=9002">
 </head>
 <body>
 
@@ -18,29 +18,48 @@
 
   <h2 class="page-title">プロフィール編集</h2>
 
-  <form action="/profile/edit" method="post" class="profile-edit-form">
+  <form action="/profile/edit" method="post" enctype="multipart/form-data" class="profile-edit-form">
+
+    <!-- アイコン -->
+    <label>プロフィール画像</label>
+
+    <div style="margin-bottom:12px;">
+      {% if profile and profile|length > 4 and profile[4] %}
+        <img src="{{ profile[4] }}"
+             alt="profile icon"
+             style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:1px solid #ddd;">
+      {% else %}
+        <div style="width:88px;height:88px;border-radius:50%;background:#eee;"></div>
+      {% endif %}
+    </div>
+
+    <input type="file" name="icon" accept="image/*">
 
     <!-- 表示名 -->
     <label>表示名</label>
     <input type="text"
            name="display_name"
-           value="{{ profile[5] if profile and profile|length > 5 else '' }}"
+           value="{{ display_name if display_name else '' }}"
            placeholder="例：ちりつも">
+
+    <!-- ハンドル -->
+    <label>ハンドル</label>
+    <input type="text"
+           name="handle"
+           value="{{ handle if handle else '' }}"
+           placeholder="例：chiritsumo">
 
     <!-- 地域 -->
     <label>地域</label>
     <input type="text"
-           name="location"
-           value="{{ profile[2] if profile and profile|length > 2 else '' }}"
+           name="region"
+           value="{{ profile[2] if profile and profile|length > 2 and profile[2] else '' }}"
            placeholder="例：北海道・旭川">
 
     <!-- 自己紹介 -->
     <label>自己紹介</label>
-    <textarea name="bio" placeholder="愛車やカスタム内容を書こう">
-{{ profile[3] if profile and profile|length > 3 else '' }}
-    </textarea>
+    <textarea name="bio" placeholder="愛車やカスタム内容を書こう">{{ profile[3] if profile and profile|length > 3 and profile[3] else '' }}</textarea>
 
-    <!-- 保存 -->
     <button type="submit" class="primary-btn">保存</button>
 
   </form>
