@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>愛車追加 | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css?v=8000">
+</head>
+<body>
+
+{% include "_nav.html" %}
+
+<main class="container">
+
+  <a href="/user/{{ me_handle }}" class="back-link">
+    ← プロフィールに戻る
+  </a>
+
+  <h2 class="page-title">愛車を追加</h2>
+
+  <div style="margin-bottom:12px;">
+    <button type="button" onclick="loadMakers('japan_car')" class="primary-btn">🚗 国産車</button>
+    <button type="button" onclick="loadMakers('foreign_car')" class="primary-btn">🌍 外車</button>
+    <button type="button" onclick="loadMakers('bike')" class="primary-btn">🏍 バイク</button>
+  </div>
+
+  <form action="/profile/cars/add" method="post" class="profile-edit-form">
+
+    <label>メーカー</label>
+    <select id="makerSelectAdd" name="maker_id" required>
+      <option value="">メーカー選択</option>
+    </select>
+
+    <label>車名</label>
+    <select id="carSelectAdd" name="car" required disabled>
+      <option value="">車種選択</option>
+    </select>
+
+    <label>
+      <input type="checkbox" name="set_primary" value="1">
+      メイン愛車にする
+    </label>
+
+    <button type="submit" class="primary-btn">追加</button>
+
+  </form>
+
+</main>
+
+<script>
+let currentCategory = "japan_car";
+
+async function loadMakers(category = currentCategory) {
+  currentCategory = category;
+
+  const makerSelect = document.getElementById("makerSelectAdd");
+  const carSelect = document.getElementById("carSelectAdd");
+
+  makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
+  carSelect.innerHTML = "<option value=''>車種選択</option>";
+  carSelect.disabled = true;
+
+  const res = await fetch(`/api/makers?category=${category}`);
+  const makers = await res.json();
+
+  makers.forEach((m) => {
+    const option = document.createElement("option");
+    option.value = m.id;
+    option.textContent = m.name;
+    makerSelect.appendChild(option);
+  });
+}
+
+async function loadCars(makerId) {
+  const carSelect = document.getElementById("carSelectAdd");
+
+  carSelect.innerHTML = "<option value=''>車種選択</option>";
+  carSelect.disabled = true;
+
+  if (!makerId) return;
+
+  const res = await fetch(`/api/cars/by-maker-id/${makerId}`);
+  const data = await res.json();
+
+  const cars = data.cars || [];
+
+  cars.forEach((c) => {
+    const option = document.createElement("option");
+    option.value = c.name;
+    option.textContent = c.name;
+    carSelect.appendChild(option);
+  });
+
+  carSelect.disabled = false;
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  const makerSelect = document.getElementById("makerSelectAdd");
+
+  await loadMakers("japan_car");
+
+  makerSelect.addEventListener("change", () => {
+    loadCars(makerSelect.value);
+  });
+});
+</script>
+
+</body>
+</html>
