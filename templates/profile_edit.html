@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=8000">
+  <link rel="stylesheet" href="/static/style.css?v=8001">
 </head>
 <body>
 
@@ -20,15 +20,27 @@
 
   <form action="/profile/edit" method="post" class="profile-edit-form">
 
+    <!-- 表示名 -->
     <label>表示名</label>
-    <input type="text" name="display_name" value="{{ profile.display_name or '' }}">
+    <input type="text"
+           name="display_name"
+           value="{{ profile[5] if profile and profile|length > 5 else '' }}"
+           placeholder="例：ちりつも">
 
+    <!-- 地域 -->
     <label>地域</label>
-    <input type="text" name="location" value="{{ profile.location or '' }}">
+    <input type="text"
+           name="location"
+           value="{{ profile[2] if profile and profile|length > 2 else '' }}"
+           placeholder="例：北海道・旭川">
 
+    <!-- 自己紹介 -->
     <label>自己紹介</label>
-    <textarea name="bio">{{ profile.bio or '' }}</textarea>
+    <textarea name="bio" placeholder="愛車やカスタム内容を書こう">
+{{ profile[3] if profile and profile|length > 3 else '' }}
+    </textarea>
 
+    <!-- 保存 -->
     <button type="submit" class="primary-btn">保存</button>
 
   </form>

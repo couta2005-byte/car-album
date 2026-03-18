@@ -1,8 +1,8 @@
-<!-- templates/profile.html（改良版フル：投稿の複数画像対応 + 画像モーダル + クリック遷移安定 + Like統一 + OGP安全） -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+
   <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -11,15 +11,18 @@
   <meta property="og:type" content="profile">
   <meta property="og:title"
         content="{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum">
+
   <meta property="og:description"
-        content="{{ profile[3] if profile and profile[3] else 'Carbumのプロフィールを見る' }}">
+        content="{{ profile[3] if profile and profile|length > 3 and profile[3] else 'Carbumのプロフィールを見る' }}">
+
   <meta property="og:url" content="{{ request.url }}">
+
   <meta property="og:image"
-        content="{{ profile[4] if profile and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
+        content="{{ profile[4] if profile and profile|length > 4 and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
 
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_MULTI">
+  <link rel="stylesheet" href="/static/style.css?v=FINAL_SAFE">
 </head>
 <body>
 
@@ -30,56 +33,54 @@
   <!-- ======================
        Profile Card
   ====================== -->
-  <section class="profile-box" style="padding:16px;">
+  <section class="profile-box">
 
     <!-- ===== Header ===== -->
-    <div class="profile-header" style="margin:0 0 12px;">
+    <div class="profile-header">
 
-      <!-- 左：アイコン＋名前 -->
+      <!-- 左 -->
       <div class="profile-left">
-        {% if profile and profile[4] %}
+
+        {% if profile and profile|length > 4 and profile[4] %}
           <div class="profile-avatar">
-            <img src="{{ profile[4] }}" alt="icon">
+            <img src="{{ profile[4] }}" alt="profile icon">
           </div>
         {% else %}
           <span class="profile-avatar avatar-fallback"></span>
         {% endif %}
 
-        <div class="profile-idblock">
-          <h2 class="profile-name" style="margin:0;">
+        <div>
+          <h2 class="profile-name">
             {{ display_name if display_name else username }}
           </h2>
           <div class="profile-handle">
             @{{ handle if handle else username }}
           </div>
         </div>
+
       </div>
 
-      <!-- 右：ボタン -->
+      <!-- 右 -->
       <div class="profile-actions">
 
         {% if me_user_id and target_user_id and me_user_id != target_user_id %}
 
           {% if is_following %}
             <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
-              <button class="follow-btn" type="submit">フォロー解除</button>
+              <button class="follow-btn">フォロー解除</button>
             </form>
           {% else %}
             <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
-              <button class="follow-btn" type="submit">フォローする</button>
+              <button class="follow-btn">フォローする</button>
             </form>
           {% endif %}
 
           <form action="/dm/start/{{ target_user_id }}" method="post">
-            <button class="dm-btn" type="submit">DMする</button>
+            <button class="dm-btn">DM</button>
           </form>
 
-        {% elif me_user_id == target_user_id %}
-          <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
-        {% endif %}
-
-        {% if is_admin %}
-          <a href="/admin" class="admin-btn">⚙ 管理</a>
+        {% elif me_user_id and target_user_id and me_user_id == target_user_id %}
+          <a href="/profile/edit" class="follow-btn">編集</a>
         {% endif %}
 
       </div>
@@ -87,308 +88,109 @@
     </div>
 
     <!-- ===== Info ===== -->
-    <div style="
-      display:grid;
-      grid-template-columns: 92px 1fr;
-      gap:10px 12px;
-      padding:12px;
-      border:1px solid #e5e7eb;
-      border-radius:16px;
-      background:#fff;
-    ">
-      <div style="color:#536471; font-weight:900; font-size:13px;">メーカー</div>
-      <div style="font-weight:900; font-size:14px;">
-        {{ profile[0] if profile and profile[0] else "未設定" }}
+    <div class="profile-box">
+
+      <div>メーカー：
+        {{ profile[0] if profile and profile|length > 0 and profile[0] else "未設定" }}
       </div>
 
-      <div style="color:#536471; font-weight:900; font-size:13px;">車名</div>
-      <div style="font-weight:900; font-size:14px;">
-        {{ profile[1] if profile and profile[1] else "未設定" }}
+      <div>車名：
+        {{ profile[1] if profile and profile|length > 1 and profile[1] else "未設定" }}
       </div>
 
-      <div style="color:#536471; font-weight:900; font-size:13px;">地域</div>
-      <div style="font-weight:900; font-size:14px;">
-        {{ profile[2] if profile and profile[2] else "未設定" }}
+      <div>地域：
+        {{ profile[2] if profile and profile|length > 2 and profile[2] else "未設定" }}
       </div>
+
     </div>
 
     <!-- ===== Stats ===== -->
-    <div class="profile-stats" style="margin-top:12px; display:flex; gap:20px;">
-
-      <a href="/following/{{ handle if handle else username }}"
-         class="stat"
-         style="text-decoration:none; color:inherit;">
-        <span>フォロー</span>
-        <span class="stat-num">{{ follow_count }}</span>
+    <div class="profile-stats">
+      <a href="/following/{{ handle if handle else username }}">
+        フォロー {{ follow_count }}
       </a>
-
-      <a href="/followers/{{ handle if handle else username }}"
-         class="stat"
-         style="text-decoration:none; color:inherit;">
-        <span>フォロワー</span>
-        <span class="stat-num">{{ follower_count }}</span>
+      <a href="/followers/{{ handle if handle else username }}">
+        フォロワー {{ follower_count }}
       </a>
-
     </div>
 
     <!-- ===== Bio ===== -->
-    <div style="margin-top:12px;">
-      {% if profile and profile[3] %}
-        <p class="profile-bio" style="margin:0;">{{ profile[3] }}</p>
+    <div>
+      {% if profile and profile|length > 3 and profile[3] %}
+        <p>{{ profile[3] }}</p>
       {% else %}
-        <p class="profile-bio" style="margin:0; color:#8899a6;">
-          自己紹介はまだ未設定です。
-        </p>
+        <p style="color:#888;">自己紹介なし</p>
       {% endif %}
     </div>
 
   </section>
-<!-- 🚗 愛車 -->
-<section style="margin-top:14px;">
 
-  <div class="section-head">
-  <h3 class="profile-section-title">愛車</h3>
-
-  {% if me_user_id == target_user_id %}
-    <a href="/profile/cars/add" class="add-car-btn">＋追加</a>
-  {% endif %}
-</div>
-
-  {% if user_cars and user_cars|length > 0 %}
-    <div style="display:flex;flex-direction:column;gap:10px;">
-
-{% for c in user_cars %}
-<a href="/search?maker={{ c.maker }}&car={{ c.car_name }}"
-   style="text-decoration:none;color:inherit;">
-
-  <div class="car-card">
-
-    <div class="car-main">
-      {{ c.maker }} / {{ c.car_name }}
-
-      {% if c.is_primary %}
-        <span class="car-main-badge">メイン</span>
-      {% endif %}
-    </div>
-
-    <div class="car-sub">
-      {{ c.created_at }}
-    </div>
-
-  </div>
-
-</a>
-{% endfor %}
   <!-- ======================
-       Posts
+       愛車
   ====================== -->
-  <h3 class="profile-section-title" style="margin-top:14px;">投稿</h3>
+  <section>
+
+    <h3>愛車</h3>
+
+    {% if me_user_id == target_user_id %}
+      <a href="/profile/cars/add">＋追加</a>
+    {% endif %}
+
+    {% if user_cars and user_cars|length > 0 %}
+
+      {% for c in user_cars %}
+        <div>
+          {{ c.maker }} / {{ c.car_name }}
+          {% if c.is_primary %}★{% endif %}
+        </div>
+      {% endfor %}
+
+    {% else %}
+      <p>未登録</p>
+    {% endif %}
+
+  </section>
+
+  <!-- ======================
+       投稿
+  ====================== -->
+  <h3>投稿</h3>
 
   {% if posts and posts|length > 0 %}
-  <div class="posts">
+
     {% for post in posts %}
-    <article class="post"
-             data-href="/post/{{ post.id }}"
-             role="link"
-             tabindex="0">
+      <div class="post" data-href="/post/{{ post.id }}">
 
-      <div class="post-top">
-        <div class="post-title">
+        <div>{{ post.display_name }}</div>
+        <div>{{ post.comment }}</div>
 
-          {% if post.user_icon %}
-            <div class="avatar">
-              <img src="{{ post.user_icon }}" alt="icon">
-            </div>
-          {% else %}
-            <span class="avatar-fallback"></span>
-          {% endif %}
+        {% if post.images and post.images|length > 0 %}
+          {% for img in post.images %}
+            <img src="{{ img }}" style="width:100%;">
+          {% endfor %}
+        {% elif post.image %}
+          <img src="{{ post.image }}" style="width:100%;">
+        {% endif %}
 
-          <span class="post-user">{{ post.display_name }}</span>
-
-          {% if post.car %}
-            <span class="post-car">：{{ post.car }}</span>
-          {% endif %}
-
+        <div>
+          ❤️ {{ post.likes }}
         </div>
 
-        <span class="post-date">{{ post.created_at }}</span>
       </div>
-
-      {% if post.comment %}
-        <div class="post-comment">{{ post.comment }}</div>
-      {% endif %}
-
-      <!-- ======================
-           Images（複数対応）
-           - post.images があればそれを優先
-           - 無い場合は互換で post.image
-      ====================== -->
-      {% if post.images and post.images|length > 0 %}
-
-        {% if post.images|length == 1 %}
-          <div class="post-image">
-            <img src="{{ post.images[0] }}" alt="投稿画像" class="js-zoomable">
-          </div>
-        {% else %}
-          <div class="post-images">
-            <div class="post-images-track">
-              {% for url in post.images %}
-                <div class="post-image">
-                  <img src="{{ url }}" alt="投稿画像" class="js-zoomable">
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-        {% endif %}
-
-      {% elif post.image %}
-        <div class="post-image">
-          <img src="{{ post.image }}" alt="投稿画像" class="js-zoomable">
-        </div>
-      {% endif %}
-
-      <div class="post-actions">
-
-        {% if me_user_id == post.user_id %}
-          <form action="/delete/{{ post.id }}" method="post" class="inline-form">
-            <button class="action-btn delete-btn" type="submit">🗑</button>
-          </form>
-        {% endif %}
-
-        <a href="/post/{{ post.id }}#comments" class="action-btn">
-          💬 <span class="count">{{ post.comment_count }}</span>
-        </a>
-
-        {% if user %}
-          {% set is_liked = (post.id in liked_posts) %}
-          <button type="button"
-                  class="action-btn like-btn js-like {% if is_liked %}liked active{% endif %}"
-                  data-post-id="{{ post.id }}"
-                  data-liked="{% if is_liked %}1{% else %}0{% endif %}">
-            <span class="heart">{% if is_liked %}❤️{% else %}🤍{% endif %}</span>
-            <span class="like-count">{{ post.likes }}</span>
-          </button>
-        {% else %}
-          <span>🤍 {{ post.likes }}</span>
-        {% endif %}
-
-      </div>
-
-    </article>
     {% endfor %}
-  </div>
+
   {% else %}
-    <p style="color:#888; margin-top:16px;">投稿がまだありません</p>
+    <p>投稿なし</p>
   {% endif %}
 
 </main>
 
-<!-- ======================
-     Image Modal（クリックで拡大）
-====================== -->
-<div class="img-modal" id="imgModal">
-  <div class="img-modal-inner">
-    <img id="imgModalImg" src="" alt="zoomed">
-  </div>
-</div>
-
 <script>
-/* ========= 画像拡大 ========= */
-document.addEventListener("click", (e) => {
-  const img = e.target.closest(".js-zoomable");
-  if (img) {
-    e.preventDefault();
-    e.stopPropagation();
-    const modal = document.getElementById("imgModal");
-    const modalImg = document.getElementById("imgModalImg");
-    modalImg.src = img.src;
-    modal.classList.add("open");
-    return;
-  }
-  const modal = e.target.closest("#imgModal");
-  if (modal) {
-    modal.classList.remove("open");
-    const modalImg = document.getElementById("imgModalImg");
-    modalImg.src = "";
-    return;
-  }
-});
-
-/* ========= いいね（即時UI + ロールバック） ========= */
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".js-like");
-  if (!btn) return;
-
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (btn.disabled) return;
-  btn.disabled = true;
-
-  const postId = btn.dataset.postId;
-  const likedBefore = btn.dataset.liked === "1";
-  const countEl = btn.querySelector(".like-count");
-  const heartEl = btn.querySelector(".heart");
-
-  /* 楽観的UI */
-  btn.dataset.liked = likedBefore ? "0" : "1";
-  btn.classList.toggle("liked", !likedBefore);
-  btn.classList.toggle("active", !likedBefore);
-  heartEl.textContent = likedBefore ? "🤍" : "❤️";
-  countEl.textContent = Number(countEl.textContent) + (likedBefore ? -1 : 1);
-
-  try {
-    const res = await fetch(`/api/like/${postId}`, {
-      method: "POST",
-      credentials: "same-origin"
-    });
-
-    if (!res.ok) {
-      if (res.status === 401) location.href = "/login";
-      throw new Error();
-    }
-
-    const data = await res.json();
-    btn.dataset.liked = data.liked ? "1" : "0";
-    btn.classList.toggle("liked", data.liked);
-    btn.classList.toggle("active", data.liked);
-    heartEl.textContent = data.liked ? "❤️" : "🤍";
-    countEl.textContent = data.likes;
-
-  } catch {
-    /* ロールバック */
-    btn.dataset.liked = likedBefore ? "1" : "0";
-    btn.classList.toggle("liked", likedBefore);
-    btn.classList.toggle("active", likedBefore);
-    heartEl.textContent = likedBefore ? "❤️" : "🤍";
-    countEl.textContent = Number(countEl.textContent) + (likedBefore ? 1 : -1);
-    alert("いいねに失敗しました");
-  } finally {
-    btn.disabled = false;
-  }
-});
-
-/* ========= 投稿カード遷移（ボタン/リンク/画像/スワイプは除外） ========= */
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
   if (!post) return;
-
-  if (e.target.closest("a, button, form, textarea, input")) return;
-  if (e.target.closest(".post-actions")) return;
-  if (e.target.closest(".post-images-track")) return; /* 横スクロールを邪魔しない */
-  if (e.target.closest(".js-zoomable")) return;        /* 画像クリックは拡大優先 */
-
-  const href = post.dataset.href;
-  if (href) location.href = href;
-});
-
-/* ========= Enterキーでも遷移（アクセシビリティ） ========= */
-document.addEventListener("keydown", (e) => {
-  if (e.key !== "Enter") return;
-  const post = document.activeElement && document.activeElement.closest && document.activeElement.closest(".post");
-  if (!post) return;
-  const href = post.dataset.href;
-  if (href) location.href = href;
+  if (e.target.closest("a,button")) return;
+  location.href = post.dataset.href;
 });
 </script>
 
