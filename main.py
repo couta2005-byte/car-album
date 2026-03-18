@@ -1457,64 +1457,97 @@ def get_makers(category: Optional[str] = None):
 def add_user_car(
     maker_id: str = Form(...),
     car: str = Form(...),
-    set_primary: str = Form(""),
-    user: str = Cookie(default=None),
-    uid: str = Cookie(default=None),
+    set_primary: Optional[int] = Form(None),
+    user: str = Cookie(None),
+    uid: str = Cookie(None),
 ):
     db = get_db()
-    cur = db.cursor()
-
     try:
-        # ===== ログインチェック =====
-        _, user_id = get_me_from_cookies(db, user, uid)
-        if not user_id:
+        # ======================
+        # ログインチェック
+        # ======================
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        # ===== maker存在チェック =====
+        cur = db.cursor()
+
+        # ======================
+        # デバッグログ（超重要）
+        # ======================
+        print("maker_id:", maker_id)
+        print("car:", car)
+
+        # ======================
+        # メーカー取得（安全版）
+        # ======================
         cur.execute("SELECT name FROM makers WHERE id=%s", (maker_id,))
         row = cur.fetchone()
+
         if not row:
-            return RedirectResponse("/profile/edit?error=invalid_maker", status_code=303)
+            print("❌ maker not found")
+            return RedirectResponse("/profile/cars/add?error=maker", status_code=303)
 
         maker_name = row[0]
 
-        # ===== 車種チェック =====
+        # ======================
+        # 車種チェック（安全版）
+        # ======================
         cur.execute("""
             SELECT 1 FROM car_models
             WHERE maker_id=%s AND name=%s
         """, (maker_id, car))
 
         if not cur.fetchone():
-            return RedirectResponse("/profile/edit?error=invalid_car", status_code=303)
+            print("❌ car not found")
+            return RedirectResponse("/profile/cars/add?error=car", status_code=303)
 
-        # ===== メイン指定なら他を解除 =====
+        # ======================
+        # メイン車リセット
+        # ======================
         if set_primary:
             cur.execute("""
                 UPDATE user_cars
-                SET is_primary = FALSE
-                WHERE user_id = %s
-            """, (user_id,))
+                SET is_primary=FALSE
+                WHERE user_id=%s
+            """, (me_user_id,))
 
-        # ===== INSERT（重複OKにする） =====
+        # ======================
+        # 登録（重複OKにする）
+        # ======================
         cur.execute("""
             INSERT INTO user_cars (user_id, maker, car_name, is_primary)
             VALUES (%s, %s, %s, %s)
             ON CONFLICT (user_id, maker, car_name)
             DO UPDATE SET is_primary = EXCLUDED.is_primary
-        """, (user_id, maker_name, car, bool(set_primary)))
+        """, (
+            me_user_id,
+            maker_name,
+            car,
+            bool(set_primary)
+        ))
 
         db.commit()
 
+        # ======================
+        # 🔥 ここが今回のバグ修正
+        # ======================
+        me_handle = get_me_handle(db, me_user_id)
+
+    except Exception as e:
+        # ======================
+        # エラー出力（これで原因見える）
+        # ======================
+        print("❌ ERROR:", e)
+        return RedirectResponse("/profile/cars/add?error=server", status_code=303)
+
     finally:
-        cur.close()
         db.close()
 
-    return RedirectResponse("/profile/edit?added=1", status_code=303)
-
-
-import csv
-import uuid
-
+    # ======================
+    # プロフィールへ戻る
+    # ======================
+    return RedirectResponse(f"/user/{me_handle}", status_code=303)
 @app.get("/init/cars/csv")
 def init_cars_csv():
     db = get_db()
