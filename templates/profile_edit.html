@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=4000">
+  <link rel="stylesheet" href="/static/style.css?v=5000">
 </head>
 <body>
 
@@ -18,9 +18,15 @@
 
   <h2 class="page-title">プロフィール編集</h2>
 
-  <!-- 🚗 愛車追加 -->
+  <!-- 🚗🏍 愛車追加 -->
   <section style="margin-top:28px;">
     <h3>愛車を追加</h3>
+
+    <!-- 🔥 車 / バイク切替 -->
+    <div style="margin-bottom:12px;">
+      <button type="button" onclick="loadMakers('japan_car')" class="primary-btn">🚗 車</button>
+      <button type="button" onclick="loadMakers('bike')" class="primary-btn">🏍 バイク</button>
+    </div>
 
     <form action="/profile/cars/add" method="post" class="profile-edit-form">
 
@@ -46,46 +52,78 @@
 
 </main>
 
+<!-- ======================
+     JS（完全版）
+====================== -->
 <script>
-async function loadMakers() {
-  const select = document.getElementById("makerSelectAdd");
-  select.innerHTML = "<option value=''>メーカー選択</option>";
+let currentCategory = "japan_car";
 
-  const res = await fetch("/api/makers?category=car");
-  const makers = await res.json();
+// 🔥 メーカー取得
+async function loadMakers(category = currentCategory) {
+  currentCategory = category;
 
-  makers.forEach(m => {
-    const option = document.createElement("option");
-    option.value = m.id; // ★重要
-    option.textContent = m.name;
-    select.appendChild(option);
-  });
+  const makerSelect = document.getElementById("makerSelectAdd");
+  const carSelect = document.getElementById("carSelectAdd");
+
+  // 初期化
+  makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
+  carSelect.innerHTML = "<option value=''>車種選択</option>";
+
+  try {
+    const res = await fetch(`/api/makers?category=${category}`);
+    const makers = await res.json();
+
+    console.log("makers:", makers);
+
+    makers.forEach((m) => {
+      const option = document.createElement("option");
+      option.value = m.id;         // 🔥 重要（nameじゃない）
+      option.textContent = m.name;
+      makerSelect.appendChild(option);
+    });
+
+  } catch (e) {
+    console.error("メーカー取得エラー", e);
+  }
 }
 
+// 🔥 車種取得
 async function loadCars(makerId) {
-  const select = document.getElementById("carSelectAdd");
-  select.innerHTML = "<option value=''>車種選択</option>";
+  const carSelect = document.getElementById("carSelectAdd");
+  carSelect.innerHTML = "<option value=''>車種選択</option>";
 
   if (!makerId) return;
 
-  const res = await fetch(`/api/cars/by-maker-id/${makerId}`);
-  const cars = await res.json();
+  try {
+    const res = await fetch(`/api/cars/by-maker-id/${makerId}`);
+    const cars = await res.json();
 
-  cars.forEach(c => {
-    const option = document.createElement("option");
-    option.value = c.name;
-    option.textContent = c.name;
-    select.appendChild(option);
-  });
+    console.log("cars:", cars);
+
+    cars.forEach((c) => {
+      const option = document.createElement("option");
+      option.value = c.name;
+      option.textContent = c.name;
+      carSelect.appendChild(option);
+    });
+
+  } catch (e) {
+    console.error("車種取得エラー", e);
+  }
 }
 
+// 🔥 初期化
 document.addEventListener("DOMContentLoaded", async () => {
-  const maker = document.getElementById("makerSelectAdd");
+  console.log("JS起動");
 
-  await loadMakers();
+  const makerSelect = document.getElementById("makerSelectAdd");
+  if (!makerSelect) return;
 
-  maker.addEventListener("change", () => {
-    loadCars(maker.value);
+  // 初期は車
+  await loadMakers("japan_car");
+
+  makerSelect.addEventListener("change", () => {
+    loadCars(makerSelect.value);
   });
 });
 </script>
