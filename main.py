@@ -1450,104 +1450,6 @@ def get_makers(category: Optional[str] = None):
         db.close()
 
 
-# =========================
-# 愛車追加（完全安定版）
-# =========================
-@app.post("/profile/cars/add")
-def add_user_car(
-    maker_id: str = Form(...),
-    car: str = Form(...),
-    set_primary: Optional[int] = Form(None),
-    user: str = Cookie(None),
-    uid: str = Cookie(None),
-):
-    db = get_db()
-    try:
-        # ======================
-        # ログインチェック
-        # ======================
-        me_username, me_user_id = get_me_from_cookies(db, user, uid)
-        if not me_user_id:
-            return RedirectResponse("/login", status_code=303)
-
-        cur = db.cursor()
-
-        # ======================
-        # デバッグログ（超重要）
-        # ======================
-        print("maker_id:", maker_id)
-        print("car:", car)
-
-        # ======================
-        # メーカー取得（安全版）
-        # ======================
-        cur.execute("SELECT name FROM makers WHERE id=%s", (maker_id,))
-        row = cur.fetchone()
-
-        if not row:
-            print("❌ maker not found")
-            return RedirectResponse("/profile/cars/add?error=maker", status_code=303)
-
-        maker_name = row[0]
-
-        # ======================
-        # 車種チェック（安全版）
-        # ======================
-        cur.execute("""
-            SELECT 1 FROM car_models
-            WHERE maker_id=%s AND name=%s
-        """, (maker_id, car))
-
-        if not cur.fetchone():
-            print("❌ car not found")
-            return RedirectResponse("/profile/cars/add?error=car", status_code=303)
-
-        # ======================
-        # メイン車リセット
-        # ======================
-        if set_primary:
-            cur.execute("""
-                UPDATE user_cars
-                SET is_primary=FALSE
-                WHERE user_id=%s
-            """, (me_user_id,))
-
-        # ======================
-        # 登録（重複OKにする）
-        # ======================
-        cur.execute("""
-            INSERT INTO user_cars (user_id, maker, car_name, is_primary)
-            VALUES (%s, %s, %s, %s)
-            ON CONFLICT (user_id, maker, car_name)
-            DO UPDATE SET is_primary = EXCLUDED.is_primary
-        """, (
-            me_user_id,
-            maker_name,
-            car,
-            bool(set_primary)
-        ))
-
-        db.commit()
-
-        # ======================
-        # 🔥 ここが今回のバグ修正
-        # ======================
-        me_handle = get_me_handle(db, me_user_id)
-
-    except Exception as e:
-        # ======================
-        # エラー出力（これで原因見える）
-        # ======================
-        print("❌ ERROR:", e)
-        return RedirectResponse("/profile/cars/add?error=server", status_code=303)
-
-    finally:
-        db.close()
-
-    # ======================
-    # プロフィールへ戻る
-    # ======================
-    return RedirectResponse(f"/user/{me_handle}", status_code=303)
 @app.get("/init/cars/csv")
 def init_cars_csv():
     db = get_db()
@@ -3669,11 +3571,14 @@ def reload_cars():
 
     return {"ok": True}
 
+# =========================
+# 愛車追加ページ（GET）
+# =========================
 @app.get("/profile/cars/add", response_class=HTMLResponse)
 def add_car_page(
     request: Request,
-    user: str = Cookie(None),
-    uid: str = Cookie(None),
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
 ):
     db = get_db()
     try:
@@ -3684,15 +3589,138 @@ def add_car_page(
         me_handle = get_me_handle(db, me_user_id)
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
+        is_admin = is_admin_user(db, me_user_id)
+        my_maker, my_car = get_my_profile_car(db, me_user_id)
+        my_cars = fetch_user_cars(db, me_user_id)
+
+        return templates.TemplateResponse(
+            "add_car.html",
+            {
+                "request": request,
+                "user": me_username,
+                "me": me_username,
+                "me_user_id": me_user_id,
+                "me_handle": me_handle,
+                "user_icon": user_icon,
+                "unread_dm": unread_dm,
+                "liked_posts": liked_posts,
+                "is_admin": is_admin,
+                "my_maker": my_maker,
+                "my_car": my_car,
+                "my_cars": my_cars,
+                "mode": "profile_edit",
+            }
+        )
+
+    except Exception as e:
+        print("❌ GET /profile/cars/add ERROR:", repr(e))
+        return HTMLResponse(
+            f"GET /profile/cars/add ERROR: {repr(e)}",
+            status_code=500
+        )
 
     finally:
         db.close()
 
-    return templates.TemplateResponse("add_car.html", {
-        "request": request,
-        "user": me_username,
-        "me_user_id": me_user_id,
-        "me_handle": me_handle,
-        "user_icon": user_icon,
-        "unread_dm": unread_dm,
-    })
+
+# =========================
+# 愛車追加（POST）
+# =========================
+@app.post("/profile/cars/add")
+def add_user_car(
+    maker_id: str = Form(...),
+    car: str = Form(...),
+    set_primary: Optional[str] = Form(None),
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        maker_id = (maker_id or "").strip().lower()
+        car = (car or "").strip()
+
+        print("🚗 add_user_car maker_id =", maker_id)
+        print("🚗 add_user_car car =", car)
+        print("🚗 add_user_car set_primary =", set_primary)
+        print("🚗 add_user_car me_user_id =", me_user_id)
+
+        if not maker_id:
+            return RedirectResponse("/profile/cars/add?error=empty_maker", status_code=303)
+
+        if not car:
+            return RedirectResponse("/profile/cars/add?error=empty_car", status_code=303)
+
+        # メーカー確認
+        cur.execute(
+            "SELECT name FROM makers WHERE LOWER(id)=LOWER(%s)",
+            (maker_id,)
+        )
+        maker_row = cur.fetchone()
+        if not maker_row:
+            print("❌ maker not found")
+            return RedirectResponse("/profile/cars/add?error=invalid_maker", status_code=303)
+
+        maker_name = (maker_row[0] or "").strip()
+        print("🚗 maker_name =", maker_name)
+
+        # 車種確認
+        cur.execute("""
+            SELECT 1
+            FROM car_models
+            WHERE LOWER(maker_id)=LOWER(%s)
+              AND name=%s
+            LIMIT 1
+        """, (maker_id, car))
+        car_row = cur.fetchone()
+        if not car_row:
+            print("❌ car not found")
+            return RedirectResponse("/profile/cars/add?error=invalid_car", status_code=303)
+
+        # メイン指定なら他を解除
+        if set_primary:
+            cur.execute("""
+                UPDATE user_cars
+                SET is_primary = FALSE
+                WHERE user_id = %s
+            """, (me_user_id,))
+
+        # 登録
+        cur.execute("""
+            INSERT INTO user_cars (user_id, maker, car_name, is_primary)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (user_id, maker, car_name)
+            DO UPDATE SET is_primary = EXCLUDED.is_primary
+        """, (
+            me_user_id,
+            maker_name,
+            car,
+            bool(set_primary),
+        ))
+
+        # profiles に同期
+        sync_profile_primary_car(db, me_user_id)
+
+        db.commit()
+
+        me_handle = get_me_handle(db, me_user_id)
+        key = me_handle if me_handle else me_username
+        return RedirectResponse(f"/user/{quote(key)}", status_code=303)
+
+    except Exception as e:
+        db.rollback()
+        print("❌ POST /profile/cars/add ERROR:", repr(e))
+        return HTMLResponse(
+            f"POST /profile/cars/add ERROR: {repr(e)}",
+            status_code=500
+        )
+
+    finally:
+        cur.close()
+        db.close()
