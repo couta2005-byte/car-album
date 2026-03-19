@@ -4035,3 +4035,11 @@ body {
 .like.liked {
   color: #e0245e;
 }
+.feed-post {
+  cursor: pointer;
+}
+
+.like.liked {
+  color: #ff2d55;
+  font-weight: bold;
+}

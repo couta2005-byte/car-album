@@ -22,7 +22,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="/static/style.css?v=FINAL_MATCH">
+  <link rel="stylesheet" href="/static/style.css?v=FINAL_MATCH3">
 </head>
 <body>
 
@@ -31,7 +31,7 @@
 <main class="container">
 
   <!-- ======================
-       プロフィール（インスタ風）
+       プロフィール
   ====================== -->
   <section class="insta-profile">
 
@@ -116,7 +116,7 @@
   </section>
 
   <!-- ======================
-       投稿（ホーム完全一致）
+       投稿（完全一致UI）
   ====================== -->
   <section>
 
@@ -130,14 +130,14 @@
           <!-- ヘッダー -->
           <div class="feed-header">
 
-            <img src="{{ post.icon if post.icon else profile[4] }}" class="feed-avatar">
+            <img src="{{ post.icon if post.icon else (profile[4] if profile and profile|length > 4 else '/static/default.png') }}" class="feed-avatar">
 
             <div class="feed-user">
               <div class="feed-name">
-                {{ post.display_name }} : {{ post.car_name if post.car_name else "" }}
+                {{ post.display_name }}{% if post.car_name %}：{{ post.car_name }}{% endif %}
               </div>
               <div class="feed-time">
-                {{ post.created_at }}
+                {{ post.created_at.strftime("%Y/%m/%d %H:%M") if post.created_at else "" }}
               </div>
             </div>
 
