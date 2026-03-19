@@ -3592,3 +3592,150 @@ margin-top:10px;
   align-items: center;
   gap: 6px;
 }
+/* =====================
+  レイアウト
+===================== */
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* =====================
+  プロフィールカード
+===================== */
+.profile-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ヘッダー */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 左 */
+.profile-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-avatar img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* fallback */
+.avatar-fallback {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #ccc;
+}
+
+/* 名前 */
+.profile-name {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.profile-handle {
+  font-size: 13px;
+  color: #666;
+}
+
+/* =====================
+  ボタン
+===================== */
+.follow-btn {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.dm-btn {
+  margin-left: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+}
+
+/* =====================
+  車情報
+===================== */
+.profile-info {
+  margin-top: 12px;
+  background: #f7f7f7;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+/* =====================
+  フォロー数
+===================== */
+.profile-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 12px;
+}
+
+.profile-stats a {
+  text-decoration: none;
+  color: #000;
+  font-weight: bold;
+}
+
+/* =====================
+  愛車
+===================== */
+section h3 {
+  margin-top: 20px;
+}
+
+section div {
+  margin-bottom: 6px;
+}
+
+/* =====================
+  投稿
+===================== */
+.post {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  cursor: pointer;
+}
+
+.post:hover {
+  transform: translateY(-2px);
+  transition: 0.2s;
+}
+
+/* 投稿画像 */
+.post img {
+  margin-top: 8px;
+  border-radius: 10px;
+}
+
+/* いいね */
+.post div:last-child {
+  margin-top: 6px;
+  color: #e0245e;
+  font-size: 13px;
+}
