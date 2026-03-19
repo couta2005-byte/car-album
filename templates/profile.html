@@ -18,7 +18,7 @@
         content="{{ profile[4] if profile and profile|length > 4 and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="/static/style.css?v=FINAL_MATCH4">
+  <link rel="stylesheet" href="/static/style.css?v=FINAL_MATCH6">
 </head>
 <body>
 
@@ -33,7 +33,7 @@
 
     <div class="insta-top">
       {% if profile and profile|length > 4 and profile[4] %}
-        <img src="{{ profile[4] }}" class="insta-avatar" alt="profile icon">
+        <img src="{{ profile[4] }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar fallback"></div>
       {% endif %}
@@ -54,36 +54,36 @@
     </div>
 
     <div class="insta-car">
-      {{ profile[0] if profile and profile|length > 0 and profile[0] else "" }}
-      {% if profile and profile|length > 1 and profile[1] %}
-        {{ profile[1] }}
-      {% endif %}
+      {{ profile[0] if profile and profile|length > 0 else "" }}
+      {{ profile[1] if profile and profile|length > 1 else "" }}
     </div>
 
     <div class="insta-bio">
-      {{ profile[3] if profile and profile|length > 3 and profile[3] else "自己紹介なし" }}
+      {{ profile[3] if profile and profile|length > 3 else "自己紹介なし" }}
     </div>
 
     <div class="insta-actions">
+
       {% if me_user_id and target_user_id and me_user_id != target_user_id %}
 
         {% if is_following %}
           <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
-            <button type="submit" class="follow-btn">フォロー解除</button>
+            <button class="follow-btn">フォロー解除</button>
           </form>
         {% else %}
           <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
-            <button type="submit" class="follow-btn">フォローする</button>
+            <button class="follow-btn">フォローする</button>
           </form>
         {% endif %}
 
         <form action="/dm/start/{{ target_user_id }}" method="post">
-          <button type="submit" class="dm-btn">DM</button>
+          <button class="dm-btn">DM</button>
         </form>
 
       {% elif me_user_id == target_user_id %}
         <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
       {% endif %}
+
     </div>
 
   </section>
@@ -101,7 +101,7 @@
       {% endif %}
     </div>
 
-    {% if user_cars and user_cars|length > 0 %}
+    {% if user_cars %}
       <div class="car-tags">
         {% for c in user_cars %}
           <span class="car-tag">
@@ -116,13 +116,13 @@
   </section>
 
   <!-- ======================
-       投稿
+       投稿（完全統一）
   ====================== -->
   <section>
 
     <div class="feed-divider"></div>
 
-    {% if posts and posts|length > 0 %}
+    {% if posts %}
 
       {% for post in posts %}
         <div class="feed-post" data-href="/post/{{ post.id }}">
@@ -130,18 +130,25 @@
           <!-- ヘッダー -->
           <div class="feed-header">
 
-            <img
-              src="{{ post.icon if post.icon else (profile[4] if profile and profile|length > 4 and profile[4] else '/static/default.png') }}"
-              class="feed-avatar"
-              alt="user icon"
-            >
+            {% if post.icon %}
+              <img src="{{ post.icon }}" class="feed-avatar">
+            {% elif profile and profile|length > 4 and profile[4] %}
+              <img src="{{ profile[4] }}" class="feed-avatar">
+            {% else %}
+              <div class="feed-avatar fallback-avatar"></div>
+            {% endif %}
 
             <div class="feed-user">
-              <div class="feed-name">
-                {{ post.display_name if post.display_name else username }}{% if post.car_name %}：{{ post.car_name }}{% endif %}
-              </div>
-              <div class="feed-time">
-                {{ post.created_at if post.created_at else "" }}
+              <div class="feed-top-row">
+
+                <div class="feed-name">
+                  {{ post.display_name if post.display_name else username }}{% if post.car_name %}：{{ post.car_name }}{% endif %}
+                </div>
+
+                <div class="feed-time">
+                  {{ post.created_at if post.created_at else "" }}
+                </div>
+
               </div>
             </div>
 
@@ -155,25 +162,27 @@
           {% endif %}
 
           <!-- 画像 -->
-          {% if post.images and post.images|length > 0 %}
+          {% if post.images %}
             {% for img in post.images %}
-              <img src="{{ img }}" class="feed-img" alt="post image">
+              <img src="{{ img }}" class="feed-img">
             {% endfor %}
           {% elif post.image %}
-            <img src="{{ post.image }}" class="feed-img" alt="post image">
+            <img src="{{ post.image }}" class="feed-img">
           {% endif %}
 
           <!-- アクション -->
           <div class="feed-actions">
 
             <div class="feed-actions-left">
+
               {% if me_user_id == post.user_id %}
                 <form action="/post/delete/{{ post.id }}" method="post">
-                  <button type="submit" class="delete-btn">管理削除</button>
+                  <button class="delete-btn">管理削除</button>
                 </form>
               {% endif %}
 
-              <button type="button" class="share-btn">Xシェア</button>
+              <button class="share-btn">Xシェア</button>
+
             </div>
 
             <div class="feed-right">

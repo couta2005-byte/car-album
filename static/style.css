@@ -4085,3 +4085,51 @@ body {
 .add-car-link {
   text-decoration: none;
 }
+.feed-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.feed-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.fallback-avatar {
+  background: #ccc;
+}
+
+.feed-post {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  cursor: pointer;
+}
+
+.feed-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.feed-actions-left {
+  display: flex;
+  gap: 8px;
+}
+
+.feed-right {
+  display: flex;
+  gap: 12px;
+}
+
+.like.liked {
+  color: #ff2d55;
+  font-weight: bold;
+}
