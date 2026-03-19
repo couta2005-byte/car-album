@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>{{ user.name }} | Carbum</title>
+  <title>{{ user.name or "User" }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -22,7 +22,7 @@
       <a href="/dm" class="nav-link">DM</a>
 
       <a href="/profile/{{ current_user.id }}" class="nav-icon">
-        {% if current_user.icon_url %}
+        {% if current_user and current_user.icon_url %}
           <img src="{{ current_user.icon_url }}" class="nav-avatar">
         {% else %}
           <div class="nav-avatar placeholder"></div>
@@ -46,46 +46,40 @@
 
     <div class="insta-top">
 
-      {% if user.icon_url %}
+      {% if user and user.icon_url %}
         <img src="{{ user.icon_url }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar"></div>
       {% endif %}
 
       <div class="insta-stats">
-        <div>
-          <strong>{{ posts|length }}</strong><br>投稿
-        </div>
-        <div>
-          <strong>{{ user.followers_count or 0 }}</strong><br>フォロワー
-        </div>
-        <div>
-          <strong>{{ user.following_count or 0 }}</strong><br>フォロー
-        </div>
+        <div><strong>{{ posts|length if posts else 0 }}</strong><br>投稿</div>
+        <div><strong>{{ user.followers_count if user and user.followers_count else 0 }}</strong><br>フォロワー</div>
+        <div><strong>{{ user.following_count if user and user.following_count else 0 }}</strong><br>フォロー</div>
       </div>
 
     </div>
 
-    <div class="insta-name">{{ user.name }}</div>
-    <div class="insta-handle">@{{ user.username }}</div>
+    <div class="insta-name">{{ user.name if user and user.name else "No Name" }}</div>
+    <div class="insta-handle">@{{ user.username if user and user.username else "unknown" }}</div>
 
     <div class="insta-car">
-      🚗 {{ user.car_name or "未登録" }}
+      🚗 {{ user.car_name if user and user.car_name else "未登録" }}
     </div>
 
     <div class="insta-bio">
-      {{ user.bio or "" }}
+      {{ user.bio if user and user.bio else "" }}
     </div>
 
     <!-- ボタン -->
+    {% if current_user and user and current_user.id != user.id %}
     <div class="insta-actions">
-      {% if current_user.id != user.id %}
-        <form method="post" action="/follow/{{ user.id }}">
-          <button class="follow-btn">フォロー</button>
-        </form>
-        <a href="/dm/{{ user.id }}" class="dm-btn">DM</a>
-      {% endif %}
+      <form method="post" action="/follow/{{ user.id }}">
+        <button class="follow-btn">フォロー</button>
+      </form>
+      <a href="/dm/{{ user.id }}" class="dm-btn">DM</a>
     </div>
+    {% endif %}
 
   </div>
 
@@ -93,68 +87,61 @@
   <div class="feed-divider"></div>
 
 
-  <!-- ===== 投稿一覧（完全安全版） ===== -->
-  {% for post in posts %}
-  <div class="feed-post" onclick="location.href='/post/{{ post.id }}'">
+  <!-- ===== 投稿一覧 ===== -->
+  {% if posts %}
+    {% for post in posts %}
+    <div class="feed-post">
 
-    <!-- 上段 -->
-    <div class="feed-top-row">
+      <!-- 上段 -->
+      <div class="feed-top-row">
 
-      <div style="display:flex; gap:10px; align-items:center;">
+        <div style="display:flex; gap:10px; align-items:center;">
 
-        {% if user.icon_url %}
-          <img src="{{ user.icon_url }}" class="feed-avatar">
-        {% else %}
-          <div class="feed-avatar fallback-avatar"></div>
-        {% endif %}
+          {% if user and user.icon_url %}
+            <img src="{{ user.icon_url }}" class="feed-avatar">
+          {% else %}
+            <div class="feed-avatar fallback-avatar"></div>
+          {% endif %}
 
-        <div>
-          <div class="feed-name">{{ user.name }}</div>
-          <div class="feed-time">{{ post.created_at }}</div>
+          <div>
+            <div class="feed-name">{{ user.name if user and user.name else "User" }}</div>
+            <div class="feed-time">{{ post.created_at if post.created_at else "" }}</div>
+          </div>
+
         </div>
 
       </div>
 
-      {% if current_user.id == user.id %}
-      <div class="feed-right">
-        <form method="post" action="/delete/{{ post.id }}">
-          <button class="delete-btn">削除</button>
-        </form>
-        <button class="share-btn">シェア</button>
-      </div>
+      <!-- 本文 -->
+      {% if post.text %}
+        <div class="feed-text">{{ post.text }}</div>
       {% endif %}
 
-    </div>
+      <!-- 画像 -->
+      {% if post.image_url %}
+        <img src="{{ post.image_url }}" class="feed-img">
+      {% endif %}
 
-    <!-- 本文 -->
-    {% if post.text %}
-      <div class="feed-text">{{ post.text }}</div>
-    {% endif %}
+      <!-- アクション -->
+      <div class="feed-actions">
 
-    <!-- 画像 -->
-    {% if post.image_url %}
-      <img src="{{ post.image_url }}" class="feed-img">
-    {% endif %}
+        <div class="feed-actions-left">
+          <span class="comment">💬 {{ post.comment_count if post.comment_count else 0 }}</span>
+        </div>
 
-    <!-- アクション -->
-    <div class="feed-actions">
-
-      <div class="feed-actions-left">
-        <span class="comment">💬 {{ post.comment_count or 0 }}</span>
-      </div>
-
-      <div class="feed-right">
-        <form method="post" action="/like/{{ post.id }}">
-          <button type="submit" class="like">
-            ❤ {{ post.like_count or 0 }}
+        <div class="feed-right">
+          <button class="like">
+            ❤ {{ post.like_count if post.like_count else 0 }}
           </button>
-        </form>
+        </div>
+
       </div>
 
     </div>
-
-  </div>
-  {% endfor %}
+    {% endfor %}
+  {% else %}
+    <p class="empty-text">投稿がありません</p>
+  {% endif %}
 
 </main>
 
