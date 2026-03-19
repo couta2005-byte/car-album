@@ -4043,3 +4043,45 @@ body {
   color: #ff2d55;
   font-weight: bold;
 }
+.feed-post {
+  cursor: pointer;
+}
+
+.feed-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.feed-actions-left {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.feed-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.like.liked {
+  color: #ff2d55;
+  font-weight: bold;
+}
+
+.empty-text {
+  color: #888;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-car-link {
+  text-decoration: none;
+}
