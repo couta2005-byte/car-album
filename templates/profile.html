@@ -22,7 +22,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="/static/style.css?v=FINAL_SAFE">
+  <link rel="stylesheet" href="/static/style.css?v=INSTAGRAM">
 </head>
 <body>
 
@@ -31,104 +31,80 @@
 <main class="container">
 
   <!-- ======================
-       Profile Card
+       プロフィール（インスタ風）
   ====================== -->
-  <section class="profile-box">
+  <section class="insta-profile">
 
-    <!-- ===== Header ===== -->
-    <div class="profile-header">
+    <div class="insta-top">
 
-      <!-- 左 -->
-      <div class="profile-left">
-
-        {% if profile and profile|length > 4 and profile[4] %}
-          <div class="profile-avatar">
-            <img src="{{ profile[4] }}" alt="profile icon">
-          </div>
-        {% else %}
-          <span class="profile-avatar avatar-fallback"></span>
-        {% endif %}
-
-        <div>
-          <h2 class="profile-name">
-            {{ display_name if display_name else username }}
-          </h2>
-          <div class="profile-handle">
-            @{{ handle if handle else username }}
-          </div>
-        </div>
-
-      </div>
-
-      <!-- 右 -->
-      <div class="profile-actions">
-
-        {% if me_user_id and target_user_id and me_user_id != target_user_id %}
-
-          {% if is_following %}
-            <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
-              <button class="follow-btn">フォロー解除</button>
-            </form>
-          {% else %}
-            <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
-              <button class="follow-btn">フォローする</button>
-            </form>
-          {% endif %}
-
-          <form action="/dm/start/{{ target_user_id }}" method="post">
-            <button class="dm-btn">DM</button>
-          </form>
-
-        {% elif me_user_id and target_user_id and me_user_id == target_user_id %}
-          <a href="/profile/edit" class="follow-btn">編集</a>
-        {% endif %}
-
-      </div>
-
-    </div>
-
-    <!-- ===== Info ===== -->
-    <div class="profile-info">
-
-      <div>メーカー：
-        {{ profile[0] if profile and profile|length > 0 and profile[0] else "未設定" }}
-      </div>
-
-      <div>車名：
-        {{ profile[1] if profile and profile|length > 1 and profile[1] else "未設定" }}
-      </div>
-
-      <div>地域：
-        {{ profile[2] if profile and profile|length > 2 and profile[2] else "未設定" }}
-      </div>
-
-    </div>
-
-    <!-- ===== Stats ===== -->
-    <div class="profile-stats">
-      <a href="/following/{{ handle if handle else username }}">
-        フォロー {{ follow_count }}
-      </a>
-      <a href="/followers/{{ handle if handle else username }}">
-        フォロワー {{ follower_count }}
-      </a>
-    </div>
-
-    <!-- ===== Bio ===== -->
-    <div>
-      {% if profile and profile|length > 3 and profile[3] %}
-        <p>{{ profile[3] }}</p>
+      <!-- アイコン -->
+      {% if profile and profile|length > 4 and profile[4] %}
+        <img src="{{ profile[4] }}" class="insta-avatar">
       {% else %}
-        <p style="color:#888;">自己紹介なし</p>
+        <div class="insta-avatar fallback"></div>
       {% endif %}
+
+      <!-- ステータス -->
+      <div class="insta-stats">
+        <div><strong>{{ posts|length }}</strong><br>投稿</div>
+        <div><strong>{{ follower_count }}</strong><br>フォロワー</div>
+        <div><strong>{{ follow_count }}</strong><br>フォロー</div>
+      </div>
+
+    </div>
+
+    <!-- 名前 -->
+    <div class="insta-name">
+      {{ display_name if display_name else username }}
+    </div>
+
+    <!-- ID -->
+    <div class="insta-handle">
+      @{{ handle if handle else username }}
+    </div>
+
+    <!-- 車情報 -->
+    <div class="insta-car">
+      {{ profile[0] if profile and profile|length > 0 else "" }}
+      {{ profile[1] if profile and profile|length > 1 else "" }}
+    </div>
+
+    <!-- Bio -->
+    <div class="insta-bio">
+      {{ profile[3] if profile and profile|length > 3 else "自己紹介なし" }}
+    </div>
+
+    <!-- ボタン -->
+    <div class="insta-actions">
+
+      {% if me_user_id and target_user_id and me_user_id != target_user_id %}
+
+        {% if is_following %}
+          <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
+            <button class="follow-btn">フォロー解除</button>
+          </form>
+        {% else %}
+          <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
+            <button class="follow-btn">フォローする</button>
+          </form>
+        {% endif %}
+
+        <form action="/dm/start/{{ target_user_id }}" method="post">
+          <button class="dm-btn">DM</button>
+        </form>
+
+      {% elif me_user_id == target_user_id %}
+        <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
+      {% endif %}
+
     </div>
 
   </section>
 
   <!-- ======================
-       愛車
+       愛車（タグ化）
   ====================== -->
-  <section>
+  <section class="car-section">
 
     <h3>愛車</h3>
 
@@ -136,63 +112,48 @@
       <a href="/profile/cars/add">＋追加</a>
     {% endif %}
 
-    {% if user_cars and user_cars|length > 0 %}
-
+    <div class="car-tags">
       {% for c in user_cars %}
-        <div>
-          {{ c.maker }} / {{ c.car_name }}
-          {% if c.is_primary %}★{% endif %}
-        </div>
+        <span class="car-tag">
+          {{ c.maker }} {{ c.car_name }} {% if c.is_primary %}★{% endif %}
+        </span>
       {% endfor %}
-
-    {% else %}
-      <p>未登録</p>
-    {% endif %}
+    </div>
 
   </section>
 
   <!-- ======================
-       投稿
+       投稿（インスタグリッド）
   ====================== -->
-  <h3>投稿</h3>
+  <section>
 
-  {% if posts and posts|length > 0 %}
+    <h3>投稿</h3>
 
-    {% for post in posts %}
-      <div class="post" data-href="/post/{{ post.id }}">
+    {% if posts and posts|length > 0 %}
 
-        <div>{{ post.display_name }}</div>
-        <div>{{ post.comment }}</div>
+      <div class="insta-grid">
 
-        {% if post.images and post.images|length > 0 %}
-          {% for img in post.images %}
-            <img src="{{ img }}" style="width:100%;">
-          {% endfor %}
-        {% elif post.image %}
-          <img src="{{ post.image }}" style="width:100%;">
-        {% endif %}
+        {% for post in posts %}
 
-        <div>
-          ❤️ {{ post.likes }}
-        </div>
+          {% if post.images and post.images|length > 0 %}
+            <img src="{{ post.images[0] }}"
+                 onclick="location.href='/post/{{ post.id }}'">
+          {% elif post.image %}
+            <img src="{{ post.image }}"
+                 onclick="location.href='/post/{{ post.id }}'">
+          {% endif %}
+
+        {% endfor %}
 
       </div>
-    {% endfor %}
 
-  {% else %}
-    <p>投稿なし</p>
-  {% endif %}
+    {% else %}
+      <p>投稿なし</p>
+    {% endif %}
+
+  </section>
 
 </main>
-
-<script>
-document.addEventListener("click", (e) => {
-  const post = e.target.closest(".post");
-  if (!post) return;
-  if (e.target.closest("a,button")) return;
-  location.href = post.dataset.href;
-});
-</script>
 
 </body>
 </html>

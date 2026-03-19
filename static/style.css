@@ -3739,3 +3739,116 @@ section div {
   color: #e0245e;
   font-size: 13px;
 }
+/* 背景 */
+body {
+  background: #fafafa;
+}
+
+/* =====================
+  プロフィール
+===================== */
+.insta-profile {
+  padding: 16px;
+}
+
+.insta-top {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.insta-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ccc;
+}
+
+.insta-stats {
+  display: flex;
+  gap: 20px;
+  text-align: center;
+}
+
+.insta-stats strong {
+  font-size: 16px;
+}
+
+/* 名前 */
+.insta-name {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.insta-handle {
+  font-size: 13px;
+  color: #777;
+}
+
+/* 車 */
+.insta-car {
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* bio */
+.insta-bio {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+/* ボタン */
+.insta-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.follow-btn {
+  background: #0095f6;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.dm-btn {
+  border: 1px solid #ccc;
+  padding: 6px 14px;
+  border-radius: 6px;
+  background: #fff;
+}
+
+/* =====================
+  愛車タグ
+===================== */
+.car-tags {
+  margin-top: 8px;
+}
+
+.car-tag {
+  display: inline-block;
+  background: #eee;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  margin: 3px;
+}
+
+/* =====================
+  投稿グリッド
+===================== */
+.insta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.insta-grid img {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  cursor: pointer;
+}
