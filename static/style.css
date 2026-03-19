@@ -4321,3 +4321,113 @@ body {
   height:100% !important;
   object-fit:cover !important;
 }
+/* ===== FINAL FIX（絶対最後） ===== */
+
+/* 横並び完全固定 */
+.post-title{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+
+/* アイコン固定 */
+.avatar{
+  width:36px !important;
+  height:36px !important;
+  border-radius:50% !important;
+  overflow:hidden !important;
+  flex-shrink:0 !important;
+}
+
+/* 画像 */
+.avatar img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+
+/* 名前 */
+.post-user{
+  color:#111 !important;
+  font-weight:900 !important;
+  display:inline-block !important;
+}
+
+/* 車名 */
+.post-car{
+  font-size:13px;
+  color:#666;
+  margin-left:6px;
+}
+/* ===== 強制FIX（完全修正） ===== */
+
+/* アイコン＋名前 横並び固定 */
+.post-title{
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+}
+
+/* アイコン */
+.avatar{
+  width:36px !important;
+  height:36px !important;
+  flex-shrink:0 !important;
+}
+
+/* 名前 */
+.post-user{
+  color:#111 !important;
+  font-weight:900 !important;
+}
+
+/* 車名 */
+.post-car{
+  font-size:13px;
+  color:#666;
+  margin-left:6px;
+}
+
+/* アクション右寄せ統一 */
+.post-actions{
+  display:flex !important;
+  justify-content:flex-end !important;
+  gap:10px;
+}
+/* ===== post-actions 最終固定 ===== */
+.post-actions{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:10px !important;
+  margin-top:10px !important;
+  width:100% !important;
+}
+
+.post-title{
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+}
+
+.avatar{
+  width:36px !important;
+  height:36px !important;
+  border-radius:50% !important;
+  overflow:hidden !important;
+  flex:0 0 36px !important;
+}
+
+.avatar img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  display:block !important;
+  margin-top:0 !important;
+}
+
+.post-user{
+  color:#111 !important;
+  font-weight:900 !important;
+  display:inline-block !important;
+}
