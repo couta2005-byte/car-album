@@ -22,7 +22,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="/static/style.css?v=HYBRID">
+  <link rel="stylesheet" href="/static/style.css?v=FINAL_FEED">
 </head>
 <body>
 
@@ -116,42 +116,45 @@
   </section>
 
   <!-- ======================
-       投稿（X風）
+       投稿（カードUI統一）
   ====================== -->
   <section>
 
-    <div class="tweet-divider"></div>
+    <div class="feed-divider"></div>
 
     {% if posts and posts|length > 0 %}
 
       {% for post in posts %}
-        <div class="tweet" data-href="/post/{{ post.id }}">
+        <div class="feed-post" data-href="/post/{{ post.id }}">
 
-          <img src="{{ profile[4] }}" class="tweet-avatar">
+          <!-- ヘッダー -->
+          <div class="feed-header">
+            <img src="{{ profile[4] }}" class="feed-avatar">
 
-          <div class="tweet-body">
-
-            <div class="tweet-header">
-              <span class="tweet-name">{{ post.display_name }}</span>
-              <span class="tweet-handle">@{{ handle }}</span>
+            <div class="feed-user">
+              <div class="feed-name">{{ post.display_name }}</div>
+              <div class="feed-handle">@{{ handle }}</div>
             </div>
+          </div>
 
-            <div class="tweet-text">
-              {{ post.comment }}
-            </div>
+          <!-- 本文 -->
+          <div class="feed-text">
+            {{ post.comment }}
+          </div>
 
-            {% if post.images and post.images|length > 0 %}
-              {% for img in post.images %}
-                <img src="{{ img }}" class="tweet-img">
-              {% endfor %}
-            {% elif post.image %}
-              <img src="{{ post.image }}" class="tweet-img">
-            {% endif %}
+          <!-- 画像 -->
+          {% if post.images and post.images|length > 0 %}
+            {% for img in post.images %}
+              <img src="{{ img }}" class="feed-img">
+            {% endfor %}
+          {% elif post.image %}
+            <img src="{{ post.image }}" class="feed-img">
+          {% endif %}
 
-            <div class="tweet-actions">
-              ❤️ {{ post.likes }}
-            </div>
-
+          <!-- アクション -->
+          <div class="feed-actions">
+            <span>💬 0</span>
+            <span class="like">❤️ {{ post.likes }}</span>
           </div>
 
         </div>
@@ -167,7 +170,7 @@
 
 <script>
 document.addEventListener("click", (e) => {
-  const post = e.target.closest(".tweet");
+  const post = e.target.closest(".feed-post");
   if (!post) return;
   if (e.target.closest("a,button")) return;
   location.href = post.dataset.href;

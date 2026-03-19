@@ -3914,3 +3914,83 @@ body {
   font-size: 13px;
   color: #e0245e;
 }
+/* =====================
+  背景
+===================== */
+body {
+  background: #f5f5f5;
+}
+
+/* =====================
+  区切り
+===================== */
+.feed-divider {
+  border-top: 1px solid #ddd;
+  margin: 16px 0;
+}
+
+/* =====================
+  投稿カード（統一）
+===================== */
+.feed-post {
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  cursor: pointer;
+}
+
+.feed-post:hover {
+  transform: translateY(-2px);
+  transition: 0.2s;
+}
+
+/* ヘッダー */
+.feed-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.feed-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* ユーザー */
+.feed-name {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.feed-handle {
+  font-size: 12px;
+  color: #777;
+}
+
+/* 本文 */
+.feed-text {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+/* 画像 */
+.feed-img {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+/* アクション */
+.feed-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.like {
+  color: #e0245e;
+}
