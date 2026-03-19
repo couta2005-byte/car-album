@@ -6,7 +6,7 @@
   <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_FINAL_2">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_FIX_3">
 </head>
 <body>
 
@@ -113,8 +113,9 @@
             <span class="avatar-fallback"></span>
           {% endif %}
 
+          <!-- ★ここが修正ポイント -->
           <div class="post-user">
-            @{{ post.handle if post.handle else (handle if handle else username) }}{% if post.car_name %}:{{ post.car_name }}{% endif %}
+            @{{ post.handle if post.handle else (handle if handle else username) }}:{{ post.car_name if post.car_name else profile[1] }}
           </div>
 
         </div>
@@ -190,7 +191,6 @@
 
 </main>
 
-<!-- 投稿クリック -->
 <script>
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
@@ -200,7 +200,6 @@ document.addEventListener("click", (e) => {
 });
 </script>
 
-<!-- いいね -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".like-btn");
