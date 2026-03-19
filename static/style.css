@@ -4292,3 +4292,32 @@ body {
     flex: 1;
   }
 }
+/* ===== 強制FIX（全部上書き） ===== */
+
+/* 名前 */
+.post-user{
+  color:#111 !important;
+  font-weight:900 !important;
+}
+
+/* アイコン横並び */
+.post-title{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+
+/* アイコン */
+.avatar{
+  width:36px !important;
+  height:36px !important;
+  border-radius:50% !important;
+  overflow:hidden !important;
+  flex-shrink:0 !important;
+}
+
+.avatar img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
