@@ -19,7 +19,7 @@
       <a href="/" class="nav-link">ホーム</a>
       <a href="/map" class="nav-link">MAP</a>
       <a href="/ranking" class="nav-link">ランキング</a>
-      <a href="/dm" class="nav-link dm-nav">DM</a>
+      <a href="/dm" class="nav-link">DM</a>
 
       <a href="/profile/{{ current_user.id }}" class="nav-icon">
         {% if current_user.icon_url %}
@@ -57,10 +57,10 @@
           <strong>{{ posts|length }}</strong><br>投稿
         </div>
         <div>
-          <strong>{{ user.followers_count }}</strong><br>フォロワー
+          <strong>{{ user.followers_count or 0 }}</strong><br>フォロワー
         </div>
         <div>
-          <strong>{{ user.following_count }}</strong><br>フォロー
+          <strong>{{ user.following_count or 0 }}</strong><br>フォロー
         </div>
       </div>
 
@@ -87,20 +87,13 @@
       {% endif %}
     </div>
 
-    <!-- 愛車タグ -->
-    <div class="car-tags">
-      {% for car in user.cars %}
-        <span class="car-tag">{{ car }}</span>
-      {% endfor %}
-    </div>
-
   </div>
 
   <!-- ===== 区切り ===== -->
   <div class="feed-divider"></div>
 
 
-  <!-- ===== 投稿一覧 ===== -->
+  <!-- ===== 投稿一覧（完全安全版） ===== -->
   {% for post in posts %}
   <div class="feed-post" onclick="location.href='/post/{{ post.id }}'">
 
@@ -109,20 +102,20 @@
 
       <div style="display:flex; gap:10px; align-items:center;">
 
-        {% if post.user.icon_url %}
-          <img src="{{ post.user.icon_url }}" class="feed-avatar">
+        {% if user.icon_url %}
+          <img src="{{ user.icon_url }}" class="feed-avatar">
         {% else %}
           <div class="feed-avatar fallback-avatar"></div>
         {% endif %}
 
         <div>
-          <div class="feed-name">{{ post.user.name }}</div>
+          <div class="feed-name">{{ user.name }}</div>
           <div class="feed-time">{{ post.created_at }}</div>
         </div>
 
       </div>
 
-      {% if current_user.id == post.user.id %}
+      {% if current_user.id == user.id %}
       <div class="feed-right">
         <form method="post" action="/delete/{{ post.id }}">
           <button class="delete-btn">削除</button>
@@ -147,13 +140,13 @@
     <div class="feed-actions">
 
       <div class="feed-actions-left">
-        <span class="comment">💬 {{ post.comment_count }}</span>
+        <span class="comment">💬 {{ post.comment_count or 0 }}</span>
       </div>
 
       <div class="feed-right">
         <form method="post" action="/like/{{ post.id }}">
-          <button type="submit" class="like {% if post.liked %}liked{% endif %}">
-            ❤ {{ post.like_count }}
+          <button type="submit" class="like">
+            ❤ {{ post.like_count or 0 }}
           </button>
         </form>
       </div>
