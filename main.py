@@ -1825,14 +1825,8 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         cur.close()
         db.close()
 
-    # 🔥 ここをdefの中に入れる
     return templates.TemplateResponse("profile.html", {
         "request": request,
-        "current_user": {
-            "id": me_user_id,
-            "username": me_username,
-            "icon_url": user_icon
-        } if me_user_id else None,
         "username": username,
         "profile": prof,
         "me": me_username,
@@ -1853,6 +1847,8 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         "is_admin": is_admin,
         "user_cars": target_user_cars,
     })
+
+
 # ======================
 # profile edit page（GET）
 # ======================
