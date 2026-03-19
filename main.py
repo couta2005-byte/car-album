@@ -1825,36 +1825,34 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         cur.close()
         db.close()
 
-return templates.TemplateResponse("profile.html", {
-    "request": request,
-
-    # 🔥 追加（これが無いのが原因）
-    "current_user": {
-        "id": me_user_id,
-        "username": me_username,
-        "icon_url": user_icon
-    } if me_user_id else None,
-
-    "username": username,
-    "profile": prof,
-    "me": me_username,
-    "user": me_username,
-    "me_user_id": me_user_id,
-    "me_handle": me_handle,
-    "user_icon": user_icon,
-    "unread_dm": unread_dm,
-    "target_user_id": target_user_id,
-    "is_following": is_following,
-    "follow_count": follow_count,
-    "follower_count": follower_count,
-    "liked_posts": liked_posts,
-    "display_name": display_name,
-    "handle": handle,
-    "mode": "profile",
-    "posts": posts,
-    "is_admin": is_admin,
-    "user_cars": target_user_cars,
-})
+    # 🔥 ここをdefの中に入れる
+    return templates.TemplateResponse("profile.html", {
+        "request": request,
+        "current_user": {
+            "id": me_user_id,
+            "username": me_username,
+            "icon_url": user_icon
+        } if me_user_id else None,
+        "username": username,
+        "profile": prof,
+        "me": me_username,
+        "user": me_username,
+        "me_user_id": me_user_id,
+        "me_handle": me_handle,
+        "user_icon": user_icon,
+        "unread_dm": unread_dm,
+        "target_user_id": target_user_id,
+        "is_following": is_following,
+        "follow_count": follow_count,
+        "follower_count": follower_count,
+        "liked_posts": liked_posts,
+        "display_name": display_name,
+        "handle": handle,
+        "mode": "profile",
+        "posts": posts,
+        "is_admin": is_admin,
+        "user_cars": target_user_cars,
+    })
 # ======================
 # profile edit page（GET）
 # ======================
