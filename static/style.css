@@ -4133,3 +4133,98 @@ body {
   color: #ff2d55;
   font-weight: bold;
 }
+/* =========================
+Instagram風プロフィール
+========================= */
+.insta-profile {
+padding: 20px;
+}
+
+.insta-top {
+display: flex;
+align-items: center;
+gap: 30px;
+}
+
+.insta-avatar {
+width: 90px;
+height: 90px;
+border-radius: 50%;
+background: #ddd;
+object-fit: cover;
+}
+
+.insta-stats {
+display: flex;
+gap: 25px;
+text-align: center;
+}
+
+.insta-name {
+font-weight: bold;
+margin-top: 10px;
+}
+
+.insta-handle {
+color: #777;
+margin-bottom: 5px;
+}
+
+.insta-car {
+margin: 5px 0;
+}
+
+.insta-bio {
+margin-top: 5px;
+}
+
+.insta-actions {
+margin-top: 10px;
+display: flex;
+gap: 10px;
+}
+
+.follow-btn {
+background: #0095f6;
+color: white;
+border: none;
+padding: 6px 12px;
+border-radius: 6px;
+cursor: pointer;
+}
+
+.dm-btn {
+background: #eee;
+padding: 6px 12px;
+border-radius: 6px;
+text-decoration: none;
+}
+
+/* =========================
+グリッド投稿
+========================= */
+.insta-grid {
+display: grid;
+grid-template-columns: repeat(3, 1fr);
+gap: 2px;
+margin-top: 20px;
+}
+
+.grid-item {
+width: 100%;
+aspect-ratio: 1 / 1;
+overflow: hidden;
+cursor: pointer;
+}
+
+.grid-item img {
+width: 100%;
+height: 100%;
+object-fit: cover;
+}
+
+.no-image {
+width: 100%;
+height: 100%;
+background: #ccc;
+}
