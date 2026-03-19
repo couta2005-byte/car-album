@@ -2,66 +2,75 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>{{ user.name or "User" }} | Carbum</title>
+  <title>{{ user.name if user and user.name else "User" }} | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_SAFE_1">
 </head>
-
 <body>
 
-<!-- ===== ヘッダー ===== -->
 <header class="header">
   <div class="header-inner">
-
     <a href="/" class="logo">Carbum</a>
 
     <nav class="nav">
       <a href="/" class="nav-link">ホーム</a>
       <a href="/map" class="nav-link">MAP</a>
       <a href="/ranking" class="nav-link">ランキング</a>
-      <a href="/dm" class="nav-link">DM</a>
+      <a href="/dm" class="nav-link dm-nav">DM</a>
 
-      <a href="/profile/{{ current_user.id }}" class="nav-icon">
-        {% if current_user and current_user.icon_url %}
-          <img src="{{ current_user.icon_url }}" class="nav-avatar">
-        {% else %}
+      {% if current_user is defined and current_user %}
+        <a href="/profile/{{ current_user.id }}" class="nav-icon">
+          {% if current_user.icon_url %}
+            <img src="{{ current_user.icon_url }}" class="nav-avatar" alt="nav avatar">
+          {% else %}
+            <div class="nav-avatar placeholder"></div>
+          {% endif %}
+        </a>
+
+        <form method="post" action="/logout" class="inline-form">
+          <button type="submit" class="logout-btn">ログアウト</button>
+        </form>
+      {% else %}
+        <a href="/" class="nav-icon">
           <div class="nav-avatar placeholder"></div>
-        {% endif %}
-      </a>
-
-      <form method="post" action="/logout">
-        <button class="logout-btn">ログアウト</button>
-      </form>
+        </a>
+      {% endif %}
     </nav>
-
   </div>
 </header>
 
-
-<!-- ===== メイン ===== -->
 <main class="container">
 
-  <!-- ===== プロフィール ===== -->
-  <div class="insta-profile">
+  <!-- プロフィール -->
+  <section class="insta-profile">
 
     <div class="insta-top">
-
       {% if user and user.icon_url %}
-        <img src="{{ user.icon_url }}" class="insta-avatar">
+        <img src="{{ user.icon_url }}" class="insta-avatar" alt="profile icon">
       {% else %}
         <div class="insta-avatar"></div>
       {% endif %}
 
       <div class="insta-stats">
-        <div><strong>{{ posts|length if posts else 0 }}</strong><br>投稿</div>
-        <div><strong>{{ user.followers_count if user and user.followers_count else 0 }}</strong><br>フォロワー</div>
-        <div><strong>{{ user.following_count if user and user.following_count else 0 }}</strong><br>フォロー</div>
+        <div>
+          <strong>{{ posts|length if posts else 0 }}</strong><br>投稿
+        </div>
+        <div>
+          <strong>{{ user.followers_count if user and user.followers_count else 0 }}</strong><br>フォロワー
+        </div>
+        <div>
+          <strong>{{ user.following_count if user and user.following_count else 0 }}</strong><br>フォロー
+        </div>
       </div>
-
     </div>
 
-    <div class="insta-name">{{ user.name if user and user.name else "No Name" }}</div>
-    <div class="insta-handle">@{{ user.username if user and user.username else "unknown" }}</div>
+    <div class="insta-name">
+      {{ user.name if user and user.name else "No Name" }}
+    </div>
+
+    <div class="insta-handle">
+      @{{ user.username if user and user.username else "unknown" }}
+    </div>
 
     <div class="insta-car">
       🚗 {{ user.car_name if user and user.car_name else "未登録" }}
@@ -71,73 +80,78 @@
       {{ user.bio if user and user.bio else "" }}
     </div>
 
-    <!-- ボタン -->
-    {% if current_user and user and current_user.id != user.id %}
-    <div class="insta-actions">
-      <form method="post" action="/follow/{{ user.id }}">
-        <button class="follow-btn">フォロー</button>
-      </form>
-      <a href="/dm/{{ user.id }}" class="dm-btn">DM</a>
-    </div>
+    {% if current_user is defined and current_user and user and current_user.id != user.id %}
+      <div class="insta-actions">
+        <form method="post" action="/follow/{{ user.id }}">
+          <button type="submit" class="follow-btn">フォロー</button>
+        </form>
+        <a href="/dm/{{ user.id }}" class="dm-btn">DM</a>
+      </div>
     {% endif %}
 
-  </div>
+  </section>
 
-  <!-- ===== 区切り ===== -->
   <div class="feed-divider"></div>
 
-
-  <!-- ===== 投稿一覧 ===== -->
+  <!-- 投稿一覧 -->
   {% if posts %}
     {% for post in posts %}
-    <div class="feed-post">
+      <div class="feed-post" onclick="location.href='/post/{{ post.id }}'">
 
-      <!-- 上段 -->
-      <div class="feed-top-row">
+        <div class="feed-top-row">
+          <div style="display:flex; gap:10px; align-items:center; min-width:0;">
 
-        <div style="display:flex; gap:10px; align-items:center;">
+            {% if user and user.icon_url %}
+              <img src="{{ user.icon_url }}" class="feed-avatar" alt="user icon">
+            {% else %}
+              <div class="feed-avatar fallback-avatar"></div>
+            {% endif %}
 
-          {% if user and user.icon_url %}
-            <img src="{{ user.icon_url }}" class="feed-avatar">
-          {% else %}
-            <div class="feed-avatar fallback-avatar"></div>
-          {% endif %}
-
-          <div>
-            <div class="feed-name">{{ user.name if user and user.name else "User" }}</div>
-            <div class="feed-time">{{ post.created_at if post.created_at else "" }}</div>
+            <div style="min-width:0;">
+              <div class="feed-name">
+                {{ user.name if user and user.name else "User" }}
+              </div>
+              <div class="feed-time">
+                {{ post.created_at if post.created_at else "" }}
+              </div>
+            </div>
           </div>
 
+          {% if current_user is defined and current_user and user and current_user.id == user.id %}
+            <div class="feed-right">
+              <form method="post" action="/delete/{{ post.id }}" onclick="event.stopPropagation();">
+                <button type="submit" class="delete-btn">削除</button>
+              </form>
+              <button type="button" class="share-btn" onclick="event.stopPropagation();">シェア</button>
+            </div>
+          {% endif %}
+        </div>
+
+        {% if post.text %}
+          <div class="feed-text">{{ post.text }}</div>
+        {% elif post.comment %}
+          <div class="feed-text">{{ post.comment }}</div>
+        {% endif %}
+
+        {% if post.image_url %}
+          <img src="{{ post.image_url }}" class="feed-img" alt="post image">
+        {% elif post.image %}
+          <img src="{{ post.image }}" class="feed-img" alt="post image">
+        {% endif %}
+
+        <div class="feed-actions">
+          <div class="feed-actions-left">
+            <span class="comment">💬 {{ post.comment_count if post.comment_count else 0 }}</span>
+          </div>
+
+          <div class="feed-right">
+            <button type="button" class="like" onclick="event.stopPropagation();">
+              ❤ {{ post.like_count if post.like_count else (post.likes if post.likes else 0) }}
+            </button>
+          </div>
         </div>
 
       </div>
-
-      <!-- 本文 -->
-      {% if post.text %}
-        <div class="feed-text">{{ post.text }}</div>
-      {% endif %}
-
-      <!-- 画像 -->
-      {% if post.image_url %}
-        <img src="{{ post.image_url }}" class="feed-img">
-      {% endif %}
-
-      <!-- アクション -->
-      <div class="feed-actions">
-
-        <div class="feed-actions-left">
-          <span class="comment">💬 {{ post.comment_count if post.comment_count else 0 }}</span>
-        </div>
-
-        <div class="feed-right">
-          <button class="like">
-            ❤ {{ post.like_count if post.like_count else 0 }}
-          </button>
-        </div>
-
-      </div>
-
-    </div>
     {% endfor %}
   {% else %}
     <p class="empty-text">投稿がありません</p>
