@@ -6,19 +6,7 @@
   <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- OGP -->
-  <meta property="og:site_name" content="Carbum">
-  <meta property="og:type" content="profile">
-  <meta property="og:title"
-        content="{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum">
-  <meta property="og:description"
-        content="{{ profile[3] if profile and profile|length > 3 and profile[3] else 'Carbumのプロフィールを見る' }}">
-  <meta property="og:url" content="{{ request.url }}">
-  <meta property="og:image"
-        content="{{ profile[4] if profile and profile|length > 4 and profile[4] else 'https://car-album-3.onrender.com/static/ogp.png' }}">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <link rel="stylesheet" href="/static/style.css?v=FINAL_MATCH4">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_UNIFIED_1">
 </head>
 <body>
 
@@ -32,57 +20,47 @@
   <section class="insta-profile">
 
     <div class="insta-top">
-      {% if profile and profile|length > 4 and profile[4] %}
-        <img src="{{ profile[4] }}" class="insta-avatar" alt="profile icon">
+      {% if profile and profile[4] %}
+        <img src="{{ profile[4] }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar fallback"></div>
       {% endif %}
 
       <div class="insta-stats">
-        <div><strong>{{ posts|length if posts else 0 }}</strong><br>投稿</div>
-        <div><strong>{{ follower_count if follower_count else 0 }}</strong><br>フォロワー</div>
-        <div><strong>{{ follow_count if follow_count else 0 }}</strong><br>フォロー</div>
+        <div><strong>{{ posts|length }}</strong><br>投稿</div>
+        <div><strong>{{ follower_count }}</strong><br>フォロワー</div>
+        <div><strong>{{ follow_count }}</strong><br>フォロー</div>
       </div>
     </div>
 
-    <div class="insta-name">
-      {{ display_name if display_name else username }}
-    </div>
-
-    <div class="insta-handle">
-      @{{ handle if handle else username }}
-    </div>
+    <div class="insta-name">{{ display_name if display_name else username }}</div>
+    <div class="insta-handle">@{{ handle if handle else username }}</div>
 
     <div class="insta-car">
-      {{ profile[0] if profile and profile|length > 0 and profile[0] else "" }}
-      {% if profile and profile|length > 1 and profile[1] %}
-        {{ profile[1] }}
-      {% endif %}
+      {{ profile[0] if profile else "" }} {{ profile[1] if profile else "" }}
     </div>
 
     <div class="insta-bio">
-      {{ profile[3] if profile and profile|length > 3 and profile[3] else "自己紹介なし" }}
+      {{ profile[3] if profile and profile[3] else "自己紹介なし" }}
     </div>
 
     <div class="insta-actions">
-      {% if me_user_id and target_user_id and me_user_id != target_user_id %}
-
+      {% if me_user_id == target_user_id %}
+        <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
+      {% else %}
         {% if is_following %}
-          <form action="/unfollow/{{ (handle if handle else username) | urlencode }}" method="post">
-            <button type="submit" class="follow-btn">フォロー解除</button>
+          <form action="/unfollow/{{ handle }}" method="post">
+            <button class="follow-btn">フォロー解除</button>
           </form>
         {% else %}
-          <form action="/follow/{{ (handle if handle else username) | urlencode }}" method="post">
-            <button type="submit" class="follow-btn">フォローする</button>
+          <form action="/follow/{{ handle }}" method="post">
+            <button class="follow-btn">フォローする</button>
           </form>
         {% endif %}
 
         <form action="/dm/start/{{ target_user_id }}" method="post">
-          <button type="submit" class="dm-btn">DM</button>
+          <button class="dm-btn">DM</button>
         </form>
-
-      {% elif me_user_id == target_user_id %}
-        <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
       {% endif %}
     </div>
 
@@ -95,111 +73,147 @@
 
     <div class="section-head">
       <h3>愛車</h3>
-
       {% if me_user_id == target_user_id %}
-        <a href="/profile/cars/add" class="add-car-link">＋追加</a>
+        <a href="/profile/cars/add">＋追加</a>
       {% endif %}
     </div>
 
-    {% if user_cars and user_cars|length > 0 %}
-      <div class="car-tags">
-        {% for c in user_cars %}
-          <span class="car-tag">
-            {{ c.maker }} {{ c.car_name }}{% if c.is_primary %} ★{% endif %}
-          </span>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="empty-text">未登録</p>
-    {% endif %}
+    <div class="car-tags">
+      {% for c in user_cars %}
+        <span class="car-tag {% if c.is_primary %}main{% endif %}">
+          {{ c.maker }} {{ c.car_name }}
+        </span>
+      {% endfor %}
+    </div>
 
   </section>
 
   <!-- ======================
-       投稿
+       投稿（ここが超重要）
   ====================== -->
-  <section>
 
-    <div class="feed-divider"></div>
+  <div class="posts">
 
-    {% if posts and posts|length > 0 %}
+    {% for post in posts %}
 
-      {% for post in posts %}
-        <div class="feed-post" data-href="/post/{{ post.id }}">
+    <article class="post" data-href="/post/{{ post.id }}">
 
-          <!-- ヘッダー -->
-          <div class="feed-header">
+      <div class="post-top">
+        <div class="post-title">
 
-            <img
-              src="{{ post.icon if post.icon else (profile[4] if profile and profile|length > 4 and profile[4] else '/static/default.png') }}"
-              class="feed-avatar"
-              alt="user icon"
-            >
-
-            <div class="feed-user">
-              <div class="feed-name">
-                {{ post.display_name if post.display_name else username }}{% if post.car_name %}：{{ post.car_name }}{% endif %}
-              </div>
-              <div class="feed-time">
-                {{ post.created_at if post.created_at else "" }}
-              </div>
+          {% if post.icon %}
+            <div class="avatar">
+              <img src="{{ post.icon }}">
             </div>
-
-          </div>
-
-          <!-- 本文 -->
-          {% if post.comment %}
-            <div class="feed-text">
-              {{ post.comment }}
-            </div>
+          {% else %}
+            <span class="avatar-fallback"></span>
           {% endif %}
 
-          <!-- 画像 -->
-          {% if post.images and post.images|length > 0 %}
-            {% for img in post.images %}
-              <img src="{{ img }}" class="feed-img" alt="post image">
-            {% endfor %}
-          {% elif post.image %}
-            <img src="{{ post.image }}" class="feed-img" alt="post image">
-          {% endif %}
-
-          <!-- アクション -->
-          <div class="feed-actions">
-
-            <div class="feed-actions-left">
-              {% if me_user_id == post.user_id %}
-                <form action="/post/delete/{{ post.id }}" method="post">
-                  <button type="submit" class="delete-btn">管理削除</button>
-                </form>
-              {% endif %}
-
-              <button type="button" class="share-btn">Xシェア</button>
-            </div>
-
-            <div class="feed-right">
-              <span class="comment">💬 {{ post.comment_count if post.comment_count else 0 }}</span>
-              <span class="like {% if post.liked %}liked{% endif %}">❤️ {{ post.likes if post.likes else 0 }}</span>
-            </div>
-
+          <div class="post-user">
+            {{ post.display_name if post.display_name else username }}：
+            {% if post.car_name %}{{ post.car_name }}{% endif %}
           </div>
 
         </div>
-      {% endfor %}
 
-    {% else %}
-      <p class="empty-text">投稿なし</p>
-    {% endif %}
+        <span class="post-date">{{ post.created_at }}</span>
+      </div>
 
-  </section>
+      {% if post.comment %}
+        <div class="post-comment">{{ post.comment }}</div>
+      {% endif %}
+
+      {% if post.images and post.images|length >= 2 %}
+        <div class="post-images">
+          <div class="post-images-track">
+            {% for img in post.images %}
+              <div class="post-image">
+                <img src="{{ img }}">
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+      {% elif post.images and post.images|length == 1 %}
+        <div class="post-image">
+          <img src="{{ post.images[0] }}">
+        </div>
+
+      {% elif post.image %}
+        <div class="post-image">
+          <img src="{{ post.image }}">
+        </div>
+      {% endif %}
+
+      <div class="post-actions">
+
+        <div class="actions-left">
+
+          {% if me_user_id == post.user_id %}
+          <form method="post" action="/delete/{{ post.id }}" class="inline-form">
+            <button type="submit" class="delete-btn">削除</button>
+          </form>
+          {% endif %}
+
+          <a href="https://twitter.com/intent/tweet?url=https://car-album-3.onrender.com/post/{{ post.id }}"
+             target="_blank"
+             class="report-btn">Xシェア</a>
+
+        </div>
+
+        <div class="actions-right">
+
+          <a href="/post/{{ post.id }}#comments" class="action-btn">
+            💬 <span class="count">{{ post.comment_count }}</span>
+          </a>
+
+          <button type="button"
+                  class="like-btn {% if post.liked %}liked{% endif %}"
+                  data-post-id="{{ post.id }}">
+            <span class="heart heart-off">🤍</span>
+            <span class="heart heart-on">❤️</span>
+            <span class="like-count">{{ post.likes }}</span>
+          </button>
+
+        </div>
+
+      </div>
+
+    </article>
+
+    {% endfor %}
+
+  </div>
 
 </main>
 
+<!-- クリック遷移 -->
 <script>
 document.addEventListener("click", (e) => {
-  const post = e.target.closest(".feed-post");
+  const post = e.target.closest(".post");
   if (!post) return;
-  if (e.target.closest("a,button,form")) return;
+  if (e.target.closest("a,button,form,img")) return;
   location.href = post.dataset.href;
+});
+</script>
+
+<!-- いいね -->
+<script>
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".like-btn");
+  if (!btn) return;
+
+  const postId = btn.dataset.postId;
+  const res = await fetch(`/api/like/${postId}`, {
+    method: "POST",
+    credentials: "same-origin"
+  });
+
+  if (!res.ok) return;
+
+  const data = await res.json();
+  btn.classList.toggle("liked", data.liked);
+  btn.querySelector(".like-count").textContent = data.likes;
 });
 </script>
 

@@ -4085,3 +4085,210 @@ body {
 .add-car-link {
   text-decoration: none;
 }
+/* =========================
+   Profile page
+========================= */
+.insta-profile {
+  background: #fff;
+  border-radius: 20px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+}
+
+.insta-top {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.insta-avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #ddd;
+}
+
+.insta-avatar.fallback {
+  background: #d9d9d9;
+}
+
+.insta-stats {
+  flex: 1;
+  display: flex;
+  justify-content: space-around;
+  gap: 10px;
+  text-align: center;
+}
+
+.insta-stats div {
+  font-size: 14px;
+  color: #222;
+  line-height: 1.4;
+}
+
+.insta-stats strong {
+  font-size: 22px;
+  font-weight: 800;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+
+.insta-name {
+  font-size: 26px;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 4px;
+}
+
+.insta-handle {
+  font-size: 15px;
+  color: #777;
+  margin-bottom: 10px;
+}
+
+.insta-car {
+  font-size: 15px;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 8px;
+}
+
+.insta-bio {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  margin-bottom: 14px;
+}
+
+.insta-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.follow-btn,
+.dm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: none;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.follow-btn {
+  background: #1da1f2;
+  color: #fff;
+}
+
+.dm-btn {
+  background: #f2f2f2;
+  color: #111;
+}
+
+.car-section {
+  background: #fff;
+  border-radius: 20px;
+  padding: 18px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.section-head h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111;
+}
+
+.section-head a,
+.add-car-link {
+  text-decoration: none;
+  color: #111;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.car-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.car-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #f1f1f1;
+  color: #222;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.car-tag.main {
+  background: #111;
+  color: #fff;
+}
+
+.empty-text {
+  color: #888;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* 投稿一覧とのつなぎ */
+.posts {
+  margin-top: 4px;
+}
+
+/* スマホ最適化 */
+@media (max-width: 640px) {
+  .insta-profile,
+  .car-section {
+    border-radius: 18px;
+    padding: 16px 14px;
+  }
+
+  .insta-top {
+    align-items: center;
+    gap: 14px;
+  }
+
+  .insta-avatar {
+    width: 82px;
+    height: 82px;
+  }
+
+  .insta-stats strong {
+    font-size: 20px;
+  }
+
+  .insta-name {
+    font-size: 22px;
+  }
+
+  .follow-btn,
+  .dm-btn {
+    flex: 1;
+  }
+}
