@@ -22,7 +22,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="/static/style.css?v=FINAL_FEED">
+  <link rel="stylesheet" href="/static/style.css?v=FINAL_MATCH">
 </head>
 <body>
 
@@ -116,7 +116,7 @@
   </section>
 
   <!-- ======================
-       投稿（カードUI統一）
+       投稿（ホーム完全一致）
   ====================== -->
   <section>
 
@@ -129,18 +129,26 @@
 
           <!-- ヘッダー -->
           <div class="feed-header">
-            <img src="{{ profile[4] }}" class="feed-avatar">
+
+            <img src="{{ post.icon if post.icon else profile[4] }}" class="feed-avatar">
 
             <div class="feed-user">
-              <div class="feed-name">{{ post.display_name }}</div>
-              <div class="feed-handle">@{{ handle }}</div>
+              <div class="feed-name">
+                {{ post.display_name }} : {{ post.car_name if post.car_name else "" }}
+              </div>
+              <div class="feed-time">
+                {{ post.created_at }}
+              </div>
             </div>
+
           </div>
 
           <!-- 本文 -->
-          <div class="feed-text">
-            {{ post.comment }}
-          </div>
+          {% if post.comment %}
+            <div class="feed-text">
+              {{ post.comment }}
+            </div>
+          {% endif %}
 
           <!-- 画像 -->
           {% if post.images and post.images|length > 0 %}
@@ -153,8 +161,20 @@
 
           <!-- アクション -->
           <div class="feed-actions">
-            <span>💬 0</span>
-            <span class="like">❤️ {{ post.likes }}</span>
+
+            {% if me_user_id == post.user_id %}
+              <form action="/post/delete/{{ post.id }}" method="post">
+                <button class="delete-btn">管理削除</button>
+              </form>
+            {% endif %}
+
+            <button class="share-btn">Xシェア</button>
+
+            <div class="feed-right">
+              <span class="comment">💬 {{ post.comment_count if post.comment_count else 0 }}</span>
+              <span class="like {% if post.liked %}liked{% endif %}">❤️ {{ post.likes }}</span>
+            </div>
+
           </div>
 
         </div>
