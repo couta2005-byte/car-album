@@ -22,7 +22,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
 
-  <link rel="stylesheet" href="/static/style.css?v=INSTAGRAM">
+  <link rel="stylesheet" href="/static/style.css?v=HYBRID">
 </head>
 <body>
 
@@ -37,14 +37,12 @@
 
     <div class="insta-top">
 
-      <!-- アイコン -->
       {% if profile and profile|length > 4 and profile[4] %}
         <img src="{{ profile[4] }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar fallback"></div>
       {% endif %}
 
-      <!-- ステータス -->
       <div class="insta-stats">
         <div><strong>{{ posts|length }}</strong><br>投稿</div>
         <div><strong>{{ follower_count }}</strong><br>フォロワー</div>
@@ -53,28 +51,23 @@
 
     </div>
 
-    <!-- 名前 -->
     <div class="insta-name">
       {{ display_name if display_name else username }}
     </div>
 
-    <!-- ID -->
     <div class="insta-handle">
       @{{ handle if handle else username }}
     </div>
 
-    <!-- 車情報 -->
     <div class="insta-car">
       {{ profile[0] if profile and profile|length > 0 else "" }}
       {{ profile[1] if profile and profile|length > 1 else "" }}
     </div>
 
-    <!-- Bio -->
     <div class="insta-bio">
       {{ profile[3] if profile and profile|length > 3 else "自己紹介なし" }}
     </div>
 
-    <!-- ボタン -->
     <div class="insta-actions">
 
       {% if me_user_id and target_user_id and me_user_id != target_user_id %}
@@ -102,7 +95,7 @@
   </section>
 
   <!-- ======================
-       愛車（タグ化）
+       愛車
   ====================== -->
   <section class="car-section">
 
@@ -123,29 +116,46 @@
   </section>
 
   <!-- ======================
-       投稿（インスタグリッド）
+       投稿（X風）
   ====================== -->
   <section>
 
-    <h3>投稿</h3>
+    <div class="tweet-divider"></div>
 
     {% if posts and posts|length > 0 %}
 
-      <div class="insta-grid">
+      {% for post in posts %}
+        <div class="tweet" data-href="/post/{{ post.id }}">
 
-        {% for post in posts %}
+          <img src="{{ profile[4] }}" class="tweet-avatar">
 
-          {% if post.images and post.images|length > 0 %}
-            <img src="{{ post.images[0] }}"
-                 onclick="location.href='/post/{{ post.id }}'">
-          {% elif post.image %}
-            <img src="{{ post.image }}"
-                 onclick="location.href='/post/{{ post.id }}'">
-          {% endif %}
+          <div class="tweet-body">
 
-        {% endfor %}
+            <div class="tweet-header">
+              <span class="tweet-name">{{ post.display_name }}</span>
+              <span class="tweet-handle">@{{ handle }}</span>
+            </div>
 
-      </div>
+            <div class="tweet-text">
+              {{ post.comment }}
+            </div>
+
+            {% if post.images and post.images|length > 0 %}
+              {% for img in post.images %}
+                <img src="{{ img }}" class="tweet-img">
+              {% endfor %}
+            {% elif post.image %}
+              <img src="{{ post.image }}" class="tweet-img">
+            {% endif %}
+
+            <div class="tweet-actions">
+              ❤️ {{ post.likes }}
+            </div>
+
+          </div>
+
+        </div>
+      {% endfor %}
 
     {% else %}
       <p>投稿なし</p>
@@ -154,6 +164,15 @@
   </section>
 
 </main>
+
+<script>
+document.addEventListener("click", (e) => {
+  const post = e.target.closest(".tweet");
+  if (!post) return;
+  if (e.target.closest("a,button")) return;
+  location.href = post.dataset.href;
+});
+</script>
 
 </body>
 </html>

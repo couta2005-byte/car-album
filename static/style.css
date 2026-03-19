@@ -3852,3 +3852,65 @@ body {
   object-fit: cover;
   cursor: pointer;
 }
+/* 区切り線 */
+.tweet-divider {
+  border-top: 1px solid #ddd;
+  margin-top: 16px;
+}
+
+/* 投稿 */
+.tweet {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.tweet:hover {
+  background: #f7f7f7;
+}
+
+/* アイコン */
+.tweet-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+/* 本文 */
+.tweet-body {
+  flex: 1;
+}
+
+.tweet-header {
+  font-size: 14px;
+}
+
+.tweet-name {
+  font-weight: bold;
+}
+
+.tweet-handle {
+  color: #666;
+  margin-left: 6px;
+}
+
+.tweet-text {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+/* 画像 */
+.tweet-img {
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 6px;
+}
+
+/* いいね */
+.tweet-actions {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #e0245e;
+}
