@@ -6,7 +6,7 @@
   <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_UNIFIED_1">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_FINAL_2">
 </head>
 <body>
 
@@ -89,7 +89,7 @@
   </section>
 
   <!-- ======================
-       投稿（ここが超重要）
+       投稿
   ====================== -->
 
   <div class="posts">
@@ -105,13 +105,16 @@
             <div class="avatar">
               <img src="{{ post.icon }}">
             </div>
+          {% elif profile and profile[4] %}
+            <div class="avatar">
+              <img src="{{ profile[4] }}">
+            </div>
           {% else %}
             <span class="avatar-fallback"></span>
           {% endif %}
 
           <div class="post-user">
-            {{ post.display_name if post.display_name else username }}：
-            {% if post.car_name %}{{ post.car_name }}{% endif %}
+            @{{ post.handle if post.handle else (handle if handle else username) }}{% if post.car_name %}:{{ post.car_name }}{% endif %}
           </div>
 
         </div>
@@ -187,7 +190,7 @@
 
 </main>
 
-<!-- クリック遷移 -->
+<!-- 投稿クリック -->
 <script>
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
