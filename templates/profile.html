@@ -115,7 +115,7 @@
 
           <!-- ★ここが修正ポイント -->
           <div class="post-user">
-            @{{ post.handle if post.handle else (handle if handle else username) }}:{{ post.car_name if post.car_name else profile[1] }}
+            {{ display_name if display_name else username }}:{{ post.car_name if post.car_name else profile[1] }}
           </div>
 
         </div>
