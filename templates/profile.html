@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_FINAL_2">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_PERFECT_1">
 </head>
 <body>
 
@@ -12,38 +12,53 @@
 
 <main class="container">
 
-  <!-- プロフィール -->
+  <!-- ======================
+       プロフィール
+  ====================== -->
   <section class="insta-profile">
 
+    <!-- 上段 -->
     <div class="insta-top">
 
+      <!-- アイコン -->
       {% if profile and profile[4] %}
         <img src="{{ profile[4] }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar fallback"></div>
       {% endif %}
 
+      <!-- ステータス -->
       <div class="insta-stats">
 
         <div class="stat">
-          <strong>{{ posts|length }}</strong><br>投稿
+          <strong>{{ posts|length }}</strong>
+          <span>投稿</span>
         </div>
 
         <a href="/followers/{{ handle if handle else username }}" class="stat">
-          <strong>{{ follower_count }}</strong><br>フォロワー
+          <strong>{{ follower_count }}</strong>
+          <span>フォロワー</span>
         </a>
 
         <a href="/following/{{ handle if handle else username }}" class="stat">
-          <strong>{{ follow_count }}</strong><br>フォロー
+          <strong>{{ follow_count }}</strong>
+          <span>フォロー</span>
         </a>
 
       </div>
 
     </div>
 
+    <!-- 情報 -->
     <div class="insta-info">
-      <div class="insta-name">{{ display_name if display_name else username }}</div>
-      <div class="insta-handle">@{{ handle if handle else username }}</div>
+
+      <div class="insta-name">
+        {{ display_name if display_name else username }}
+      </div>
+
+      <div class="insta-handle">
+        @{{ handle if handle else username }}
+      </div>
 
       <div class="insta-car">
         {{ profile[0] if profile else "" }} {{ profile[1] if profile else "" }}
@@ -52,8 +67,10 @@
       <div class="insta-bio">
         {{ profile[3] if profile and profile[3] else "自己紹介なし" }}
       </div>
+
     </div>
 
+    <!-- ボタン -->
     <div class="insta-actions">
       {% if me_user_id == target_user_id %}
         <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
@@ -76,7 +93,9 @@
 
   </section>
 
-  <!-- 愛車 -->
+  <!-- ======================
+       愛車
+  ====================== -->
   <section class="car-section">
 
     <div class="section-head">
@@ -96,7 +115,9 @@
 
   </section>
 
-  <!-- 投稿 -->
+  <!-- ======================
+       投稿
+  ====================== -->
   <div class="posts">
 
     {% for post in posts %}
@@ -130,16 +151,22 @@
         <div class="post-images">
           <div class="post-images-track">
             {% for img in post.images %}
-              <div class="post-image"><img src="{{ img }}"></div>
+              <div class="post-image">
+                <img src="{{ img }}">
+              </div>
             {% endfor %}
           </div>
         </div>
 
       {% elif post.images and post.images|length == 1 %}
-        <div class="post-image"><img src="{{ post.images[0] }}"></div>
+        <div class="post-image">
+          <img src="{{ post.images[0] }}">
+        </div>
 
       {% elif post.image %}
-        <div class="post-image"><img src="{{ post.image }}"></div>
+        <div class="post-image">
+          <img src="{{ post.image }}">
+        </div>
       {% endif %}
 
       <div class="post-actions">
