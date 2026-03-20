@@ -4545,3 +4545,55 @@ body {
 .insta-stats .stat{
   justify-content: flex-start !important;
 }
+/* ===== follow list ===== */
+
+.follow-list{
+  max-width:600px;
+  margin:0 auto;
+}
+
+.follow-item{
+  display:flex;
+  align-items:center;
+  padding:14px 16px;
+  border-bottom:1px solid #eee;
+}
+
+.follow-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  text-decoration:none;
+  color:#000;
+  width:100%;
+}
+
+/* アイコン */
+.follow-avatar{
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  background:#ddd;
+}
+
+/* テキスト */
+.follow-info{
+  display:flex;
+  flex-direction:column;
+}
+
+.follow-name{
+  font-weight:600;
+}
+
+.follow-handle{
+  font-size:13px;
+  color:#777;
+}
+
+/* 空 */
+.empty{
+  padding:20px;
+  text-align:center;
+  color:#777;
+}
