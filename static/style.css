@@ -4533,3 +4533,15 @@ body {
   height:72px;
   border-radius:50%;
 }
+/* ===== profile stats vertical align fix ===== */
+.insta-top{
+  align-items: flex-start !important;
+}
+
+.insta-stats{
+  margin-top: 18px !important;
+}
+
+.insta-stats .stat{
+  justify-content: flex-start !important;
+}
