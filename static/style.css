@@ -4431,3 +4431,47 @@ body {
   font-weight:900 !important;
   display:inline-block !important;
 }
+/* ===== profile layout fix ===== */
+
+.insta-top{
+  display:flex;
+  align-items:center;
+  gap:20px;
+}
+
+/* stats横並び固定 */
+.insta-stats{
+  display:flex;
+  gap:20px;
+  align-items:center;
+}
+
+/* 1個ずつ中央寄せ */
+.insta-stats .stat{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  font-size:14px;
+  text-decoration:none;
+  color:#111;
+}
+
+/* 数字強調 */
+.insta-stats strong{
+  font-size:18px;
+  font-weight:900;
+}
+
+/* aタグでも崩れないように */
+.insta-stats a{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-decoration:none;
+  color:#111;
+}
+
+/* 下の情報 */
+.insta-info{
+  margin-top:10px;
+}
