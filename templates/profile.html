@@ -27,11 +27,20 @@
       {% endif %}
 
       <div class="insta-stats">
-        <div><strong>{{ posts|length }}</strong><br>投稿</div>
-        <div><strong>{{ follower_count }}</strong><br>フォロワー</div>
-        <div><strong>{{ follow_count }}</strong><br>フォロー</div>
-      </div>
-    </div>
+
+        <div>
+          <strong>{{ posts|length }}</strong><br>投稿
+        </div>
+
+        <a href="/followers/{{ handle if handle else username }}">
+          <strong>{{ follower_count }}</strong><br>フォロワー
+        </a>
+
+        <a href="/following/{{ handle if handle else username }}">
+          <strong>{{ follow_count }}</strong><br>フォロー
+        </a>
+ 
+     </div>
 
     <div class="insta-name">{{ display_name if display_name else username }}</div>
     <div class="insta-handle">@{{ handle if handle else username }}</div>
