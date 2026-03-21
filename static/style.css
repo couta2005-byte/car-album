@@ -4597,3 +4597,24 @@ body {
   text-align:center;
   color:#777;
 }
+/* ===== FIX: post-actions 最終上書き ===== */
+.post-actions{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  margin-top:10px !important;
+  width:100% !important;
+}
+
+.actions-left{
+  display:flex !important;
+  align-items:center !important;
+  gap:8px !important;
+}
+
+.actions-right{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  margin-left:auto !important;
+}

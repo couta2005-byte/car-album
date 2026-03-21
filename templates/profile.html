@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_PERFECT_1">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_FINAL_3">
 </head>
 <body>
 
@@ -12,24 +12,18 @@
 
 <main class="container">
 
-  <!-- ======================
-       プロフィール
-  ====================== -->
+  <!-- プロフィール -->
   <section class="insta-profile">
 
-    <!-- 上段 -->
     <div class="insta-top">
 
-      <!-- アイコン -->
       {% if profile and profile[4] %}
         <img src="{{ profile[4] }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar fallback"></div>
       {% endif %}
 
-      <!-- ステータス -->
       <div class="insta-stats">
-
         <div class="stat">
           <strong>{{ posts|length }}</strong>
           <span>投稿</span>
@@ -44,14 +38,11 @@
           <strong>{{ follow_count }}</strong>
           <span>フォロー</span>
         </a>
-
       </div>
 
     </div>
 
-    <!-- 情報 -->
     <div class="insta-info">
-
       <div class="insta-name">
         {{ display_name if display_name else username }}
       </div>
@@ -67,10 +58,8 @@
       <div class="insta-bio">
         {{ profile[3] if profile and profile[3] else "自己紹介なし" }}
       </div>
-
     </div>
 
-    <!-- ボタン -->
     <div class="insta-actions">
       {% if me_user_id == target_user_id %}
         <a href="/profile/edit" class="follow-btn">プロフィール編集</a>
@@ -93,11 +82,8 @@
 
   </section>
 
-  <!-- ======================
-       愛車
-  ====================== -->
+  <!-- 愛車 -->
   <section class="car-section">
-
     <div class="section-head">
       <h3>愛車</h3>
       {% if me_user_id == target_user_id %}
@@ -112,12 +98,9 @@
         </span>
       {% endfor %}
     </div>
-
   </section>
 
-  <!-- ======================
-       投稿
-  ====================== -->
+  <!-- 投稿 -->
   <div class="posts">
 
     {% for post in posts %}
@@ -126,8 +109,8 @@
       <div class="post-top">
         <div class="post-title">
 
-          {% if post.icon %}
-            <div class="avatar"><img src="{{ post.icon }}"></div>
+          {% if post.user_icon %}
+            <div class="avatar"><img src="{{ post.user_icon }}"></div>
           {% elif profile and profile[4] %}
             <div class="avatar"><img src="{{ profile[4] }}"></div>
           {% else %}
@@ -135,7 +118,8 @@
           {% endif %}
 
           <div class="post-user">
-            {{ display_name if display_name else username }}:{{ post.car_name if post.car_name else profile[1] }}
+            {{ post.display_name if post.display_name else post.username }}:
+            {{ post.car if post.car else profile[1] }}
           </div>
 
         </div>
@@ -185,6 +169,7 @@
             💬 <span class="count">{{ post.comment_count }}</span>
           </a>
 
+          <!-- 🔥 完全版いいね -->
           <button type="button"
                   class="like-btn {% if post.liked %}liked{% endif %}"
                   data-post-id="{{ post.id }}">
@@ -204,6 +189,7 @@
 
 </main>
 
+<!-- 投稿クリック -->
 <script>
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
@@ -213,12 +199,14 @@ document.addEventListener("click", (e) => {
 });
 </script>
 
+<!-- いいね -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".like-btn");
   if (!btn) return;
 
   const postId = btn.dataset.postId;
+
   const res = await fetch(`/api/like/${postId}`, {
     method: "POST",
     credentials: "same-origin"
@@ -227,8 +215,14 @@ document.addEventListener("click", async (e) => {
   if (!res.ok) return;
 
   const data = await res.json();
+
+  // 状態更新
   btn.classList.toggle("liked", data.liked);
   btn.querySelector(".like-count").textContent = data.likes;
+
+  // 💥 追加：軽いアニメーション
+  btn.classList.add("like-anim");
+  setTimeout(() => btn.classList.remove("like-anim"), 300);
 });
 </script>
 

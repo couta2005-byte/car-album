@@ -1106,6 +1106,9 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
     finally:
         cur.close()
 
+    # 🔥 ここ追加（1回だけ取得）
+    liked_posts = get_liked_posts(db, me_user_id, None)
+
     post_ids = [r[0] for r in rows]
     comments_map = fetch_comments_for_posts(db, post_ids, me_user_id)
     images_map = fetch_images_for_posts(db, post_ids)
@@ -1140,10 +1143,13 @@ def fetch_posts(db, me_user_id: Optional[str], where_sql="", params=(), order_sq
             "likes": r[11],
             "user_icon": r[12],
             "comments": post_comments,
-            "comment_count": len(post_comments)
-        })
-    return posts
+            "comment_count": len(post_comments),
 
+            # 🔥 これが今回の核心
+            "liked": (pid in liked_posts),
+        })
+
+    return posts
 
 # ======================
 # ★ recommend fetch（修正版） + ✅複数画像対応
@@ -1192,6 +1198,9 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
     finally:
         cur.close()
 
+    # 🔥 追加（これが超重要）
+    liked_posts = get_liked_posts(db, me_user_id, None)
+
     post_ids = [r[0] for r in rows]
     comments_map = fetch_comments_for_posts(db, post_ids, me_user_id)
     images_map = fetch_images_for_posts(db, post_ids)
@@ -1227,10 +1236,12 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
             "comment_count": len(post_comments),
             "user_icon": r[13],
             "comments": post_comments,
+
+            # 🔥 これ追加
+            "liked": (pid in liked_posts),
         })
+
     return posts
-
-
 # ======================
 # top
 # ======================
