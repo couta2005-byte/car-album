@@ -4618,3 +4618,24 @@ body {
   gap:10px !important;
   margin-left:auto !important;
 }
+.insta-name-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.admin-mini-btn{
+  text-decoration:none;
+  font-size:12px;
+  font-weight:900;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#111;
+  color:#fff;
+  border:1px solid #111;
+}
+
+.admin-mini-btn:hover{
+  opacity:.9;
+}
