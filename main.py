@@ -1569,7 +1569,7 @@ def ranking(
     finally:
         db.close()
 
-    return templates.TemplateResponse("ranking.html", {
+    return templates.TemplateResponse(request, "ranking.html", {
         "request": request,
         "posts": posts,
         "user": me_username,
@@ -1613,7 +1613,7 @@ def post_detail(request: Request, post_id: int, user: str = Cookie(default=None)
     finally:
         db.close()
 
-    return templates.TemplateResponse("post_detail.html", {
+    return templates.TemplateResponse(request, "post_detail.html", {
         "request": request,
         "post": post,
         "user": me_username,
@@ -1836,7 +1836,7 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         cur.close()
         db.close()
 
-    return templates.TemplateResponse("profile.html", {
+    return templates.TemplateResponse(request, "profile.html", {
         "request": request,
         "username": username,
         "profile": prof,
@@ -1899,8 +1899,8 @@ def profile_edit_page(
         db.close()
 
     return templates.TemplateResponse(
+        request,
         "profile_edit.html",
-        {
             "request": request,
             "user": me_username,
             "me_user_id": me_user_id,
@@ -2655,7 +2655,7 @@ def dm_room(
         cur.close()
         db.close()
 
-    return templates.TemplateResponse("dm_room.html", {
+    return templates.TemplateResponse(request, "dm_room.html", {
         "request": request,
         "room_id": room_id,
         "messages": messages,
@@ -2855,8 +2855,8 @@ def dm_list(
         db.close()
 
     return templates.TemplateResponse(
+        request,
         "dm_list.html",
-        {
             "request": request,
             "rooms": rooms,
             "user": me_username,
@@ -2916,7 +2916,7 @@ def following_page(
         cur.close()
         db.close()
 
-    return templates.TemplateResponse("following.html", {
+    return templates.TemplateResponse(request, "following.html", {
         "request": request,
         "users": users,
         "user": me_username,
@@ -2973,7 +2973,7 @@ def followers_page(
         cur.close()
         db.close()
 
-    return templates.TemplateResponse("followers.html", {
+    TemplateResponse(request, "followers.html",
         "request": request,
         "users": users,
         "user": me_username,
@@ -3007,7 +3007,7 @@ def admin_dashboard(request: Request, user: str = Cookie(None), uid: str = Cooki
         cur.close()
         db.close()
 
-    return templates.TemplateResponse("admin.html", {
+    return templates.TemplateResponse(request, "admin.html", {
         "request": request,
         "user_count": user_count,
         "post_count": post_count,
@@ -3041,7 +3041,7 @@ def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(No
         cur.close()
         db.close()
 
-    return templates.TemplateResponse("admin_users.html", {
+    TemplateResponse(request, "admin_users.html",
         "request": request,
         "users": users,
         "user": me_username,
@@ -3181,7 +3181,7 @@ def admin_posts(request: Request, user: str = Cookie(None), uid: str = Cookie(No
         cur.close()
         db.close()
 
-    return templates.TemplateResponse("admin_posts.html", {
+    return templates.TemplateResponse(request, "admin_posts.html", {
         "request": request,
         "posts": posts,
         "user": me_username,
@@ -3229,7 +3229,7 @@ def report_page(request: Request, post_id: int, user: str = Cookie(None), uid: s
     finally:
         db.close()
 
-    return templates.TemplateResponse("report.html", {
+    return templates.TemplateResponse(request, "report.html", {
         "request": request,
         "post_id": post_id
     })
@@ -3313,7 +3313,7 @@ def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(
         cur.close()
         db.close()
 
-    return templates.TemplateResponse("admin_reports.html", {
+    return templates.TemplateResponse(request, "admin_reports.html", {
         "request": request,
         "reports": reports,
         "user": me_username,
@@ -3507,8 +3507,8 @@ def map_page(
         db.close()
 
     return templates.TemplateResponse(
+        request,
         "map.html",
-        {
             "request": request,
             "user": me_username,
             "me_user_id": me_user_id,
@@ -3600,8 +3600,8 @@ def add_car_page(
         my_cars = fetch_user_cars(db, me_user_id)
 
         return templates.TemplateResponse(
+            request,
             "add_car.html",
-            {
                 "request": request,
                 "user": me_username,
                 "me": me_username,
