@@ -159,7 +159,7 @@
 
       {% elif post.images and post.images|length == 1 %}
         <div class="post-image">
-          <img src="{{ post.images[0] }}">
+          <img src="{{ post.images | first }}">
         </div>
 
       {% elif post.image %}
