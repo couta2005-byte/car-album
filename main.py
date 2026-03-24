@@ -2107,15 +2107,46 @@ def set_primary_user_car(
 # follow / unfollow（handleでもOK）
 # ======================
 def resolve_target_user(db, key: str):
-    row = resolve_user_by_key(db, key)
-    if not row:
-        return None
-    target_user_id = str(row[0])
-    target_username = row[1]
-    target_handle = row[3]
-    target_key = target_handle if target_handle else target_username
-    return target_user_id, target_username, target_key
+    cur = db.cursor()
+    try:
+        # ① UUID対応 ← ★これが今回の本質
+        try:
+            uuid_obj = uuid.UUID(key)
+            cur.execute("SELECT id, username, display_name, handle FROM users WHERE id=%s", (str(uuid_obj),))
+            row = cur.fetchone()
+            if row:
+                target_user_id = str(row[0])
+                target_username = row[1]
+                target_handle = row[3]
+                target_key = target_handle if target_handle else target_username
+                return target_user_id, target_username, target_key
+        except:
+            pass
 
+        # ② handle
+        cur.execute("SELECT id, username, display_name, handle FROM users WHERE handle=%s", (key,))
+        row = cur.fetchone()
+        if row:
+            target_user_id = str(row[0])
+            target_username = row[1]
+            target_handle = row[3]
+            target_key = target_handle if target_handle else target_username
+            return target_user_id, target_username, target_key
+
+        # ③ username
+        cur.execute("SELECT id, username, display_name, handle FROM users WHERE username=%s", (key,))
+        row = cur.fetchone()
+        if row:
+            target_user_id = str(row[0])
+            target_username = row[1]
+            target_handle = row[3]
+            target_key = target_handle if target_handle else target_username
+            return target_user_id, target_username, target_key
+
+        return None
+
+    finally:
+        cur.close()
 
 @app.post("/follow/{key}")
 def follow(key: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
