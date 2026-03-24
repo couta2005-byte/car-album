@@ -1797,13 +1797,18 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
     db = get_db()
     cur = db.cursor()
     try:
+        # ======================
+        # ログイン情報
+        # ======================
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
-
         is_admin = is_admin_user(db, me_user_id)
 
+        # ======================
+        # 対象ユーザー取得
+        # ======================
         urow = resolve_user_by_key(db, key)
         if not urow:
             return RedirectResponse("/", status_code=303)
@@ -1813,12 +1818,36 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         display_name = urow[2]
         handle = urow[3]
 
-        cur.execute("SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s", (target_user_id,))
-        prof = cur.fetchone()
+        # ======================
+        # 🔥 profile（dict化）
+        # ======================
+        cur.execute(
+            "SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s",
+            (target_user_id,)
+        )
+        row = cur.fetchone()
 
+        profile = {
+            "maker": row[0] if row else "",
+            "car": row[1] if row else "",
+            "region": row[2] if row else "",
+            "bio": row[3] if row else "",
+            "icon": row[4] if row else "",
+        }
+
+        # ======================
+        # 投稿
+        # ======================
         posts = fetch_posts(db, me_user_id, "WHERE p.user_id=%s", (target_user_id,))
+
+        # ======================
+        # 愛車
+        # ======================
         target_user_cars = fetch_user_cars(db, target_user_id)
 
+        # ======================
+        # フォロー情報
+        # ======================
         cur.execute("SELECT COUNT(*) FROM follows WHERE follower_id=%s", (target_user_id,))
         follow_count = cur.fetchone()[0]
 
@@ -1827,7 +1856,10 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
 
         is_following = False
         if me_user_id and me_user_id != target_user_id:
-            cur.execute("SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s", (me_user_id, target_user_id))
+            cur.execute(
+                "SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s",
+                (me_user_id, target_user_id)
+            )
             is_following = cur.fetchone() is not None
 
         liked_posts = get_liked_posts(db, me_user_id, me_username)
@@ -1836,29 +1868,37 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         cur.close()
         db.close()
 
+    # ======================
+    # レンダリング
+    # ======================
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "profile": prof,
-        "me": me_username,
+        "display_name": display_name,
+        "handle": handle,
+
+        "profile": profile,  # 🔥 dictで渡す
+
         "user": me_username,
+        "me": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
         "user_icon": user_icon,
         "unread_dm": unread_dm,
+
         "target_user_id": target_user_id,
         "is_following": is_following,
         "follow_count": follow_count,
         "follower_count": follower_count,
-        "liked_posts": liked_posts,
-        "display_name": display_name,
-        "handle": handle,
-        "mode": "profile",
+
         "posts": posts,
+        "liked_posts": liked_posts,
+
         "is_admin": is_admin,
         "user_cars": target_user_cars,
-    })
 
+        "mode": "profile",
+    })
 
 # ======================
 # profile edit page（GET）

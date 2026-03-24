@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_ADMIN_FINAL">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_FINAL_DICT">
 </head>
 <body>
 
@@ -17,8 +17,8 @@
 
     <div class="insta-top">
 
-      {% if profile and profile|length > 4 and profile[4] %}
-        <img src="{{ profile[4] }}" class="insta-avatar">
+      {% if profile.icon %}
+        <img src="{{ profile.icon }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar fallback"></div>
       {% endif %}
@@ -44,7 +44,6 @@
 
     <div class="insta-info">
 
-      <!-- 🔥 名前＋Admin -->
       <div class="insta-name-row">
         <div class="insta-name">
           {{ display_name if display_name else username }}
@@ -60,12 +59,13 @@
       </div>
 
       <div class="insta-car">
-        {{ profile[0] if profile and profile|length > 0 else "" }}{{ profile[1] if profile and profile|length > 1 else "" }} 
+        {{ profile.maker }} {{ profile.car }}
       </div>
 
       <div class="insta-bio">
-        {{ profile[3] if profile and profile|length > 3 and profile[3] else "自己紹介なし" }}
+        {{ profile.bio if profile.bio else "自己紹介なし" }}
       </div>
+
     </div>
 
     <!-- アクション -->
@@ -122,9 +122,9 @@
             <div class="avatar">
               <img src="{{ post.user_icon }}">
             </div>
-          {% elif profile and profile|length > 4 and profile[4] %}
+          {% elif profile.icon %}
             <div class="avatar">
-              <img src="{{ profile[4] }}">
+              <img src="{{ profile.icon }}">
             </div>
           {% else %}
             <div class="avatar">
@@ -134,7 +134,7 @@
 
           <div class="post-user">
             {{ post.display_name if post.display_name else post.username }}:
-            {{ post.car if post.car else (profile[1] if profile and profile|length > 1 else "") }}
+            {{ post.car if post.car else profile.car }}
           </div>
 
         </div>
@@ -203,7 +203,6 @@
 
 </main>
 
-<!-- 投稿クリック -->
 <script>
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
@@ -213,7 +212,6 @@ document.addEventListener("click", (e) => {
 });
 </script>
 
-<!-- いいね -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".like-btn");
