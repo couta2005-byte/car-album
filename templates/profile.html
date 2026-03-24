@@ -122,7 +122,7 @@
             <div class="avatar">
               <img src="{{ post.user_icon }}">
             </div>
-          {% elif profile and profile[4] %}
+          {% elif profile and profile|length > 4 and profile[4] %}
             <div class="avatar">
               <img src="{{ profile[4] }}">
             </div>
@@ -134,7 +134,7 @@
 
           <div class="post-user">
             {{ post.display_name if post.display_name else post.username }}:
-            {{ post.car if post.car else (profile[1] if profile else "") }}
+            {{ post.car if post.car else (profile[1] if profile and profile|length > 1 else "") }}
           </div>
 
         </div>
