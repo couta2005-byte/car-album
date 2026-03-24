@@ -2,9 +2,9 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
+  <title>{{ (display_name if display_name else username) }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_ADMIN_FINAL">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_SAFE_FINAL">
 </head>
 <body>
 
@@ -17,7 +17,7 @@
 
     <div class="insta-top">
 
-      {% if profile and profile[4] %}
+      {% if profile and profile|length > 4 and profile[4] %}
         <img src="{{ profile[4] }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar fallback"></div>
@@ -44,7 +44,6 @@
 
     <div class="insta-info">
 
-      <!-- 🔥 名前＋Admin -->
       <div class="insta-name-row">
         <div class="insta-name">
           {{ display_name if display_name else username }}
@@ -60,11 +59,12 @@
       </div>
 
       <div class="insta-car">
-        {{ profile[0] if profile else "" }} {{ profile[1] if profile else "" }}
+        {{ profile[0] if profile and profile|length > 0 else "" }}
+        {{ profile[1] if profile and profile|length > 1 else "" }}
       </div>
 
       <div class="insta-bio">
-        {{ profile[3] if profile and profile[3] else "自己紹介なし" }}
+        {{ profile[3] if profile and profile|length > 3 and profile[3] else "自己紹介なし" }}
       </div>
     </div>
 
@@ -120,7 +120,7 @@
 
           {% if post.user_icon %}
             <div class="avatar"><img src="{{ post.user_icon }}"></div>
-          {% elif profile and profile[4] %}
+          {% elif profile and profile|length > 4 and profile[4] %}
             <div class="avatar"><img src="{{ profile[4] }}"></div>
           {% else %}
             <span class="avatar-fallback"></span>
@@ -128,7 +128,7 @@
 
           <div class="post-user">
             {{ post.display_name if post.display_name else post.username }}:
-            {{ post.car if post.car else profile[1] }}
+            {{ post.car if post.car else (profile[1] if profile and profile|length > 1 else "") }}
           </div>
 
         </div>
@@ -196,41 +196,6 @@
   </div>
 
 </main>
-
-<!-- 投稿クリック -->
-<script>
-document.addEventListener("click", (e) => {
-  const post = e.target.closest(".post");
-  if (!post) return;
-  if (e.target.closest("a,button,form,img")) return;
-  location.href = post.dataset.href;
-});
-</script>
-
-<!-- いいね -->
-<script>
-document.addEventListener("click", async (e) => {
-  const btn = e.target.closest(".like-btn");
-  if (!btn) return;
-
-  const postId = btn.dataset.postId;
-
-  const res = await fetch(`/api/like/${postId}`, {
-    method: "POST",
-    credentials: "same-origin"
-  });
-
-  if (!res.ok) return;
-
-  const data = await res.json();
-
-  btn.classList.toggle("liked", data.liked);
-  btn.querySelector(".like-count").textContent = data.likes;
-
-  btn.classList.add("like-anim");
-  setTimeout(() => btn.classList.remove("like-anim"), 300);
-});
-</script>
 
 </body>
 </html>
