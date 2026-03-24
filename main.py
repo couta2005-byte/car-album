@@ -1248,62 +1248,79 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
 @app.get("/", response_class=HTMLResponse)
 def index(
     request: Request,
-    tab: str = Query(default="recommend"),
-    user: str = Cookie(default=None),
-    uid: str = Cookie(default=None),
+    user: str = Cookie(None),
+    uid: str = Cookie(None),
+    tab: str = "recommend"
 ):
     db = get_db()
-    try:
-        me_username, me_user_id = get_me_from_cookies(db, user, uid)
-        me_handle = get_me_handle(db, me_user_id)
-        user_icon = get_my_icon(db, me_user_id)
-        unread_dm = has_unread_dm(db, me_user_id)
-        liked_posts = get_liked_posts(db, me_user_id, me_username)
-        is_admin = is_admin_user(db, me_user_id)
-        my_maker, my_car = get_my_profile_car(db, me_user_id)
-        my_cars = fetch_user_cars(db, me_user_id)
+    cur = db.cursor()
 
-        if tab == "recommend":
-            posts = fetch_posts_recommend(db, me_user_id)
-        elif tab == "follow" and me_user_id:
-            posts = fetch_posts(
-                db,
-                me_user_id,
-                "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
-                (me_user_id,),
-            )
-        elif tab == "new":
-            posts = fetch_posts(
-                db,
-                me_user_id,
-                order_sql="ORDER BY p.created_at DESC"
-            )
+    try:
+        # ログインユーザー取得
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+
+        me_handle = None
+        user_icon = None
+        unread_dm = 0
+        liked_posts = set()
+        is_admin = False
+        my_maker = None
+        my_car = None
+        my_cars = []
+
+        if me_user_id:
+            me_handle = get_me_handle(db, me_user_id)
+            user_icon = get_my_icon(db, me_user_id)
+            unread_dm = has_unread_dm(db, me_user_id)
+            liked_posts = get_liked_posts(db, me_user_id, me_username)
+            is_admin = is_admin_user(db, me_user_id)
+            my_maker, my_car = get_my_profile_car(db, me_user_id)
+            my_cars = fetch_user_cars(db, me_user_id)
+
+        # 投稿取得（タブ切り替え）
+        if tab == "follow" and me_user_id:
+            cur.execute("""
+                SELECT p.id, p.user_id, p.username, p.content, p.created_at
+                FROM posts p
+                JOIN follows f ON p.user_id = f.followee_id
+                WHERE f.follower_id = %s
+                ORDER BY p.id DESC
+                LIMIT 50
+            """, (me_user_id,))
         else:
-            posts = fetch_posts(
-                db,
-                me_user_id,
-                order_sql="ORDER BY p.id DESC"
-            )
+            cur.execute("""
+                SELECT p.id, p.user_id, p.username, p.content, p.created_at
+                FROM posts p
+                ORDER BY p.id DESC
+                LIMIT 50
+            """)
+
+        posts = cur.fetchall()
+
     finally:
+        cur.close()
         db.close()
 
-    return templates.TemplateResponse(request, "index.html", {
-        "request": request,
-        "posts": posts,
-        "user": me_username,
-        "me_user_id": me_user_id,
-        "me_handle": me_handle,
-        "user_icon": user_icon,
-        "unread_dm": unread_dm,
-        "liked_posts": list(liked_posts),
-        "mode": "home",
-        "tab": tab,
-        "is_admin": is_admin,
-        "my_maker": my_maker,
-        "my_car": my_car,
-        "my_cars": my_cars,
-    })
-
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {
+            "request": request,
+            "posts": posts,
+            "user": me_username,
+            "me_user_id": me_user_id,
+            "me_handle": me_handle,
+            "user_icon": user_icon,
+            "unread_dm": unread_dm,
+            "liked_posts": list(liked_posts),
+            "mode": "home",
+            "tab": tab,
+            "is_admin": is_admin,
+            "my_maker": my_maker,
+            "my_car": my_car,
+            "my_cars": my_cars,
+        }
+    )
 
 # ======================
 # auth pages（errorをテンプレに渡す）
@@ -1320,7 +1337,7 @@ def login_page(request: Request, user: str = Cookie(default=None), uid: str = Co
         db.close()
 
     error = request.query_params.get("error", "")
-    return templates.TemplateResponse("login.html", {
+    return templates.TemplateResponse(request, "login.html", {
         "request": request,
         "user": me_username,
         "me_user_id": me_user_id,
@@ -1344,7 +1361,7 @@ def register_page(request: Request, user: str = Cookie(default=None), uid: str =
         db.close()
 
     error = request.query_params.get("error", "")
-    return templates.TemplateResponse("register.html", {
+    return templates.TemplateResponse(request, "register.html", {
         "request": request,
         "user": me_username,
         "me_user_id": me_user_id,
@@ -1406,7 +1423,7 @@ def search(
     finally:
         db.close()
 
-    return templates.TemplateResponse("search.html", {
+    return templates.TemplateResponse(request, "search.html", {
         "request": request,
         "posts": posts,
         "user": me_username,
@@ -1901,6 +1918,7 @@ def profile_edit_page(
     return templates.TemplateResponse(
         request,
         "profile_edit.html",
+        {
             "request": request,
             "user": me_username,
             "me_user_id": me_user_id,
@@ -1914,7 +1932,6 @@ def profile_edit_page(
             "mode": "profile_edit",
         }
     )
-
 
 # ======================
 # profile edit（icon + display_name/handle + region/bio）
@@ -2803,18 +2820,12 @@ def dm_list(
 
         cur.execute("""
             SELECT
-                r.id AS room_id,
-                u.id AS partner_id,
+                r.id,
+                u.id,
                 u.username,
                 u.display_name,
                 u.handle,
-                p.icon,
-                last_m.body,
-                last_m.created_at,
-                COUNT(m.id) FILTER (
-                  WHERE m.read_at IS NULL
-                    AND m.sender_id <> %s
-                ) AS unread_count
+                p.icon
             FROM dm_rooms r
             JOIN users u
               ON u.id = CASE
@@ -2822,31 +2833,8 @@ def dm_list(
                 ELSE r.user1_id
               END
             LEFT JOIN profiles p ON p.user_id = u.id
-
-            LEFT JOIN dm_messages last_m
-              ON last_m.id = (
-                SELECT id
-                FROM dm_messages
-                WHERE room_id = r.id
-                ORDER BY created_at DESC
-                LIMIT 1
-              )
-
-            LEFT JOIN dm_messages m
-              ON m.room_id = r.id
-
             WHERE %s IN (r.user1_id, r.user2_id)
-            GROUP BY
-                r.id,
-                u.id,
-                u.username,
-                u.display_name,
-                u.handle,
-                p.icon,
-                last_m.body,
-                last_m.created_at
-            ORDER BY last_m.created_at DESC NULLS LAST
-        """, (me_user_id, me_user_id, me_user_id))
+        """, (me_user_id, me_user_id))
 
         rooms = cur.fetchall()
 
@@ -2857,6 +2845,7 @@ def dm_list(
     return templates.TemplateResponse(
         request,
         "dm_list.html",
+        {
             "request": request,
             "rooms": rooms,
             "user": me_username,
@@ -2865,10 +2854,8 @@ def dm_list(
             "user_icon": user_icon,
             "unread_dm": unread_dm,
             "mode": "dm",
-            "timedelta": timedelta,
         }
     )
-
 
 # =========================
 # フォロー一覧
@@ -2964,7 +2951,6 @@ def followers_page(
             JOIN users u ON f.follower_id = u.id
             LEFT JOIN profiles p ON p.user_id = u.id
             WHERE f.followee_id = %s
-            ORDER BY u.username
         """, (target_user_id,))
 
         users = cur.fetchall()
@@ -2973,17 +2959,19 @@ def followers_page(
         cur.close()
         db.close()
 
-    TemplateResponse(request, "followers.html",
-        "request": request,
-        "users": users,
-        "user": me_username,
-        "me_user_id": me_user_id,
-        "me_handle": me_handle,
-        "user_icon": user_icon,
-        "unread_dm": unread_dm,
-    })
-
-
+    return templates.TemplateResponse(
+        request,
+        "followers.html",
+        {
+            "request": request,
+            "users": users,
+            "user": me_username,
+            "me_user_id": me_user_id,
+            "me_handle": me_handle,
+            "user_icon": user_icon,
+            "unread_dm": unread_dm,
+        }
+    )
 # ======================
 # ADMIN（最終版）
 # ======================
@@ -3041,15 +3029,18 @@ def admin_users(request: Request, user: str = Cookie(None), uid: str = Cookie(No
         cur.close()
         db.close()
 
-    TemplateResponse(request, "admin_users.html",
-        "request": request,
-        "users": users,
-        "user": me_username,
-        "me": me_username,
-        "me_user_id": me_user_id,
-        "mode": "admin",
-    })
-
+    return templates.TemplateResponse(
+        request,
+        "admin_users.html",
+        {
+            "request": request,
+            "users": users,
+            "user": me_username,
+            "me": me_username,
+            "me_user_id": me_user_id,
+            "mode": "admin",
+        }
+    )
 
 @app.post("/admin/users/delete/{user_id}")
 def admin_delete_user(request: Request, user_id: str, user: str = Cookie(None), uid: str = Cookie(None)):
@@ -3495,7 +3486,6 @@ def map_page(
     user: str = Cookie(default=None),
     uid: str = Cookie(default=None),
 ):
-
     db = get_db()
 
     try:
@@ -3509,6 +3499,7 @@ def map_page(
     return templates.TemplateResponse(
         request,
         "map.html",
+        {
             "request": request,
             "user": me_username,
             "me_user_id": me_user_id,
@@ -3602,6 +3593,7 @@ def add_car_page(
         return templates.TemplateResponse(
             request,
             "add_car.html",
+            {
                 "request": request,
                 "user": me_username,
                 "me": me_username,
@@ -3627,7 +3619,6 @@ def add_car_page(
 
     finally:
         db.close()
-
 
 # =========================
 # 愛車追加（POST）
