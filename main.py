@@ -1797,18 +1797,13 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
     db = get_db()
     cur = db.cursor()
     try:
-        # ======================
-        # ログイン情報
-        # ======================
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         me_handle = get_me_handle(db, me_user_id)
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
+
         is_admin = is_admin_user(db, me_user_id)
 
-        # ======================
-        # 対象ユーザー取得
-        # ======================
         urow = resolve_user_by_key(db, key)
         if not urow:
             return RedirectResponse("/", status_code=303)
@@ -1818,36 +1813,12 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         display_name = urow[2]
         handle = urow[3]
 
-        # ======================
-        # 🔥 profile（dict化）
-        # ======================
-        cur.execute(
-            "SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s",
-            (target_user_id,)
-        )
-        row = cur.fetchone()
+        cur.execute("SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s", (target_user_id,))
+        prof = cur.fetchone()
 
-        profile = {
-            "maker": row[0] if row else "",
-            "car": row[1] if row else "",
-            "region": row[2] if row else "",
-            "bio": row[3] if row else "",
-            "icon": row[4] if row else "",
-        }
-
-        # ======================
-        # 投稿
-        # ======================
         posts = fetch_posts(db, me_user_id, "WHERE p.user_id=%s", (target_user_id,))
-
-        # ======================
-        # 愛車
-        # ======================
         target_user_cars = fetch_user_cars(db, target_user_id)
 
-        # ======================
-        # フォロー情報
-        # ======================
         cur.execute("SELECT COUNT(*) FROM follows WHERE follower_id=%s", (target_user_id,))
         follow_count = cur.fetchone()[0]
 
@@ -1856,10 +1827,7 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
 
         is_following = False
         if me_user_id and me_user_id != target_user_id:
-            cur.execute(
-                "SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s",
-                (me_user_id, target_user_id)
-            )
+            cur.execute("SELECT 1 FROM follows WHERE follower_id=%s AND followee_id=%s", (me_user_id, target_user_id))
             is_following = cur.fetchone() is not None
 
         liked_posts = get_liked_posts(db, me_user_id, me_username)
@@ -1868,37 +1836,29 @@ def profile(request: Request, key: str, user: str = Cookie(default=None), uid: s
         cur.close()
         db.close()
 
-    # ======================
-    # レンダリング
-    # ======================
     return templates.TemplateResponse("profile.html", {
         "request": request,
         "username": username,
-        "display_name": display_name,
-        "handle": handle,
-
-        "profile": profile,  # 🔥 dictで渡す
-
-        "user": me_username,
+        "profile": prof,
         "me": me_username,
+        "user": me_username,
         "me_user_id": me_user_id,
         "me_handle": me_handle,
         "user_icon": user_icon,
         "unread_dm": unread_dm,
-
         "target_user_id": target_user_id,
         "is_following": is_following,
         "follow_count": follow_count,
         "follower_count": follower_count,
-
-        "posts": posts,
         "liked_posts": liked_posts,
-
+        "display_name": display_name,
+        "handle": handle,
+        "mode": "profile",
+        "posts": posts,
         "is_admin": is_admin,
         "user_cars": target_user_cars,
-
-        "mode": "profile",
     })
+
 
 # ======================
 # profile edit page（GET）
@@ -1910,6 +1870,7 @@ def profile_edit_page(
     uid: str = Cookie(default=None),
 ):
     db = get_db()
+    cur = db.cursor()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
@@ -1919,52 +1880,41 @@ def profile_edit_page(
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
-        cur = db.cursor()
-        try:
-            cur.execute("""
-                SELECT maker, car, region, bio, icon
-                FROM profiles
-                WHERE user_id=%s
-            """, (me_user_id,))
-            row = cur.fetchone()
-        finally:
-            cur.close()
+        cur.execute(
+            "SELECT maker, car, region, bio, icon FROM profiles WHERE user_id=%s",
+            (me_user_id,)
+        )
+        profile = cur.fetchone()
 
-        # ✅ dict化（←これ超重要）
-        if row:
-            profile = {
-                "maker": row[0] or "",
-                "car": row[1] or "",
-                "region": row[2] or "",
-                "bio": row[3] or "",
-                "icon": row[4] or "",
-            }
-        else:
-            profile = {
-                "maker": "",
-                "car": "",
-                "region": "",
-                "bio": "",
-                "icon": "",
-            }
+        cur.execute(
+            "SELECT display_name, handle FROM users WHERE id=%s",
+            (me_user_id,)
+        )
+        u = cur.fetchone()
 
-        # 愛車一覧
         my_cars = fetch_user_cars(db, me_user_id)
 
     finally:
+        cur.close()
         db.close()
 
-    return templates.TemplateResponse("profile_edit.html", {
-        "request": request,
-        "user": me_username,
-        "me_user_id": me_user_id,
-        "me_handle": me_handle,
-        "user_icon": user_icon,
-        "unread_dm": unread_dm,
-        "profile": profile,
-        "my_cars": my_cars,
-        "mode": "profile_edit",
-    })
+    return templates.TemplateResponse(
+        "profile_edit.html",
+        {
+            "request": request,
+            "user": me_username,
+            "me_user_id": me_user_id,
+            "me_handle": me_handle,
+            "user_icon": user_icon,
+            "unread_dm": unread_dm,
+            "display_name": u[0] if u else "",
+            "handle": u[1] if u else "",
+            "profile": profile,
+            "my_cars": my_cars,
+            "mode": "profile_edit",
+        }
+    )
+
 
 # ======================
 # profile edit（icon + display_name/handle + region/bio）
@@ -1989,9 +1939,6 @@ def profile_edit(
     finally:
         db.close()
 
-    # ======================
-    # バリデーション
-    # ======================
     display_name = (display_name or "").strip()
     if not display_name:
         display_name = me_username
@@ -2007,9 +1954,6 @@ def profile_edit(
 
     handle_norm = normalize_login_id(handle)
 
-    # ======================
-    # 画像アップロード
-    # ======================
     icon_url = None
     if icon and icon.filename:
         result = cloudinary.uploader.upload(
@@ -2022,21 +1966,13 @@ def profile_edit(
         )
         icon_url = result.get("secure_url")
 
-    # ======================
-    # DB処理（ここで全部やる）
-    # ======================
     def _do(db, cur):
         final_handle = handle_norm
-
         if final_handle is not None:
-            cur.execute(
-                "SELECT 1 FROM users WHERE handle=%s AND id<>%s LIMIT 1",
-                (final_handle, me_user_id)
-            )
-            if cur.fetchone():
+            cur.execute("SELECT 1 FROM users WHERE handle=%s AND id<>%s LIMIT 1", (final_handle, me_user_id))
+            if cur.fetchone() is not None:
                 final_handle = None
 
-        # users更新
         cur.execute("""
             UPDATE users
             SET display_name=%s,
@@ -2044,10 +1980,8 @@ def profile_edit(
             WHERE id=%s
         """, (display_name, final_handle, me_user_id))
 
-        # 愛車取得
         primary_maker, primary_car = get_my_profile_car(db, me_user_id)
 
-        # profiles更新
         if icon_url:
             cur.execute("""
                 INSERT INTO profiles (username, user_id, maker, car, region, bio, icon)
@@ -2074,15 +2008,14 @@ def profile_edit(
                     bio=EXCLUDED.bio
             """, (me_username, me_user_id, primary_maker, primary_car, region, bio))
 
-        # handle取得
         cur.execute("SELECT handle FROM users WHERE id=%s", (me_user_id,))
         row = cur.fetchone()
         return row[0] if row else None
 
     new_handle = run_db(_do)
-
     key = new_handle if new_handle else me_username
     return RedirectResponse(f"/user/{quote(key)}", status_code=303)
+
 
 # ======================
 # 🚗 愛車削除

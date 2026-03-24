@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>プロフィール編集 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=9003">
+  <link rel="stylesheet" href="/static/style.css?v=9002">
 </head>
 <body>
 
@@ -24,8 +24,8 @@
     <label>プロフィール画像</label>
 
     <div style="margin-bottom:12px;">
-      {% if profile.icon %}
-        <img src="{{ profile.icon }}"
+      {% if profile and profile|length > 4 and profile[4] %}
+        <img src="{{ profile[4] }}"
              alt="profile icon"
              style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:1px solid #ddd;">
       {% else %}
@@ -53,12 +53,12 @@
     <label>地域</label>
     <input type="text"
            name="region"
-           value="{{ profile.region if profile.region else '' }}"
+           value="{{ profile[2] if profile and profile|length > 2 and profile[2] else '' }}"
            placeholder="例：北海道・旭川">
 
     <!-- 自己紹介 -->
     <label>自己紹介</label>
-    <textarea name="bio" placeholder="愛車やカスタム内容を書こう">{{ profile.bio if profile.bio else '' }}</textarea>
+    <textarea name="bio" placeholder="愛車やカスタム内容を書こう">{{ profile[3] if profile and profile|length > 3 and profile[3] else '' }}</textarea>
 
     <button type="submit" class="primary-btn">保存</button>
 

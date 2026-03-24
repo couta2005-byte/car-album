@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ display_name if display_name else username }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_FINAL_DICT">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_ADMIN_FINAL">
 </head>
 <body>
 
@@ -17,8 +17,8 @@
 
     <div class="insta-top">
 
-      {% if profile.icon %}
-        <img src="{{ profile.icon }}" class="insta-avatar">
+      {% if profile and profile[4] %}
+        <img src="{{ profile[4] }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar fallback"></div>
       {% endif %}
@@ -44,6 +44,7 @@
 
     <div class="insta-info">
 
+      <!-- 🔥 名前＋Admin -->
       <div class="insta-name-row">
         <div class="insta-name">
           {{ display_name if display_name else username }}
@@ -59,13 +60,12 @@
       </div>
 
       <div class="insta-car">
-        {{ profile.maker }} {{ profile.car }}
+        {{ profile[0] if profile else "" }} {{ profile[1] if profile else "" }}
       </div>
 
       <div class="insta-bio">
-        {{ profile.bio if profile.bio else "自己紹介なし" }}
+        {{ profile[3] if profile and profile[3] else "自己紹介なし" }}
       </div>
-
     </div>
 
     <!-- アクション -->
@@ -119,22 +119,16 @@
         <div class="post-title">
 
           {% if post.user_icon %}
-            <div class="avatar">
-              <img src="{{ post.user_icon }}">
-            </div>
-          {% elif profile.icon %}
-            <div class="avatar">
-              <img src="{{ profile.icon }}">
-            </div>
+            <div class="avatar"><img src="{{ post.user_icon }}"></div>
+          {% elif profile and profile[4] %}
+            <div class="avatar"><img src="{{ profile[4] }}"></div>
           {% else %}
-            <div class="avatar">
-              <div class="avatar-fallback"></div>
-            </div>
+            <span class="avatar-fallback"></span>
           {% endif %}
 
           <div class="post-user">
             {{ post.display_name if post.display_name else post.username }}:
-            {{ post.car if post.car else profile.car }}
+            {{ post.car if post.car else profile[1] }}
           </div>
 
         </div>
@@ -159,7 +153,7 @@
 
       {% elif post.images and post.images|length == 1 %}
         <div class="post-image">
-          <img src="{{ post.images | first }}">
+          <img src="{{ post.images[0] }}">
         </div>
 
       {% elif post.image %}
@@ -203,6 +197,7 @@
 
 </main>
 
+<!-- 投稿クリック -->
 <script>
 document.addEventListener("click", (e) => {
   const post = e.target.closest(".post");
@@ -212,6 +207,7 @@ document.addEventListener("click", (e) => {
 });
 </script>
 
+<!-- いいね -->
 <script>
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".like-btn");
