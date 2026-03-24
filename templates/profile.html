@@ -17,7 +17,7 @@
 
     <div class="insta-top">
 
-      {% if profile and profile[4] %}
+      {% if profile and profile|length > 4 and profile[4] %}
         <img src="{{ profile[4] }}" class="insta-avatar">
       {% else %}
         <div class="insta-avatar fallback"></div>
@@ -60,11 +60,11 @@
       </div>
 
       <div class="insta-car">
-        {{ profile[0] if profile else "" }} {{ profile[1] if profile else "" }}
+        {{ profile[0] if profile and profile|length > 0 else "" }}{{ profile[1] if profile and profile|length > 1 else "" }} 
       </div>
 
       <div class="insta-bio">
-        {{ profile[3] if profile and profile[3] else "自己紹介なし" }}
+        {{ profile[3] if profile and profile|length > 3 and profile[3] else "自己紹介なし" }}
       </div>
     </div>
 
@@ -134,7 +134,7 @@
 
           <div class="post-user">
             {{ post.display_name if post.display_name else post.username }}:
-            {{ post.car if post.car else profile[1] }}
+            {{ post.car if post.car else (profile[1] if profile else "") }}
           </div>
 
         </div>
