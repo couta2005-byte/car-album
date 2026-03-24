@@ -1248,57 +1248,43 @@ def fetch_posts_recommend(db, me_user_id: Optional[str]):
 @app.get("/", response_class=HTMLResponse)
 def index(
     request: Request,
-    user: str = Cookie(None),
-    uid: str = Cookie(None),
-    tab: str = "recommend"
+    tab: str = Query(default="recommend"),
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
 ):
     db = get_db()
-    cur = db.cursor()
-
     try:
-        # ログインユーザー取得
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
+        liked_posts = get_liked_posts(db, me_user_id, me_username)
+        is_admin = is_admin_user(db, me_user_id)
+        my_maker, my_car = get_my_profile_car(db, me_user_id)
+        my_cars = fetch_user_cars(db, me_user_id)
 
-        me_handle = None
-        user_icon = None
-        unread_dm = 0
-        liked_posts = set()
-        is_admin = False
-        my_maker = None
-        my_car = None
-        my_cars = []
-
-        if me_user_id:
-            me_handle = get_me_handle(db, me_user_id)
-            user_icon = get_my_icon(db, me_user_id)
-            unread_dm = has_unread_dm(db, me_user_id)
-            liked_posts = get_liked_posts(db, me_user_id, me_username)
-            is_admin = is_admin_user(db, me_user_id)
-            my_maker, my_car = get_my_profile_car(db, me_user_id)
-            my_cars = fetch_user_cars(db, me_user_id)
-
-        # 投稿取得（タブ切り替え）
-        if tab == "follow" and me_user_id:
-            cur.execute("""
-                SELECT p.id, p.user_id, p.username, p.content, p.created_at
-                FROM posts p
-                JOIN follows f ON p.user_id = f.followee_id
-                WHERE f.follower_id = %s
-                ORDER BY p.id DESC
-                LIMIT 50
-            """, (me_user_id,))
+        if tab == "recommend":
+            posts = fetch_posts_recommend(db, me_user_id)
+        elif tab == "follow" and me_user_id:
+            posts = fetch_posts(
+                db,
+                me_user_id,
+                "JOIN follows f ON p.user_id = f.followee_id WHERE f.follower_id=%s",
+                (me_user_id,),
+            )
+        elif tab == "new":
+            posts = fetch_posts(
+                db,
+                me_user_id,
+                order_sql="ORDER BY p.created_at DESC"
+            )
         else:
-            cur.execute("""
-                SELECT p.id, p.user_id, p.username, p.content, p.created_at
-                FROM posts p
-                ORDER BY p.id DESC
-                LIMIT 50
-            """)
-
-        posts = cur.fetchall()
-
+            posts = fetch_posts(
+                db,
+                me_user_id,
+                order_sql="ORDER BY p.id DESC"
+            )
     finally:
-        cur.close()
         db.close()
 
     return templates.TemplateResponse(
@@ -1321,7 +1307,6 @@ def index(
             "my_cars": my_cars,
         }
     )
-
 # ======================
 # auth pages（errorをテンプレに渡す）
 # ======================
