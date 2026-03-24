@@ -1287,7 +1287,7 @@ def index(
     finally:
         db.close()
 
-    return templates.TemplateResponse("index.html", {
+    return templates.TemplateResponse(request, "index.html", {
         "request": request,
         "posts": posts,
         "user": me_username,
@@ -1511,7 +1511,7 @@ def following(request: Request, user: str = Cookie(default=None), uid: str = Coo
     finally:
         db.close()
 
-    return templates.TemplateResponse("index.html", {
+    return templates.TemplateResponse(request, "index.html", {
         "request": request,
         "posts": posts,
         "user": me_username,
