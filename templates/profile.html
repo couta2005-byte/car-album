@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ (display_name if display_name else username) }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=CAR_DELETE_FIX">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_CAR_DELETE_FIX_2">
 </head>
 <body>
 
@@ -73,16 +73,16 @@
 
         {% if is_following %}
           <form action="/unfollow/{{ target_user_id }}" method="post">
-            <button class="follow-btn">フォロー解除</button>
+            <button type="submit" class="follow-btn">フォロー解除</button>
           </form>
         {% else %}
           <form action="/follow/{{ target_user_id }}" method="post">
-            <button class="follow-btn">フォローする</button>
+            <button type="submit" class="follow-btn">フォローする</button>
           </form>
         {% endif %}
 
         <form action="/dm/start/{{ target_user_id }}" method="post">
-          <button class="dm-btn">DM</button>
+          <button type="submit" class="dm-btn">DM</button>
         </form>
 
       {% endif %}
@@ -100,24 +100,26 @@
       {% endif %}
     </div>
 
-    <div class="car-tags">
-      {% for c in user_cars %}
-        <span class="car-tag {% if c.is_primary %}main{% endif %}">
+    {% if user_cars and user_cars|length > 0 %}
+      <div class="car-tags">
+        {% for c in user_cars %}
+          <span class="car-tag {% if c.is_primary %}main{% endif %}">
+            {{ c.maker }} {{ c.car_name }}
 
-          {{ c.maker }} {{ c.car_name }}
-
-          {% if me_user_id == target_user_id %}
-            <form action="/profile/cars/delete/{{ c.id }}"
-                  method="post"
-                  style="display:inline;"
-                  onsubmit="return confirm('この車を削除する？');">
-              <button type="submit" class="car-delete-btn">×</button>
-            </form>
-          {% endif %}
-
-        </span>
-      {% endfor %}
-    </div>
+            {% if me_user_id == target_user_id %}
+              <form action="/profile/cars/delete/{{ c.id }}"
+                    method="post"
+                    style="display:inline;"
+                    onsubmit="return confirm('この車を削除する？');">
+                <button type="submit" class="car-delete-btn">×</button>
+              </form>
+            {% endif %}
+          </span>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-text">愛車はまだ登録されていません</p>
+    {% endif %}
   </section>
 
   <!-- 投稿 -->
@@ -138,7 +140,7 @@
           {% endif %}
 
           <div class="post-user">
-            {{ post.display_name if post.display_name else post.username }}
+            {{ post.display_name if post.display_name else post.username }}{% if post.car %}：{{ post.car }}{% endif %}
           </div>
 
         </div>
@@ -177,7 +179,7 @@
         <div class="actions-left">
           {% if me_user_id == post.user_id %}
           <form method="post" action="/delete/{{ post.id }}">
-            <button class="delete-btn">削除</button>
+            <button type="submit" class="delete-btn">削除</button>
           </form>
           {% endif %}
         </div>
@@ -202,6 +204,10 @@
 
     </article>
     {% endfor %}
+
+    {% if not posts or posts|length == 0 %}
+      <p class="empty-text">まだ投稿がありません</p>
+    {% endif %}
 
   </div>
 

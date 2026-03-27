@@ -2065,7 +2065,7 @@ def delete_user_car(
         sync_profile_primary_car(db, me_user_id)
 
     run_db(_do)
-    return RedirectResponse("/profile/edit?deleted=1", status_code=303)
+    return redirect_back(request, fallback=f"/user/{get_me_handle(get_db(), me_user_id)}")
 
 
 # ======================
