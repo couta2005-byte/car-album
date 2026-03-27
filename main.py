@@ -2024,10 +2024,12 @@ def profile_edit(
 # ======================
 @app.post("/profile/cars/delete/{car_id}")
 def delete_user_car(
+    request: Request,
     car_id: int,
     user: str = Cookie(default=None),
     uid: str = Cookie(default=None),
 ):
+
     db = get_db()
     try:
         _, me_user_id = get_me_from_cookies(db, user, uid)
