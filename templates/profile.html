@@ -11,6 +11,7 @@
 {% include "_nav.html" %}
 
 <main class="container">
+  <h1>DEBUG PROFILE</h1>
 
   <!-- プロフィール -->
   <section class="insta-profile">
@@ -56,11 +57,6 @@
 
       <div class="insta-handle">
         @{{ handle if handle else username }}
-      </div>
-
-      <div class="insta-car">
-        {{ profile[0] if profile and profile|length > 0 else "" }}
-        {{ profile[1] if profile and profile|length > 1 else "" }}
       </div>
 
       <div class="insta-bio">
@@ -134,8 +130,7 @@
           {% endif %}
 
           <div class="post-user">
-            {{ post.display_name if post.display_name else post.username }}:
-            {{ post.car if post.car else (profile[1] if profile and profile|length > 1 else "") }}
+            {{ post.display_name if post.display_name else post.username }}
           </div>
 
         </div>
