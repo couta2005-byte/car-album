@@ -4639,3 +4639,26 @@ body {
 .admin-mini-btn:hover{
   opacity:.9;
 }
+
+/* =========================
+   Car Delete Button
+========================= */
+.car-delete-btn{
+  margin-left:6px;
+  background:#ff4d4f;
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  width:20px;
+  height:20px;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.car-delete-btn:hover{
+  background:#e60023;
+}

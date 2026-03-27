@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ (display_name if display_name else username) }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_FINAL_FIX">
+  <link rel="stylesheet" href="/static/style.css?v=CAR_DELETE_FIX">
 </head>
 <body>
 
@@ -72,12 +72,10 @@
       {% else %}
 
         {% if is_following %}
-          <!-- 🔥 修正済み（UUID） -->
           <form action="/unfollow/{{ target_user_id }}" method="post">
             <button class="follow-btn">フォロー解除</button>
           </form>
         {% else %}
-          <!-- 🔥 修正済み（UUID） -->
           <form action="/follow/{{ target_user_id }}" method="post">
             <button class="follow-btn">フォローする</button>
           </form>
@@ -105,7 +103,18 @@
     <div class="car-tags">
       {% for c in user_cars %}
         <span class="car-tag {% if c.is_primary %}main{% endif %}">
+
           {{ c.maker }} {{ c.car_name }}
+
+          {% if me_user_id == target_user_id %}
+            <form action="/profile/cars/delete/{{ c.id }}"
+                  method="post"
+                  style="display:inline;"
+                  onsubmit="return confirm('この車を削除する？');">
+              <button type="submit" class="car-delete-btn">×</button>
+            </form>
+          {% endif %}
+
         </span>
       {% endfor %}
     </div>
