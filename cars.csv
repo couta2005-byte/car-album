@@ -408,7 +408,6 @@ suzuki,ワゴンR
 suzuki,ワゴンRスティングレー
 suzuki,ワゴンRスマイル
 
-
 daihatsu,MAX
 daihatsu,YRV
 daihatsu,アトレー
@@ -550,391 +549,391 @@ hino,プロフィア
 ud_trucks,クオン
 ud_trucks,コンドル
 
-foreign_bmw,1シリーズ
-foreign_bmw,2シリーズ
-foreign_bmw,3シリーズ
-foreign_bmw,4シリーズ
-foreign_bmw,5シリーズ
-foreign_bmw,6シリーズ
-foreign_bmw,7シリーズ
-foreign_bmw,8シリーズ
-foreign_bmw,M2
-foreign_bmw,M3
-foreign_bmw,M4
-foreign_bmw,M5
-foreign_bmw,M8
-foreign_bmw,X1
-foreign_bmw,X2
-foreign_bmw,X3
-foreign_bmw,X4
-foreign_bmw,X5
-foreign_bmw,X6
-foreign_bmw,X7
-foreign_bmw,Z4
-foreign_bmw,i3
-foreign_bmw,i4
-foreign_bmw,i5
-foreign_bmw,i7
-foreign_bmw,iX
+bmw,1シリーズ
+bmw,2シリーズ
+bmw,3シリーズ
+bmw,4シリーズ
+bmw,5シリーズ
+bmw,6シリーズ
+bmw,7シリーズ
+bmw,8シリーズ
+bmw,M2
+bmw,M3
+bmw,M4
+bmw,M5
+bmw,M8
+bmw,X1
+bmw,X2
+bmw,X3
+bmw,X4
+bmw,X5
+bmw,X6
+bmw,X7
+bmw,Z4
+bmw,i3
+bmw,i4
+bmw,i5
+bmw,i7
+bmw,iX
 
-foreign_mercedes,Aクラス
-foreign_mercedes,Bクラス
-foreign_mercedes,Cクラス
-foreign_mercedes,CLA
-foreign_mercedes,CLS
-foreign_mercedes,Eクラス
-foreign_mercedes,Gクラス
-foreign_mercedes,GLA
-foreign_mercedes,GLB
-foreign_mercedes,GLC
-foreign_mercedes,GLE
-foreign_mercedes,GLS
-foreign_mercedes,Sクラス
-foreign_mercedes,SL
-foreign_mercedes,SLK
-foreign_mercedes,AMG GT
-foreign_mercedes,EQA
-foreign_mercedes,EQB
-foreign_mercedes,EQE
-foreign_mercedes,EQS
+mercedes,Aクラス
+mercedes,Bクラス
+mercedes,Cクラス
+mercedes,CLA
+mercedes,CLS
+mercedes,Eクラス
+mercedes,Gクラス
+mercedes,GLA
+mercedes,GLB
+mercedes,GLC
+mercedes,GLE
+mercedes,GLS
+mercedes,Sクラス
+mercedes,SL
+mercedes,SLK
+mercedes,AMG GT
+mercedes,EQA
+mercedes,EQB
+mercedes,EQE
+mercedes,EQS
 
-foreign_audi,A1
-foreign_audi,A3
-foreign_audi,A4
-foreign_audi,A5
-foreign_audi,A6
-foreign_audi,A7
-foreign_audi,A8
-foreign_audi,Q2
-foreign_audi,Q3
-foreign_audi,Q4 e-tron
-foreign_audi,Q5
-foreign_audi,Q7
-foreign_audi,Q8
-foreign_audi,R8
-foreign_audi,RS3
-foreign_audi,RS4
-foreign_audi,RS5
-foreign_audi,RS6
-foreign_audi,S1
-foreign_audi,S3
-foreign_audi,S4
-foreign_audi,S5
-foreign_audi,TT
-foreign_audi,e-tron GT
+audi,A1
+audi,A3
+audi,A4
+audi,A5
+audi,A6
+audi,A7
+audi,A8
+audi,Q2
+audi,Q3
+audi,Q4 e-tron
+audi,Q5
+audi,Q7
+audi,Q8
+audi,R8
+audi,RS3
+audi,RS4
+audi,RS5
+audi,RS6
+audi,S1
+audi,S3
+audi,S4
+audi,S5
+audi,TT
+audi,e-tron GT
 
-foreign_vw,up!
-foreign_vw,T-Cross
-foreign_vw,T-Roc
-foreign_vw,アルテオン
-foreign_vw,ヴァリアント
-foreign_vw,ゴルフ
-foreign_vw,ゴルフGTI
-foreign_vw,ゴルフR
-foreign_vw,シャラン
-foreign_vw,ティグアン
-foreign_vw,トゥアレグ
-foreign_vw,パサート
-foreign_vw,ビートル
-foreign_vw,ポロ
-foreign_vw,ルポ
+vw,up!
+vw,T-Cross
+vw,T-Roc
+vw,アルテオン
+vw,ヴァリアント
+vw,ゴルフ
+vw,ゴルフGTI
+vw,ゴルフR
+vw,シャラン
+vw,ティグアン
+vw,トゥアレグ
+vw,パサート
+vw,ビートル
+vw,ポロ
+vw,ルポ
 
-foreign_porsche,718ケイマン
-foreign_porsche,718ボクスター
-foreign_porsche,911
-foreign_porsche,カイエン
-foreign_porsche,タイカン
-foreign_porsche,パナメーラ
-foreign_porsche,マカン
+porsche,718ケイマン
+porsche,718ボクスター
+porsche,911
+porsche,カイエン
+porsche,タイカン
+porsche,パナメーラ
+porsche,マカン
 
-foreign_mini,MINI
-foreign_mini,MINI 3ドア
-foreign_mini,MINI 5ドア
-foreign_mini,MINI クラブマン
-foreign_mini,MINI クロスオーバー
-foreign_mini,MINI コンバーチブル
-foreign_mini,MINI クーペ
-foreign_mini,MINI ロードスター
-foreign_mini,MINI ペースマン
+mini,MINI
+mini,MINI 3ドア
+mini,MINI 5ドア
+mini,MINI クラブマン
+mini,MINI クロスオーバー
+mini,MINI コンバーチブル
+mini,MINI クーペ
+mini,MINI ロードスター
+mini,MINI ペースマン
 
-foreign_volvo,C30
-foreign_volvo,S40
-foreign_volvo,S60
-foreign_volvo,S90
-foreign_volvo,V40
-foreign_volvo,V60
-foreign_volvo,V90
-foreign_volvo,XC40
-foreign_volvo,XC60
-foreign_volvo,XC90
+volvo,C30
+volvo,S40
+volvo,S60
+volvo,S90
+volvo,V40
+volvo,V60
+volvo,V90
+volvo,XC40
+volvo,XC60
+volvo,XC90
 
-foreign_jaguar,E-PACE
-foreign_jaguar,F-PACE
-foreign_jaguar,F-TYPE
-foreign_jaguar,I-PACE
-foreign_jaguar,XE
-foreign_jaguar,XF
-foreign_jaguar,XJ
+jaguar,E-PACE
+jaguar,F-PACE
+jaguar,F-TYPE
+jaguar,I-PACE
+jaguar,XE
+jaguar,XF
+jaguar,XJ
 
-foreign_landrover,ディスカバリー
-foreign_landrover,ディフェンダー
-foreign_landrover,フリーランダー
-foreign_landrover,レンジローバー
-foreign_landrover,レンジローバーイヴォーク
-foreign_landrover,レンジローバースポーツ
-foreign_landrover,レンジローバーヴェラール
+landrover,ディスカバリー
+landrover,ディフェンダー
+landrover,フリーランダー
+landrover,レンジローバー
+landrover,レンジローバーイヴォーク
+landrover,レンジローバースポーツ
+landrover,レンジローバーヴェラール
 
-foreign_jeep,グランドチェロキー
-foreign_jeep,コンパス
-foreign_jeep,チェロキー
-foreign_jeep,ラングラー
-foreign_jeep,レネゲード
+jeep,グランドチェロキー
+jeep,コンパス
+jeep,チェロキー
+jeep,ラングラー
+jeep,レネゲード
 
-foreign_chevrolet,カマロ
-foreign_chevrolet,キャプティバ
-foreign_chevrolet,コルベット
-foreign_chevrolet,トレイルブレイザー
+chevrolet,カマロ
+chevrolet,キャプティバ
+chevrolet,コルベット
+chevrolet,トレイルブレイザー
 
-foreign_ford,エクスプローラー
-foreign_ford,クーガ
-foreign_ford,フォーカス
-foreign_ford,マスタング
+ford,エクスプローラー
+ford,クーガ
+ford,フォーカス
+ford,マスタング
 
-foreign_fiat,500
-foreign_fiat,500C
-foreign_fiat,500X
-foreign_fiat,パンダ
-foreign_fiat,プント
+fiat,500
+fiat,500C
+fiat,500X
+fiat,パンダ
+fiat,プント
 
-foreign_alfa,4C
-foreign_alfa,ジュリア
-foreign_alfa,ジュリエッタ
-foreign_alfa,ステルヴィオ
-foreign_alfa,ミト
+alfaromeo,4C
+alfaromeo,ジュリア
+alfaromeo,ジュリエッタ
+alfaromeo,ステルヴィオ
+alfaromeo,ミト
 
-foreign_abarth,124スパイダー
-foreign_abarth,500
-foreign_abarth,595
-foreign_abarth,695
+abarth,124スパイダー
+abarth,500
+abarth,595
+abarth,695
 
-foreign_peugeot,2008
-foreign_peugeot,208
-foreign_peugeot,3008
-foreign_peugeot,308
-foreign_peugeot,408
-foreign_peugeot,5008
-foreign_peugeot,RCZ
+peugeot,2008
+peugeot,208
+peugeot,3008
+peugeot,308
+peugeot,408
+peugeot,5008
+peugeot,RCZ
 
-foreign_renault,アルカナ
-foreign_renault,カングー
-foreign_renault,キャプチャー
-foreign_renault,トゥインゴ
-foreign_renault,メガーヌ
-foreign_renault,ルーテシア
+renault,アルカナ
+renault,カングー
+renault,キャプチャー
+renault,トゥインゴ
+renault,メガーヌ
+renault,ルーテシア
 
-foreign_tesla,Model 3
-foreign_tesla,Model S
-foreign_tesla,Model X
-foreign_tesla,Model Y
+tesla,Model 3
+tesla,Model S
+tesla,Model X
+tesla,Model Y
 
-foreign_byd,ATTO 3
-foreign_byd,DOLPHIN
-foreign_byd,SEAL
-foreign_byd,SEALION 7
+byd,ATTO 3
+byd,DOLPHIN
+byd,SEAL
+byd,SEALION 7
 
-100,CBR250R
-100,CBR250RR
-100,CBR400R
-100,CBR650R
-100,CBR1000RR
-100,CBR1000RR-R
-100,CB1300SF
-100,CB1300SB
-100,CB1100
-100,CB750
-100,CB400SF
-100,CB400SB
-100,CB250R
-100,CB125R
-100,CBR125R
-100,CRF250L
-100,CRF250RALLY
-100,CRF1100Lアフリカツイン
-100,レブル250
-100,レブル500
-100,レブル1100
-100,ホーネット250
-100,ホーネット600
-100,ホーネット900
-100,グロム
-100,モンキー
-100,モンキー125
-100,ダックス125
-100,ハンターカブ
-100,スーパーカブ50
-100,スーパーカブ110
-100,クロスカブ
-100,クロスカブ110
-100,PCX
-100,PCX160
-100,ADV150
-100,ADV160
-100,フォルツァ
-100,フォルツァ250
-100,フォルツァ350
-100,シルバーウイング
-100,X-ADV
-100,NC750X
-100,NC750S
-100,VTR250
-100,VFR800
-100,VFR1200F
-100,VT400S
-100,VT750S
-100,シャドウ400
-100,シャドウ750
-100,ゴールドウイング
+honda_bike,CBR250R
+honda_bike,CBR250RR
+honda_bike,CBR400R
+honda_bike,CBR650R
+honda_bike,CBR1000RR
+honda_bike,CBR1000RR-R
+honda_bike,CB1300SF
+honda_bike,CB1300SB
+honda_bike,CB1100
+honda_bike,CB750
+honda_bike,CB400SF
+honda_bike,CB400SB
+honda_bike,CB250R
+honda_bike,CB125R
+honda_bike,CBR125R
+honda_bike,CRF250L
+honda_bike,CRF250RALLY
+honda_bike,CRF1100Lアフリカツイン
+honda_bike,レブル250
+honda_bike,レブル500
+honda_bike,レブル1100
+honda_bike,ホーネット250
+honda_bike,ホーネット600
+honda_bike,ホーネット900
+honda_bike,グロム
+honda_bike,モンキー
+honda_bike,モンキー125
+honda_bike,ダックス125
+honda_bike,ハンターカブ
+honda_bike,スーパーカブ50
+honda_bike,スーパーカブ110
+honda_bike,クロスカブ
+honda_bike,クロスカブ110
+honda_bike,PCX
+honda_bike,PCX160
+honda_bike,ADV150
+honda_bike,ADV160
+honda_bike,フォルツァ
+honda_bike,フォルツァ250
+honda_bike,フォルツァ350
+honda_bike,シルバーウイング
+honda_bike,X-ADV
+honda_bike,NC750X
+honda_bike,NC750S
+honda_bike,VTR250
+honda_bike,VFR800
+honda_bike,VFR1200F
+honda_bike,VT400S
+honda_bike,VT750S
+honda_bike,シャドウ400
+honda_bike,シャドウ750
+honda_bike,ゴールドウイング
 
-101,YZF-R125
-101,YZF-R15
-101,YZF-R25
-101,YZF-R3
-101,YZF-R6
-101,YZF-R7
-101,YZF-R1
-101,MT-125
-101,MT-25
-101,MT-03
-101,MT-07
-101,MT-09
-101,MT-10
-101,XSR125
-101,XSR155
-101,XSR700
-101,XSR900
-101,SR400
-101,SR500
-101,セロー250
-101,トリッカー
-101,WR250R
-101,WR250X
-101,XTZ125
-101,TMAX
-101,NMAX
-101,NMAX155
-101,シグナスX
-101,シグナスグリファス
-101,アクシスZ
-101,マジェスティ
-101,マジェスティS
-101,グランドマジェスティ
-101,ドラッグスター250
-101,ドラッグスター400
-101,ドラッグスター1100
-101,ボルト
-101,VMAX
-101,FZ1
-101,FZ8
-101,FZR250
-101,RZ250
-101,RZ350
-101,R1-Z
-101,TW200
-101,TW225
-101,BW'S
-101,ジョグ
-101,ビーノ
-101,ギア
+yamaha,YZF-R125
+yamaha,YZF-R15
+yamaha,YZF-R25
+yamaha,YZF-R3
+yamaha,YZF-R6
+yamaha,YZF-R7
+yamaha,YZF-R1
+yamaha,MT-125
+yamaha,MT-25
+yamaha,MT-03
+yamaha,MT-07
+yamaha,MT-09
+yamaha,MT-10
+yamaha,XSR125
+yamaha,XSR155
+yamaha,XSR700
+yamaha,XSR900
+yamaha,SR400
+yamaha,SR500
+yamaha,セロー250
+yamaha,トリッカー
+yamaha,WR250R
+yamaha,WR250X
+yamaha,XTZ125
+yamaha,TMAX
+yamaha,NMAX
+yamaha,NMAX155
+yamaha,シグナスX
+yamaha,シグナスグリファス
+yamaha,アクシスZ
+yamaha,マジェスティ
+yamaha,マジェスティS
+yamaha,グランドマジェスティ
+yamaha,ドラッグスター250
+yamaha,ドラッグスター400
+yamaha,ドラッグスター1100
+yamaha,ボルト
+yamaha,VMAX
+yamaha,FZ1
+yamaha,FZ8
+yamaha,FZR250
+yamaha,RZ250
+yamaha,RZ350
+yamaha,R1-Z
+yamaha,TW200
+yamaha,TW225
+yamaha,BW'S
+yamaha,ジョグ
+yamaha,ビーノ
+yamaha,ギア
 
-102,Ninja125
-102,Ninja250
-102,Ninja400
-102,Ninja650
-102,Ninja1000
-102,Ninja ZX-25R
-102,Ninja ZX-4R
-102,Ninja ZX-6R
-102,Ninja ZX-10R
-102,Z125
-102,Z250
-102,Z400
-102,Z650
-102,Z900
-102,Z1000
-102,Z H2
-102,ZRX400
-102,ZRX1200
-102,ZEPHYR400
-102,ZEPHYR750
-102,ZEPHYR1100
-102,バリオス
-102,バリオスII
-102,エストレヤ
-102,W400
-102,W650
-102,W800
-102,KLX125
-102,KLX230
-102,KLX250
-102,KSR110
-102,スーパーシェルパ
-102,ヴェルシス250
-102,ヴェルシス650
-102,ヴェルシス1000
-102,VULCAN S
-102,VULCAN 400
-102,VULCAN 800
-102,VULCAN 1500
-102,ZZR250
-102,ZZR400
-102,ZZR1100
-102,ZZR1400
-102,H2
-102,H2R
-102,GPZ900R
-102,GPZ400R
+kawasaki,Ninja125
+kawasaki,Ninja250
+kawasaki,Ninja400
+kawasaki,Ninja650
+kawasaki,Ninja1000
+kawasaki,Ninja ZX-25R
+kawasaki,Ninja ZX-4R
+kawasaki,Ninja ZX-6R
+kawasaki,Ninja ZX-10R
+kawasaki,Z125
+kawasaki,Z250
+kawasaki,Z400
+kawasaki,Z650
+kawasaki,Z900
+kawasaki,Z1000
+kawasaki,Z H2
+kawasaki,ZRX400
+kawasaki,ZRX1200
+kawasaki,ZEPHYR400
+kawasaki,ZEPHYR750
+kawasaki,ZEPHYR1100
+kawasaki,バリオス
+kawasaki,バリオスII
+kawasaki,エストレヤ
+kawasaki,W400
+kawasaki,W650
+kawasaki,W800
+kawasaki,KLX125
+kawasaki,KLX230
+kawasaki,KLX250
+kawasaki,KSR110
+kawasaki,スーパーシェルパ
+kawasaki,ヴェルシス250
+kawasaki,ヴェルシス650
+kawasaki,ヴェルシス1000
+kawasaki,VULCAN S
+kawasaki,VULCAN 400
+kawasaki,VULCAN 800
+kawasaki,VULCAN 1500
+kawasaki,ZZR250
+kawasaki,ZZR400
+kawasaki,ZZR1100
+kawasaki,ZZR1400
+kawasaki,H2
+kawasaki,H2R
+kawasaki,GPZ900R
+kawasaki,GPZ400R
 
-103,GSX-R125
-103,GSX-R150
-103,GSX-R250
-103,GSX-R600
-103,GSX-R750
-103,GSX-R1000
-103,GSX-S125
-103,GSX-S250
-103,GSX-S750
-103,GSX-S1000
-103,KATANA
-103,SV650
-103,SV1000
-103,GSR250
-103,GSR400
-103,GSR600
-103,バンディット250
-103,バンディット400
-103,バンディット1200
-103,バンディット1250
-103,イナズマ400
-103,イナズマ1200
-103,グラディウス400
-103,グラディウス650
-103,ハヤブサ
-103,イントルーダー400
-103,イントルーダー800
-103,ブルバード
-103,ボルティー
-103,ST250
-103,DR-Z400SM
-103,DR-Z400S
-103,ジェベル250
-103,RMX250
-103,Vストローム250
-103,Vストローム650
-103,Vストローム1000
-103,アドレスV125
-103,アドレスV125S
-103,アドレス110
-103,レッツ
-103,レッツ4
-103,バーグマン200
-103,バーグマン400
+suzuki_bike,GSX-R125
+suzuki_bike,GSX-R150
+suzuki_bike,GSX-R250
+suzuki_bike,GSX-R600
+suzuki_bike,GSX-R750
+suzuki_bike,GSX-R1000
+suzuki_bike,GSX-S125
+suzuki_bike,GSX-S250
+suzuki_bike,GSX-S750
+suzuki_bike,GSX-S1000
+suzuki_bike,KATANA
+suzuki_bike,SV650
+suzuki_bike,SV1000
+suzuki_bike,GSR250
+suzuki_bike,GSR400
+suzuki_bike,GSR600
+suzuki_bike,バンディット250
+suzuki_bike,バンディット400
+suzuki_bike,バンディット1200
+suzuki_bike,バンディット1250
+suzuki_bike,イナズマ400
+suzuki_bike,イナズマ1200
+suzuki_bike,グラディウス400
+suzuki_bike,グラディウス650
+suzuki_bike,ハヤブサ
+suzuki_bike,イントルーダー400
+suzuki_bike,イントルーダー800
+suzuki_bike,ブルバード
+suzuki_bike,ボルティー
+suzuki_bike,ST250
+suzuki_bike,DR-Z400SM
+suzuki_bike,DR-Z400S
+suzuki_bike,ジェベル250
+suzuki_bike,RMX250
+suzuki_bike,Vストローム250
+suzuki_bike,Vストローム650
+suzuki_bike,Vストローム1000
+suzuki_bike,アドレスV125
+suzuki_bike,アドレスV125S
+suzuki_bike,アドレス110
+suzuki_bike,レッツ
+suzuki_bike,レッツ4
+suzuki_bike,バーグマン200
+suzuki_bike,バーグマン400
