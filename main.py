@@ -689,10 +689,16 @@ def init_db():
                 name TEXT NOT NULL
             );
         """)
+
+        # 🔥 旧バグ対策：name単体UNIQUEは削除
+        cur.execute("DROP INDEX IF EXISTS makers_name_unique;")
+
+        # ✅ 正しい制約：同名でも category が違えば共存可
         cur.execute("""
-            CREATE UNIQUE INDEX IF NOT EXISTS makers_name_unique
-            ON makers(name);
+            CREATE UNIQUE INDEX IF NOT EXISTS makers_name_category_unique
+            ON makers(name, category);
         """)
+
         cur.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS car_models_maker_name_unique
             ON car_models(maker_id, name);
@@ -759,7 +765,6 @@ def init_db():
 @app.on_event("startup")
 def startup():
     init_db()
-
 
 # ======================
 # common
