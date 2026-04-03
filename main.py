@@ -1491,7 +1491,7 @@ def get_cars_by_maker(maker_id: str, category: str = None):
 def init_cars_csv():
     import csv, uuid
 
-    conn = get_conn()
+    conn = get_db()
     cur = conn.cursor()
 
     try:
