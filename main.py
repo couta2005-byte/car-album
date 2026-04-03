@@ -1461,6 +1461,31 @@ def get_makers(category: Optional[str] = None):
         cur.close()
         db.close()
 
+@app.get("/api/cars/by-maker-id/{maker_id}")
+def get_cars_by_maker(maker_id: str, category: str = None):
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        if category:
+            cur.execute("""
+                SELECT name FROM car_models
+                WHERE maker_id = %s AND category = %s
+                ORDER BY name
+            """, (maker_id, category))
+        else:
+            cur.execute("""
+                SELECT name FROM car_models
+                WHERE maker_id = %s
+                ORDER BY name
+            """, (maker_id,))
+
+        rows = cur.fetchall()
+        return {"cars": [{"name": r[0]} for r in rows]}
+
+    finally:
+        cur.close()
+        db.close()
 
 @app.get("/init/cars/csv")
 def init_cars_csv():
