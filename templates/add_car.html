@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>愛車追加 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=8000">
+  <link rel="stylesheet" href="/static/style.css?v=8001">
 </head>
 <body>
 
@@ -50,27 +50,44 @@
 <script>
 let currentCategory = "japan_car";
 
+// =====================
+// メーカー読み込み
+// =====================
 async function loadMakers(category = currentCategory) {
   currentCategory = category;
 
   const makerSelect = document.getElementById("makerSelectAdd");
   const carSelect = document.getElementById("carSelectAdd");
 
+  // 初期化
   makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
   carSelect.innerHTML = "<option value=''>車種選択</option>";
   carSelect.disabled = true;
 
-  const res = await fetch(`/api/makers?category=${category}`);
-  const makers = await res.json();
+  try {
+    const res = await fetch(`/api/makers?category=${category}`);
+    const makers = await res.json();
 
-  makers.forEach((m) => {
-    const option = document.createElement("option");
-    option.value = m.id;
-    option.textContent = m.name;
-    makerSelect.appendChild(option);
-  });
+    makers.forEach((m) => {
+      const option = document.createElement("option");
+      option.value = m.id;
+      option.textContent = m.name;
+      makerSelect.appendChild(option);
+    });
+
+    // 🔥 超重要：ここで再登録
+    makerSelect.onchange = () => {
+      loadCars(makerSelect.value);
+    };
+
+  } catch (e) {
+    console.error("メーカー取得エラー", e);
+  }
 }
 
+// =====================
+// 車種読み込み
+// =====================
 async function loadCars(makerId) {
   const carSelect = document.getElementById("carSelectAdd");
 
@@ -79,29 +96,31 @@ async function loadCars(makerId) {
 
   if (!makerId) return;
 
-  const res = await fetch(`/api/cars/by-maker-id/${makerId}?category=${currentCategory}`); 
-  const data = await res.json();
+  try {
+    const res = await fetch(`/api/cars/by-maker-id/${makerId}?category=${currentCategory}`);
+    const data = await res.json();
 
-  const cars = data.cars || [];
+    const cars = data.cars || [];
 
-  cars.forEach((c) => {
-    const option = document.createElement("option");
-    option.value = c.name;
-    option.textContent = c.name;
-    carSelect.appendChild(option);
-  });
+    cars.forEach((c) => {
+      const option = document.createElement("option");
+      option.value = c.name;
+      option.textContent = c.name;
+      carSelect.appendChild(option);
+    });
 
-  carSelect.disabled = false;
+    carSelect.disabled = false;
+
+  } catch (e) {
+    console.error("車種取得エラー", e);
+  }
 }
 
+// =====================
+// 初期ロード
+// =====================
 document.addEventListener("DOMContentLoaded", async () => {
-  const makerSelect = document.getElementById("makerSelectAdd");
-
   await loadMakers("japan_car");
-
-  makerSelect.addEventListener("change", () => {
-    loadCars(makerSelect.value);
-  });
 });
 </script>
 
