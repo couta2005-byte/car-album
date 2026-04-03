@@ -1489,12 +1489,16 @@ def get_cars_by_maker(maker_id: str, category: str = None):
 
 @app.get("/init/cars/csv")
 def init_cars_csv():
-    db = get_db()
-    cur = db.cursor()
+    import csv, uuid
+
+    conn = get_conn()
+    cur = conn.cursor()
 
     try:
-        with open("cars.csv", newline="", encoding="utf-8") as f:
+        with open("data/cars.csv", encoding="utf-8") as f:
             reader = csv.DictReader(f)
+
+            count = 0
 
             for row in reader:
                 maker_id = (row.get("maker_id") or "").strip().lower()
@@ -1503,19 +1507,45 @@ def init_cars_csv():
                 if not maker_id or not name:
                     continue
 
-                cur.execute("""
-                    INSERT INTO car_models (id, maker_id, name)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (maker_id, name) DO NOTHING
-                """, (str(uuid.uuid4()), maker_id, name))
+                # ===== カテゴリ判定 =====
+                if maker_id in [
+                    "toyota","honda","nissan","mazda","subaru","suzuki","daihatsu","mitsubishi","lexus"
+                ]:
+                    category = "japan_car"
 
-        db.commit()
+                elif maker_id in [
+                    "yamaha","kawasaki","suzuki_bike","honda_bike"
+                ]:
+                    category = "bike"
+
+                else:
+                    category = "foreign_car"
+
+                # ===== INSERT =====
+                cur.execute("""
+                    INSERT INTO car_models (id, maker_id, name, category)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (maker_id, name) DO NOTHING
+                """, (
+                    str(uuid.uuid4()),
+                    maker_id,
+                    name,
+                    category
+                ))
+
+                count += 1
+
+        conn.commit()
+
+        return {"status": "ok", "inserted": count}
+
+    except Exception as e:
+        conn.rollback()
+        return {"status": "error", "detail": str(e)}
 
     finally:
         cur.close()
-        db.close()
-
-    return {"ok": True}
+        conn.close()
 # ======================
 # following TL
 # ======================
