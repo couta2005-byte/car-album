@@ -1467,26 +1467,38 @@ def get_cars_by_maker(maker_id: str, category: str = None):
     cur = db.cursor()
 
     try:
+        # デバッグ（必要なら残せ）
+        print("maker_id:", maker_id)
+        print("category:", category)
+
         if category:
             cur.execute("""
                 SELECT name FROM car_models
-                WHERE maker_id = %s AND category = %s
+                WHERE LOWER(TRIM(maker_id)) = LOWER(TRIM(%s))
+                AND LOWER(TRIM(category)) = LOWER(TRIM(%s))
                 ORDER BY name
             """, (maker_id, category))
         else:
             cur.execute("""
                 SELECT name FROM car_models
-                WHERE maker_id = %s
+                WHERE LOWER(TRIM(maker_id)) = LOWER(TRIM(%s))
                 ORDER BY name
             """, (maker_id,))
 
         rows = cur.fetchall()
+
+        # デバッグ（件数確認）
+        print("cars count:", len(rows))
+
         return {"cars": [{"name": r[0]} for r in rows]}
+
+    except Exception as e:
+        print("ERROR:", e)
+        return {"cars": []}
 
     finally:
         cur.close()
         db.close()
-
 @app.get("/init/cars/csv")
 def init_cars_csv():
     import csv, uuid
