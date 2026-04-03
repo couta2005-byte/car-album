@@ -1495,7 +1495,7 @@ def init_cars_csv():
     cur = conn.cursor()
 
     try:
-        with open("data/cars.csv", encoding="utf-8") as f:
+        with open("cars.csv", encoding="utf-8") as f:
             reader = csv.DictReader(f)
 
             count = 0
