@@ -3531,6 +3531,8 @@ def map_page(
             "unread_dm": unread_dm,
         }
     )
+from fastapi import Query
+
 @app.get("/api/cars/by-maker-id/{maker_id}")
 def get_cars_by_maker_id(
     maker_id: str,
@@ -3552,9 +3554,6 @@ def get_cars_by_maker_id(
         rows = cur.fetchall()
 
         return {
-            "maker_id": maker_id,
-            "category": category,
-            "count": len(rows),
             "cars": [{"name": r[0]} for r in rows]
         }
 
