@@ -79,7 +79,7 @@ async function loadCars(makerId) {
 
   if (!makerId) return;
 
-  const res = await fetch(`/api/cars/by-maker-id/${makerId}`);
+  const res = await fetch(`/api/cars/by-maker-id/${makerId}?category=${currentCategory}`); 
   const data = await res.json();
 
   const cars = data.cars || [];

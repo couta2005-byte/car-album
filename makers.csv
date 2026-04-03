@@ -1,4 +1,8 @@
 INSERT INTO makers (id, name, category) VALUES
+
+-- =====================
+-- 🇯🇵 日本車
+-- =====================
 ('toyota','トヨタ','japan_car'),
 ('nissan','日産','japan_car'),
 ('honda','ホンダ','japan_car'),
@@ -10,14 +14,162 @@ INSERT INTO makers (id, name, category) VALUES
 ('lexus','レクサス','japan_car'),
 ('isuzu','いすゞ','japan_car'),
 ('hino','日野','japan_car'),
+('mitsubishi_fuso','三菱ふそう','japan_car'),
+('ud_trucks','UDトラックス','japan_car'),
+('acura','アキュラ','japan_car'),
+('infiniti','インフィニティ','japan_car'),
+('scion','サイオン','japan_car'),
+('datsun','ダットサン','japan_car'),
 
+-- =====================
+-- 🇩🇪 ドイツ
+-- =====================
 ('bmw','BMW','foreign_car'),
 ('mercedes','メルセデス・ベンツ','foreign_car'),
 ('audi','アウディ','foreign_car'),
 ('vw','フォルクスワーゲン','foreign_car'),
 ('porsche','ポルシェ','foreign_car'),
+('mini','MINI','foreign_car'),
+('smart','スマート','foreign_car'),
+('opel','オペル','foreign_car'),
+('maybach','マイバッハ','foreign_car'),
+('alpina','アルピナ','foreign_car'),
+('brabus','ブラバス','foreign_car'),
 
+-- =====================
+-- 🇺🇸 アメリカ
+-- =====================
+('ford','フォード','foreign_car'),
+('chevrolet','シボレー','foreign_car'),
+('cadillac','キャデラック','foreign_car'),
+('gmc','GMC','foreign_car'),
+('jeep','ジープ','foreign_car'),
+('dodge','ダッジ','foreign_car'),
+('chrysler','クライスラー','foreign_car'),
+('tesla','テスラ','foreign_car'),
+('lincoln','リンカーン','foreign_car'),
+('ram','ラム','foreign_car'),
+('rivian','リビアン','foreign_car'),
+('lucid','ルーシッド','foreign_car'),
+('saleen','サリーン','foreign_car'),
+('hummer','ハマー','foreign_car'),
+('buick','ビュイック','foreign_car'),
+('pontiac','ポンティアック','foreign_car'),
+('oldsmobile','オールズモビル','foreign_car'),
+('saturn','サターン','foreign_car'),
+
+-- =====================
+-- 🇫🇷 フランス
+-- =====================
+('peugeot','プジョー','foreign_car'),
+('renault','ルノー','foreign_car'),
+('citroen','シトロエン','foreign_car'),
+('ds','DS','foreign_car'),
+('bugatti','ブガッティ','foreign_car'),
+('alpine','アルピーヌ','foreign_car'),
+
+-- =====================
+-- 🇮🇹 イタリア
+-- =====================
+('fiat','フィアット','foreign_car'),
+('abarth','アバルト','foreign_car'),
+('alfaromeo','アルファロメオ','foreign_car'),
+('lancia','ランチア','foreign_car'),
+('ferrari','フェラーリ','foreign_car'),
+('maserati','マセラティ','foreign_car'),
+('lamborghini','ランボルギーニ','foreign_car'),
+('pagani','パガーニ','foreign_car'),
+
+-- =====================
+-- 🇬🇧 イギリス
+-- =====================
+('jaguar','ジャガー','foreign_car'),
+('landrover','ランドローバー','foreign_car'),
+('lotus','ロータス','foreign_car'),
+('mclaren','マクラーレン','foreign_car'),
+('astonmartin','アストンマーティン','foreign_car'),
+('bentley','ベントレー','foreign_car'),
+('rollsroyce','ロールスロイス','foreign_car'),
+('mg','MG','foreign_car'),
+('tvr','TVR','foreign_car'),
+('morgan','モーガン','foreign_car'),
+('caterham','ケータハム','foreign_car'),
+('vauxhall','ヴォクスホール','foreign_car'),
+('rover','ローバー','foreign_car'),
+('mini_classic','ローバーMINI','foreign_car'),
+
+-- =====================
+-- 🇸🇪 / 🇳🇴 北欧
+-- =====================
+('volvo','ボルボ','foreign_car'),
+('saab','サーブ','foreign_car'),
+('koenigsegg','ケーニグセグ','foreign_car'),
+('polestar','ポールスター','foreign_car'),
+
+-- =====================
+-- 🇨🇿 / 🇪🇸 / 東欧
+-- =====================
+('skoda','シュコダ','foreign_car'),
+('seat','セアト','foreign_car'),
+('cupra','クプラ','foreign_car'),
+('lada','ラーダ','foreign_car'),
+
+-- =====================
+-- 🇰🇷 韓国
+-- =====================
+('hyundai','ヒョンデ','foreign_car'),
+('kia','キア','foreign_car'),
+('genesis','ジェネシス','foreign_car'),
+('ssangyong','双龍','foreign_car'),
+('daewoo','大宇','foreign_car'),
+
+-- =====================
+-- 🇨🇳 中国
+-- =====================
+('byd','BYD','foreign_car'),
+('nio','NIO','foreign_car'),
+('xpeng','XPENG','foreign_car'),
+('geely','吉利','foreign_car'),
+('hongqi','紅旗','foreign_car'),
+('chery','奇瑞','foreign_car'),
+('haval','HAVAL','foreign_car'),
+('greatwall','長城汽車','foreign_car'),
+
+-- =====================
+-- 🇮🇳 インド
+-- =====================
+('tata','タタ','foreign_car'),
+('mahindra','マヒンドラ','foreign_car'),
+
+-- =====================
+-- 🏍 バイク（国産＋海外まとめ）
+-- =====================
 ('honda_bike','ホンダ','bike'),
 ('yamaha','ヤマハ','bike'),
 ('kawasaki','カワサキ','bike'),
-('suzuki_bike','スズキ','bike');
+('suzuki_bike','スズキ','bike'),
+
+('ducati','ドゥカティ','bike'),
+('bmw_bike','BMW Motorrad','bike'),
+('harley','ハーレーダビッドソン','bike'),
+('triumph','トライアンフ','bike'),
+('ktm','KTM','bike'),
+('aprilia','アプリリア','bike'),
+('motoguzzi','モトグッツィ','bike'),
+('royalenfield','ロイヤルエンフィールド','bike'),
+('husqvarna','ハスクバーナ','bike'),
+('indian','インディアン','bike'),
+('mv_agusta','MVアグスタ','bike'),
+('benelli','ベネリ','bike'),
+('bimota','ビモータ','bike'),
+('cfmoto','CFMOTO','bike'),
+('kymco','キムコ','bike'),
+('sym','SYM','bike'),
+('zero','Zero Motorcycles','bike'),
+('canam','Can-Am','bike'),
+('victory','Victory','bike'),
+('norton','ノートン','bike'),
+('energica','Energica','bike'),
+('gasgas','GASGAS','bike'),
+('beta','Beta','bike'),
+('tm','TM Racing','bike');

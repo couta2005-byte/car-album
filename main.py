@@ -3532,7 +3532,10 @@ def map_page(
         }
     )
 @app.get("/api/cars/by-maker-id/{maker_id}")
-def get_cars_by_maker_id(maker_id: str):
+def get_cars_by_maker_id(
+    maker_id: str,
+    category: str = Query(...)
+):
     db = get_db()
     cur = db.cursor()
 
@@ -3542,13 +3545,15 @@ def get_cars_by_maker_id(maker_id: str):
         cur.execute("""
             SELECT name
             FROM car_models
-            WHERE maker_id = %s
+            WHERE maker_id = %s AND category = %s
             ORDER BY name
-        """, (maker_id,))
+        """, (maker_id, category))
 
         rows = cur.fetchall()
+
         return {
             "maker_id": maker_id,
+            "category": category,
             "count": len(rows),
             "cars": [{"name": r[0]} for r in rows]
         }
