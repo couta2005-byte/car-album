@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>愛車追加 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=8001">
+  <link rel="stylesheet" href="/static/style.css?v=FINAL_FIX_1">
 </head>
 <body>
 
@@ -48,12 +48,15 @@
 </main>
 
 <script>
+// =====================
+// 状態管理
+// =====================
 let currentCategory = "japan_car";
 
 // =====================
 // メーカー読み込み
 // =====================
-async function loadMakers(category = currentCategory) {
+async function loadMakers(category) {
   currentCategory = category;
 
   const makerSelect = document.getElementById("makerSelectAdd");
@@ -75,7 +78,7 @@ async function loadMakers(category = currentCategory) {
       makerSelect.appendChild(option);
     });
 
-    // 🔥 超重要：ここで再登録
+    // メーカー選択時
     makerSelect.onchange = () => {
       loadCars(makerSelect.value);
     };
@@ -86,7 +89,7 @@ async function loadMakers(category = currentCategory) {
 }
 
 // =====================
-// 車種読み込み
+// 車種読み込み（修正版）
 // =====================
 async function loadCars(makerId) {
   const carSelect = document.getElementById("carSelectAdd");
@@ -98,9 +101,7 @@ async function loadCars(makerId) {
 
   try {
     const res = await fetch(`/api/cars/by-maker-id/${makerId}?category=${currentCategory}`);
-    const data = await res.json();
-
-    const cars = data.cars || [];
+    const cars = await res.json(); // ←ここ重要（配列そのまま）
 
     cars.forEach((c) => {
       const option = document.createElement("option");
