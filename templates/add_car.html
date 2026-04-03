@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>愛車追加 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=FINAL_FIX_1">
+  <link rel="stylesheet" href="/static/style.css?v=FINAL_FIX_2">
 </head>
 <body>
 
@@ -78,7 +78,7 @@ async function loadMakers(category) {
       makerSelect.appendChild(option);
     });
 
-    // メーカー選択時
+    // メーカー変更時
     makerSelect.onchange = () => {
       loadCars(makerSelect.value);
     };
@@ -89,7 +89,7 @@ async function loadMakers(category) {
 }
 
 // =====================
-// 車種読み込み（修正版）
+// 車種読み込み（完全対応版）
 // =====================
 async function loadCars(makerId) {
   const carSelect = document.getElementById("carSelectAdd");
@@ -101,12 +101,24 @@ async function loadCars(makerId) {
 
   try {
     const res = await fetch(`/api/cars/by-maker-id/${makerId}?category=${currentCategory}`);
-    const cars = await res.json(); // ←ここ重要（配列そのまま）
+    const data = await res.json();
+
+    console.log("cars API:", data);
+
+    // 🔥 どの形式でも対応
+    let cars = [];
+    if (Array.isArray(data)) {
+      cars = data;
+    } else if (data.cars) {
+      cars = data.cars;
+    }
 
     cars.forEach((c) => {
+      const name = c.name || c;
+
       const option = document.createElement("option");
-      option.value = c.name;
-      option.textContent = c.name;
+      option.value = name;
+      option.textContent = name;
       carSelect.appendChild(option);
     });
 
