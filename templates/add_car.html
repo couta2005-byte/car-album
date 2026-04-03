@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>愛車追加 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=FINAL_FIX_2">
+  <link rel="stylesheet" href="/static/style.css?v=FINAL_FIX_3">
 </head>
 <body>
 
@@ -83,6 +83,11 @@ async function loadMakers(category) {
       loadCars(makerSelect.value);
     };
 
+    // 🔥 カテゴリ切替時も即ロード
+    if (makerSelect.value) {
+      loadCars(makerSelect.value);
+    }
+
   } catch (e) {
     console.error("メーカー取得エラー", e);
   }
@@ -100,12 +105,14 @@ async function loadCars(makerId) {
   if (!makerId) return;
 
   try {
-    const res = await fetch(`/api/cars/by-maker-id/${makerId}?category=${currentCategory}`);
+    const url = `/api/cars/by-maker-id/${makerId}?category=${currentCategory}`;
+    console.log("API URL:", url);
+
+    const res = await fetch(url);
     const data = await res.json();
 
     console.log("cars API:", data);
 
-    // 🔥 どの形式でも対応
     let cars = [];
     if (Array.isArray(data)) {
       cars = data;
