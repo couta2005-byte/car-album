@@ -4737,7 +4737,6 @@ body {
   font-weight: 700;
 }
 
-/* ===== 通知ボタン（最終FIX） ===== */
 .home-notif-btn{
   position: static;
   display: inline-flex;
@@ -4754,20 +4753,7 @@ body {
 
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   flex-shrink: 0;
-}
 
-.home-notif-badge{
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: 999px;
-  background: #ff3b30;
-  color: #fff;
-  font-size: 10px;
-  line-height: 16px;
-  text-align: center;
-  font-weight: 700;
+  white-space: nowrap;   /* ←これが本命 */
+  line-height: 1;        /* ←保険 */
 }
