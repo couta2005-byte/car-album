@@ -3873,3 +3873,39 @@ def add_user_car(
     finally:
         cur.close()
         db.close()
+
+@app.get("/notifications")
+def notifications(request: Request, session_id: str = Cookie(None)):
+    user = get_current_user(session_id)
+    if not user:
+        return RedirectResponse("/login")
+
+    conn = get_conn()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT n.id, n.type, n.post_id, n.created_at,
+               u.handle, u.display_name
+        FROM notifications n
+        JOIN users u ON n.actor_id = u.id
+        WHERE n.user_id = %s
+        ORDER BY n.created_at DESC
+        LIMIT 50
+    """, (user["id"],))
+
+    notifications = cur.fetchall()
+
+    # 既読化
+    cur.execute("""
+        UPDATE notifications
+        SET is_read = TRUE
+        WHERE user_id = %s
+    """, (user["id"],))
+
+    conn.commit()
+    conn.close()
+
+    return templates.TemplateResponse("notifications.html", {
+        "request": request,
+        "notifications": notifications
+    })

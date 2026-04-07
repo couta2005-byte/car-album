@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>通知 | Carbum</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+{% include "_nav.html" %}
+
+<main class="container">
+  <h2>🔔 通知</h2>
+
+  {% if notifications %}
+    {% for n in notifications %}
+      <div class="notif-item">
+
+        {% if n[1] == "like" %}
+          <a href="/post/{{ n[2] }}">
+            ❤️ {{ n[5] if n[5] else n[4] }} がいいねしました
+          </a>
+        {% elif n[1] == "follow" %}
+          <a href="/user/{{ n[4] }}">
+            👤 {{ n[5] if n[5] else n[4] }} がフォローしました
+          </a>
+        {% endif %}
+
+      </div>
+    {% endfor %}
+  {% else %}
+    <p>通知なし</p>
+  {% endif %}
+
+</main>
+
+</body>
+</html>
