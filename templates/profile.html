@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ (display_name if display_name else username) }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_CAR_DELETE_FIX_2">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_BIO_FIX_1">
 </head>
 <body>
 
@@ -58,9 +58,9 @@
         @{{ handle if handle else username }}
       </div>
 
-      <div class="insta-bio">
-        {{ profile[3] if profile and profile|length > 3 and profile[3] else "自己紹介なし" }}
-      </div>
+      <!-- ★ここ修正（空白バグ完全対策） -->
+      <div class="insta-bio">{{ (profile[3] if profile and profile|length > 3 and profile[3] else "自己紹介なし") | trim }}</div>
+
     </div>
 
     <!-- アクション -->
