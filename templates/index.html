@@ -34,24 +34,26 @@
   </div>
 
 <!-- Search -->
-<div class="home-search-row">
+<div class="home-search-wrap">
+
+  <div class="home-search-top">
+    <a href="/notifications" class="home-notif-btn" aria-label="通知">
+      🔔
+      {% if unread_notifications and unread_notifications > 0 %}
+        <span class="home-notif-badge">{{ unread_notifications }}</span>
+      {% endif %}
+    </a>
+  </div>
 
   <form method="get" action="/search" class="home-search">
     <input type="text" name="q" placeholder="ユーザー・車名・バイク名で検索">
     <button type="submit">検索</button>
   </form>
 
-  <a href="/notifications" class="home-notif-btn">
-    🔔
-    {% if unread_notifications and unread_notifications > 0 %}
-      <span class="home-notif-badge">{{ unread_notifications }}</span>
-    {% endif %}
-  </a>
-
 </div>
-
   <!-- Post form -->
   {% if user %}
+  <div class="post-form-title">投稿</div>
   <form action="/post"
         method="post"
         enctype="multipart/form-data"

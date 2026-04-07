@@ -4766,3 +4766,61 @@ body {
   text-align: center;
   font-weight: 700;
 }
+
+.home-search-wrap{
+  margin-bottom: 12px;
+}
+
+.home-search-top{
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.home-search{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.home-search input{
+  flex: 1;
+}
+
+.home-notif-btn{
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 20px;
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  flex-shrink: 0;
+}
+
+.home-notif-badge{
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ff3b30;
+  color: #fff;
+  font-size: 10px;
+  line-height: 16px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.post-form-title{
+  margin: 10px 0 8px;
+  font-size: 18px;
+  font-weight: 700;
+}
