@@ -1732,18 +1732,29 @@ def add_comment(
         return redirect_back(request, fallback=f"/post/{post_id}")
 
     def _do(db, cur):
-        cur.execute("SELECT 1 FROM posts WHERE id=%s", (post_id,))
-        if cur.fetchone() is None:
+        # 投稿者確認
+        cur.execute("SELECT user_id FROM posts WHERE id=%s", (post_id,))
+        post_row = cur.fetchone()
+        if post_row is None:
             return
+
+        post_owner_id = str(post_row[0]) if post_row[0] is not None else None
+
+        # コメント追加
         cur.execute("""
             INSERT INTO comments (post_id, username, user_id, comment, created_at)
             VALUES (%s, %s, %s, %s, %s)
         """, (post_id, me_username, me_user_id, comment, utcnow_naive()))
 
+        # 🔥通知追加（自分の投稿には通知しない）
+        if post_owner_id and post_owner_id != me_user_id:
+            cur.execute("""
+                INSERT INTO notifications (user_id, actor_id, type, post_id)
+                VALUES (%s, %s, 'comment', %s)
+            """, (post_owner_id, me_user_id, post_id))
+
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
-
-
 # ======================
 # comment delete（自分のだけ）
 # ======================
@@ -2223,34 +2234,64 @@ def resolve_target_user(db, key: str):
         cur.close()
 
 @app.post("/follow/{key}")
-def follow(key: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
-    key = unquote(key)
-
+def follow(key: str, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     db = get_db()
+    cur = db.cursor()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        target = resolve_target_user(db, key)
-        if not target:
+        # 対象ユーザー取得（handle or username対応）
+        cur.execute("""
+            SELECT id FROM users
+            WHERE handle = %s OR username = %s
+            LIMIT 1
+        """, (key, key))
+        row = cur.fetchone()
+
+        if not row:
             return RedirectResponse("/", status_code=303)
-        target_user_id, target_username, target_key = target
+
+        target_user_id = str(row[0])
+
+        # 自分フォロー防止
+        if me_user_id == target_user_id:
+            return RedirectResponse(f"/user/{key}", status_code=303)
+
     finally:
+        cur.close()
         db.close()
 
-    if me_user_id == target_user_id:
-        return RedirectResponse(f"/user/{quote(target_key)}", status_code=303)
-
     def _do(db, cur):
-        cur.execute(
-            "INSERT INTO follows (follower, followee, follower_id, followee_id) VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING",
-            (me_username, target_username, me_user_id, target_user_id)
-        )
+        # 既にフォローしてるか
+        cur.execute("""
+            SELECT 1 FROM follows
+            WHERE follower_id=%s AND followee_id=%s
+        """, (me_user_id, target_user_id))
+
+        exists = cur.fetchone() is not None
+
+        if not exists:
+            # フォロー追加
+            cur.execute("""
+                INSERT INTO follows (follower_id, followee_id)
+                VALUES (%s, %s)
+                ON CONFLICT DO NOTHING
+            """, (me_user_id, target_user_id))
+
+            # 🔥通知（フォロー時のみ）
+            if me_user_id != target_user_id:
+                cur.execute("""
+                    INSERT INTO notifications (user_id, actor_id, type)
+                    VALUES (%s, %s, 'follow')
+                """, (target_user_id, me_user_id))
+
+        return {"ok": True}
 
     run_db(_do)
-    return RedirectResponse(f"/user/{quote(target_key)}", status_code=303)
 
+    return RedirectResponse(f"/user/{key}", status_code=303)
 
 @app.post("/unfollow/{key}")
 def unfollow(key: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
@@ -2610,6 +2651,7 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
         if not me_user_id:
             return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
 
+        # BANチェック
         cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
         row = cur.fetchone()
         if row and row[0]:
@@ -2620,26 +2662,43 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
         db.close()
 
     def _do(db, cur):
+        # 既にいいねしてるか
         cur.execute("SELECT 1 FROM likes WHERE user_id=%s AND post_id=%s", (me_user_id, post_id))
         liked = cur.fetchone() is not None
 
         if liked:
+            # いいね解除
             cur.execute("DELETE FROM likes WHERE user_id=%s AND post_id=%s", (me_user_id, post_id))
             liked = False
         else:
+            # いいね追加
             cur.execute(
                 "INSERT INTO likes (username, user_id, post_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
                 (me_username, me_user_id, post_id)
             )
             liked = True
 
+            # 🔥通知（いいね時のみ）
+            cur.execute("SELECT user_id FROM posts WHERE id=%s", (post_id,))
+            row = cur.fetchone()
+
+            if row and str(row[0]) != me_user_id:
+                cur.execute("""
+                    INSERT INTO notifications (user_id, actor_id, type, post_id)
+                    VALUES (%s, %s, 'like', %s)
+                """, (str(row[0]), me_user_id, post_id))
+
+        # 件数取得
         cur.execute("SELECT COUNT(*) FROM likes WHERE post_id=%s", (post_id,))
         likes_count = cur.fetchone()[0]
-        return {"ok": True, "liked": liked, "likes": likes_count}
+
+        return {
+            "ok": True,
+            "liked": liked,
+            "likes": likes_count
+        }
 
     return JSONResponse(run_db(_do))
-
-
 # ======================
 # delete post（自分のだけ）
 # ======================
