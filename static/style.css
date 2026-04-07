@@ -4714,3 +4714,12 @@ body {
 .checkbox {
   margin-bottom: 10px;
 }
+
+/* ===== add_car 専用 ===== */
+
+.help-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: -6px;
+  margin-bottom: 10px;
+}
