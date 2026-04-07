@@ -4801,3 +4801,8 @@ body {
   flex-shrink: 0;
   margin-left: 0;
 }
+
+.home-notif-btn::before,
+.home-notif-btn::after {
+  content: none !important;
+}
