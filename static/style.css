@@ -4757,3 +4757,29 @@ body {
   white-space: nowrap;   /* ←これが本命 */
   line-height: 1;        /* ←保険 */
 }
+
+.home-tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* ←中央寄せ */
+  gap: 10px;
+}
+
+.home-notif-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-tabs-row {
+  display: flex;
+  align-items: center;
+}
+
+.home-tabs {
+  margin: 0 auto;
+}
+
+.home-notif-btn {
+  margin-left: auto;
+}
