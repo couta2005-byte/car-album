@@ -27,12 +27,20 @@
 <h1 style="display:none;">車好きのためのSNS Carbum</h1>
 
   <!-- Tabs -->
-  <div class="home-tabs">
-    <a href="/?tab=recommend" class="home-tab {% if tab=='recommend' %}active{% endif %}">おすすめ</a>
-    <a href="/?tab=new" class="home-tab {% if tab=='new' %}active{% endif %}">新着</a>
-    <a href="/?tab=follow" class="home-tab {% if tab=='follow' %}active{% endif %}">フォロー中</a>
-  </div>
+  <div class="home-tabs-row">
+    <div class="home-tabs">
+      <a href="/?tab=recommend" class="home-tab {% if tab=='recommend' %}active{% endif %}">おすすめ</a>
+      <a href="/?tab=new" class="home-tab {% if tab=='new' %}active{% endif %}">新着</a>
+      <a href="/?tab=follow" class="home-tab {% if tab=='follow' %}active{% endif %}">フォロー中</a>
+    </div>
 
+  <a href="/notifications" class="home-notif-btn" aria-label="通知">
+    🔔
+    {% if unread_notifications and unread_notifications > 0 %}
+      <span class="home-notif-badge">{{ unread_notifications }}</span>
+    {% endif %}
+  </a>
+</div>
 <!-- Search -->
 <div class="home-search-wrap">
 
