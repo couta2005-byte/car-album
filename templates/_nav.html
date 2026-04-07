@@ -32,15 +32,6 @@
           {% endif %}
         </a>
 
-        <!-- 🔔 通知（未読バッジ） -->
-        <a href="/notifications"
-           class="nav-link notif-nav {% if mode=='notifications' %}active{% endif %}">
-          🔔
-          {% if unread_notifications and unread_notifications > 0 %}
-            <span class="notif-badge">{{ unread_notifications }}</span>
-          {% endif %}
-        </a>
-
         <!-- プロフィール -->
         <a href="/user/{{ (me_handle if me_handle else user) | urlencode }}"
            class="nav-avatar-wrap"
@@ -65,5 +56,4 @@
   </div>
 </header>
 
-<!-- like.js（必要なら） -->
-<script src="/static/like.js?v=3001" defer></script>
+<script src="/static/like.js?v=3002" defer></script>
