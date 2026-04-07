@@ -4724,31 +4724,45 @@ body {
   margin-bottom: 10px;
 }
 
-.nav-bell{
+
+.post-form-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.post-form-title{
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.home-notif-btn{
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
   text-decoration: none;
-  font-size: 20px;
+  font-size: 22px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
 }
 
-.notif-nav{
-  position: relative;
-}
-
-.notif-badge{
+.home-notif-badge{
   position: absolute;
   top: -4px;
-  right: -6px;
-  min-width: 14px;
-  height: 14px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
   padding: 0 4px;
   border-radius: 999px;
   background: #ff3b30;
   color: #fff;
   font-size: 10px;
-  line-height: 14px;
+  line-height: 16px;
   text-align: center;
   font-weight: 700;
 }

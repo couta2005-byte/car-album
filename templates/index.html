@@ -16,7 +16,7 @@
   <meta property="og:url" content="https://car-album-3.onrender.com/">
   <meta property="og:image" content="https://car-album-3.onrender.com/static/ogp.png">
 
-  <link rel="stylesheet" href="/static/style.css?v=1004">
+  <link rel="stylesheet" href="/static/style.css?v=1005">
 </head>
 <body>
 
@@ -41,6 +41,17 @@
 
   <!-- Post form -->
   {% if user %}
+  <div class="post-form-head">
+    <div class="post-form-title">投稿</div>
+
+    <a href="/notifications" class="home-notif-btn" aria-label="通知">
+      🔔
+      {% if unread_notifications and unread_notifications > 0 %}
+        <span class="home-notif-badge">{{ unread_notifications }}</span>
+      {% endif %}
+    </a>
+  </div>
+
   <form action="/post"
         method="post"
         enctype="multipart/form-data"
