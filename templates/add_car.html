@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>愛車追加 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=FINAL_FIX_3">
+  <link rel="stylesheet" href="/static/style.css?v=UI_UPGRADE_1">
 </head>
 <body>
 
@@ -18,131 +18,169 @@
 
   <h2 class="page-title">愛車を追加</h2>
 
-  <div style="margin-bottom:12px;">
-    <button type="button" onclick="loadMakers('japan_car')" class="primary-btn">🚗 国産車</button>
-    <button type="button" onclick="loadMakers('foreign_car')" class="primary-btn">🌍 外車</button>
-    <button type="button" onclick="loadMakers('bike')" class="primary-btn">🏍 バイク</button>
+  <!-- タブ -->
+  <div class="tabs">
+    <button onclick="loadMakers('japan_car', this)" class="active">🇯🇵 国産</button>
+    <button onclick="loadMakers('foreign_car', this)">🌍 外車</button>
+    <button onclick="loadMakers('bike', this)">🏍 バイク</button>
   </div>
 
-  <form action="/profile/cars/add" method="post" class="profile-edit-form">
+  <form action="/profile/cars/add" method="post" class="form-box">
 
     <label>メーカー</label>
     <select id="makerSelectAdd" name="maker_id" required>
       <option value="">メーカー選択</option>
     </select>
 
-    <label>車名</label>
+    <label>車種</label>
+
+    <!-- 🔥 検索 -->
+    <input type="text" id="carSearch" placeholder="車種検索">
+
     <select id="carSelectAdd" name="car" required disabled>
       <option value="">車種選択</option>
     </select>
 
-    <label>
+    <label class="checkbox">
       <input type="checkbox" name="set_primary" value="1">
       メイン愛車にする
     </label>
 
-    <button type="submit" class="primary-btn">追加</button>
+    <button type="submit" class="submit-btn">追加</button>
 
   </form>
 
 </main>
 
 <script>
-// =====================
-// 状態管理
-// =====================
 let currentCategory = "japan_car";
 
 // =====================
-// メーカー読み込み
+// タブ切替
 // =====================
-async function loadMakers(category) {
+function setActiveTab(btn){
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+// =====================
+// メーカー
+// =====================
+async function loadMakers(category, btn=null) {
   currentCategory = category;
+  if(btn) setActiveTab(btn);
 
   const makerSelect = document.getElementById("makerSelectAdd");
   const carSelect = document.getElementById("carSelectAdd");
 
-  // 初期化
   makerSelect.innerHTML = "<option value=''>メーカー選択</option>";
   carSelect.innerHTML = "<option value=''>車種選択</option>";
   carSelect.disabled = true;
 
-  try {
-    const res = await fetch(`/api/makers?category=${category}`);
-    const makers = await res.json();
+  const res = await fetch(`/api/makers?category=${category}`);
+  const makers = await res.json();
 
-    makers.forEach((m) => {
-      const option = document.createElement("option");
-      option.value = m.id;
-      option.textContent = m.name;
-      makerSelect.appendChild(option);
-    });
+  makers.forEach(m=>{
+    const opt = document.createElement("option");
+    opt.value = m.id;
+    opt.textContent = m.name;
+    makerSelect.appendChild(opt);
+  });
 
-    // メーカー変更時
-    makerSelect.onchange = () => {
-      loadCars(makerSelect.value);
-    };
-
-    // 🔥 カテゴリ切替時も即ロード
-    if (makerSelect.value) {
-      loadCars(makerSelect.value);
-    }
-
-  } catch (e) {
-    console.error("メーカー取得エラー", e);
-  }
+  makerSelect.onchange = ()=> loadCars(makerSelect.value);
 }
 
 // =====================
-// 車種読み込み（完全対応版）
+// 車種
 // =====================
-async function loadCars(makerId) {
+async function loadCars(makerId){
   const carSelect = document.getElementById("carSelectAdd");
 
   carSelect.innerHTML = "<option value=''>車種選択</option>";
   carSelect.disabled = true;
 
-  if (!makerId) return;
+  if(!makerId) return;
 
-  try {
-    const url = `/api/cars/by-maker-id/${makerId}?category=${currentCategory}`;
-    console.log("API URL:", url);
+  const res = await fetch(`/api/cars/by-maker-id/${makerId}?category=${currentCategory}`);
+  const data = await res.json();
 
-    const res = await fetch(url);
-    const data = await res.json();
+  let cars = Array.isArray(data) ? data : (data.cars || []);
 
-    console.log("cars API:", data);
+  cars.forEach(c=>{
+    const name = c.name || c;
+    const opt = document.createElement("option");
+    opt.value = name;
+    opt.textContent = name;
+    carSelect.appendChild(opt);
+  });
 
-    let cars = [];
-    if (Array.isArray(data)) {
-      cars = data;
-    } else if (data.cars) {
-      cars = data.cars;
-    }
-
-    cars.forEach((c) => {
-      const name = c.name || c;
-
-      const option = document.createElement("option");
-      option.value = name;
-      option.textContent = name;
-      carSelect.appendChild(option);
-    });
-
-    carSelect.disabled = false;
-
-  } catch (e) {
-    console.error("車種取得エラー", e);
-  }
+  carSelect.disabled = false;
 }
 
 // =====================
-// 初期ロード
+// 検索（神機能）
 // =====================
-document.addEventListener("DOMContentLoaded", async () => {
-  await loadMakers("japan_car");
+document.getElementById("carSearch").addEventListener("input", ()=>{
+  const keyword = document.getElementById("carSearch").value.toLowerCase();
+  const options = document.getElementById("carSelectAdd").options;
+
+  for(let i=0;i<options.length;i++){
+    const txt = options[i].text.toLowerCase();
+    options[i].style.display = txt.includes(keyword) ? "" : "none";
+  }
+});
+
+// 初期
+document.addEventListener("DOMContentLoaded", ()=>{
+  loadMakers("japan_car", document.querySelector(".tabs button"));
 });
 </script>
+
+<style>
+.tabs {
+  display:flex;
+  gap:8px;
+  margin-bottom:15px;
+}
+.tabs button {
+  flex:1;
+  padding:10px;
+  border-radius:20px;
+  border:none;
+  background:#eee;
+  cursor:pointer;
+}
+.tabs button.active {
+  background:#3498db;
+  color:white;
+}
+
+.form-box {
+  max-width:400px;
+  margin:auto;
+}
+
+.form-box select,
+.form-box input {
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+}
+
+.submit-btn {
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:20px;
+  background:#3498db;
+  color:white;
+  font-size:16px;
+}
+
+.checkbox {
+  margin-bottom:10px;
+}
+</style>
 
 </body>
 </html>

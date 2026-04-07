@@ -4662,3 +4662,55 @@ body {
 .car-delete-btn:hover{
   background:#e60023;
 }
+
+/* ===== add car UI upgrade ===== */
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 20px;
+  border: none;
+  background: #eee;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.tabs button.active {
+  background: #3498db;
+  color: white;
+}
+
+.form-box {
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.form-box select,
+.form-box input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 20px;
+  border: none;
+  background: #3498db;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.checkbox {
+  margin-bottom: 10px;
+}
