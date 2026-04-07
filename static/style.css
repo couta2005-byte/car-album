@@ -4783,3 +4783,21 @@ body {
 .home-notif-btn {
   margin-left: auto;
 }
+
+.home-tabs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home-tabs {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+}
+
+.home-notif-btn {
+  flex-shrink: 0;
+  margin-left: 0;
+}
