@@ -3879,18 +3879,19 @@ def notifications_page(request: Request, user: str = Cookie(None)):
     if not user:
         return RedirectResponse("/login")
 
-    conn = psycopg2.connect(DATABASE_URL)
+    conn = get_conn()
     cur = conn.cursor()
 
-    # 🔥 user_id取得（これ重要）
+    # 自分のuser_id取得
     cur.execute("SELECT id FROM users WHERE handle = %s", (user,))
     row = cur.fetchone()
     if not row:
+        conn.close()
         return RedirectResponse("/login")
 
-    me_user_id = row[0]
+    me_user_id = str(row[0])
 
-    # 🔥 通知取得（ここ修正済み）
+    # 通知取得
     cur.execute("""
         SELECT 
             n.id,
@@ -3907,17 +3908,18 @@ def notifications_page(request: Request, user: str = Cookie(None)):
     """, (me_user_id,))
 
     rows = cur.fetchall()
+    conn.close()
 
+    # フロント用整形
     notifications = []
-
     for r in rows:
-        notif_id, ntype, post_id, created_at, handle, display_name = r
+        nid, ntype, post_id, created_at, handle, display_name = r
 
         name = display_name if display_name else handle
 
         if ntype == "like":
             message = f"{name} がいいねしました"
-            link = f"/post/{post_id}"
+            link = f"/post/{post_id}" if post_id else "#"
 
         elif ntype == "follow":
             message = f"{name} がフォローしました"
@@ -3925,10 +3927,10 @@ def notifications_page(request: Request, user: str = Cookie(None)):
 
         elif ntype == "comment":
             message = f"{name} がコメントしました"
-            link = f"/post/{post_id}"
+            link = f"/post/{post_id}" if post_id else "#"
 
         else:
-            message = "通知"
+            message = f"{name} から通知"
             link = "#"
 
         notifications.append({
@@ -3937,10 +3939,9 @@ def notifications_page(request: Request, user: str = Cookie(None)):
             "link": link
         })
 
-    cur.close()
-    conn.close()
-
+    # ⭐ ここが最重要（順番修正済み）
     return templates.TemplateResponse(
+        request,
         "notifications.html",
         {
             "request": request,
