@@ -3874,38 +3874,56 @@ def add_user_car(
         cur.close()
         db.close()
 
-@app.get("/notifications")
-def notifications(request: Request, session_id: str = Cookie(None)):
-    user = get_current_user(session_id)
-    if not user:
-        return RedirectResponse("/login")
+@app.get("/notifications", response_class=HTMLResponse)
+def notifications_page(
+    request: Request,
+    user: str = Cookie(None),
+    uid: str = Cookie(None),
+):
+    db = get_db()
+    cur = db.cursor()
 
-    conn = get_conn()
-    cur = conn.cursor()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
 
-    cur.execute("""
-        SELECT n.id, n.type, n.post_id, n.created_at,
-               u.handle, u.display_name
-        FROM notifications n
-        JOIN users u ON n.actor_id = u.id
-        WHERE n.user_id = %s
-        ORDER BY n.created_at DESC
-        LIMIT 50
-    """, (user["id"],))
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
 
-    notifications = cur.fetchall()
+        # 通知取得
+        cur.execute("""
+            SELECT 
+                n.id,
+                n.type,
+                n.post_id,
+                n.created_at,
+                u.handle,
+                u.display_name
+            FROM notifications n
+            JOIN users u ON n.actor_id = u.id
+            WHERE n.user_id = %s
+            ORDER BY n.created_at DESC
+            LIMIT 50
+        """, (me_user_id,))
 
-    # 既読化
-    cur.execute("""
-        UPDATE notifications
-        SET is_read = TRUE
-        WHERE user_id = %s
-    """, (user["id"],))
+        notifications = cur.fetchall()
 
-    conn.commit()
-    conn.close()
+        # 既読化
+        cur.execute("""
+            UPDATE notifications
+            SET is_read = TRUE
+            WHERE user_id = %s
+        """, (me_user_id,))
 
-    return templates.TemplateResponse("notifications.html", {
-        "request": request,
-        "notifications": notifications
-    })
+        db.commit()
+
+    finally:
+        cur.close()
+        db.close()
+
+    return templates.TemplateResponse(
+        "notifications.html",
+        {
+            "request": request,
+            "notifications": notifications
+        }
+    )
