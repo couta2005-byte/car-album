@@ -3879,7 +3879,7 @@ def notifications_page(request: Request, user: str = Cookie(None)):
     if not user:
         return RedirectResponse("/login")
 
-    conn = get_conn()
+    conn = psycopg2.connect(os.environ["DATABASE_URL"], sslmode="require")
     cur = conn.cursor()
 
     # 自分のuser_id取得
@@ -3910,7 +3910,6 @@ def notifications_page(request: Request, user: str = Cookie(None)):
     rows = cur.fetchall()
     conn.close()
 
-    # フロント用整形
     notifications = []
     for r in rows:
         nid, ntype, post_id, created_at, handle, display_name = r
@@ -3939,7 +3938,6 @@ def notifications_page(request: Request, user: str = Cookie(None)):
             "link": link
         })
 
-    # ⭐ ここが最重要（順番修正済み）
     return templates.TemplateResponse(
         request,
         "notifications.html",
