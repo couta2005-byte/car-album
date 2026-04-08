@@ -3875,55 +3875,66 @@ def add_user_car(
         db.close()
 
 @app.get("/notifications", response_class=HTMLResponse)
-def notifications_page(
-    request: Request,
-    user: str = Cookie(None),
-    uid: str = Cookie(None),
-):
-    db = get_db()
-    cur = db.cursor()
+def notifications_page(request: Request, user: str = Cookie(None)):
+    if not user:
+        return RedirectResponse("/login")
 
-    try:
-        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+    conn = psycopg2.connect(DATABASE_URL)
+    cur = conn.cursor()
 
-        if not me_user_id:
-            return RedirectResponse("/login", status_code=303)
+    # 通知取得（例：likes / follows / comments）
+    cur.execute("""
+        SELECT n.id, n.type, n.post_id, n.created_at,
+               u.handle, u.display_name
+        FROM notifications n
+        LEFT JOIN users u ON n.actor_id = u.id
+        WHERE n.target_handle = %s
+        ORDER BY n.created_at DESC
+        LIMIT 50
+    """, (user,))
 
-        # 通知取得
-        cur.execute("""
-            SELECT 
-                n.id,
-                n.type,
-                n.post_id,
-                n.created_at,
-                u.handle,
-                u.display_name
-            FROM notifications n
-            JOIN users u ON n.actor_id = u.id
-            WHERE n.user_id = %s
-            ORDER BY n.created_at DESC
-            LIMIT 50
-        """, (me_user_id,))
+    rows = cur.fetchall()
 
-        notifications = cur.fetchall()
+    # 🔥 tuple → dict変換（ここが重要）
+    notifications = []
 
-        # 既読化
-        cur.execute("""
-            UPDATE notifications
-            SET is_read = TRUE
-            WHERE user_id = %s
-        """, (me_user_id,))
+    for r in rows:
+        notif_id, ntype, post_id, created_at, handle, display_name = r
 
-        db.commit()
+        name = display_name if display_name else handle
 
-    finally:
-        cur.close()
-        db.close()
+        if ntype == "like":
+            message = f"{name} がいいねしました"
+            link = f"/post/{post_id}"
+
+        elif ntype == "follow":
+            message = f"{name} がフォローしました"
+            link = f"/user/{handle}"
+
+        elif ntype == "comment":
+            message = f"{name} がコメントしました"
+            link = f"/post/{post_id}"
+
+        else:
+            message = "通知"
+            link = "#"
+
+        notifications.append({
+            "type": ntype,
+            "message": message,
+            "link": link,
+            "created_at": created_at
+        })
+
+    cur.close()
+    conn.close()
 
     return templates.TemplateResponse(
         "notifications.html",
         {
             "request": request,
-            "notifications": notifications
+            "notifications": notifications,
+            "user": user,
+            "mode": "notifications"
         }
     )
