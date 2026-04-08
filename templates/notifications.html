@@ -17,15 +17,15 @@
     {% for n in notifications %}
       <div class="notif-item">
 
-        <a href="{{ n.link if n.link else '#' }}">
-          {% if n.type == "like" %}
-            ❤️ {{ n.message }}
-          {% elif n.type == "follow" %}
-            👤 {{ n.message }}
-          {% elif n.type == "comment" %}
-            💬 {{ n.message }}
+        <a href="{{ n['link'] if n['link'] else '#' }}">
+          {% if n['type'] == "like" %}
+            ❤️ {{ n['message'] }}
+          {% elif n['type'] == "follow" %}
+            👤 {{ n['message'] }}
+          {% elif n['type'] == "comment" %}
+            💬 {{ n['message'] }}
           {% else %}
-            🔔 {{ n.message }}
+            🔔 {{ n['message'] }}
           {% endif %}
         </a>
 
