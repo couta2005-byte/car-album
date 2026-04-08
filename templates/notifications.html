@@ -17,15 +17,15 @@
     {% for n in notifications %}
       <div class="notif-item">
 
-        {% if n[1] == "like" %}
-          <a href="/post/{{ n[2] }}">
-            ❤️ {{ n[5] if n[5] else n[4] }} がいいねしました
-          </a>
-        {% elif n[1] == "follow" %}
-          <a href="/user/{{ n[4] }}">
-            👤 {{ n[5] if n[5] else n[4] }} がフォローしました
-          </a>
-        {% endif %}
+        <a href="{{ n.link if n.link else '#' }}">
+          {% if n.type == "like" %}
+            ❤️ {{ n.message }}
+          {% elif n.type == "follow" %}
+            👤 {{ n.message }}
+          {% else %}
+            🔔 {{ n.message }}
+          {% endif %}
+        </a>
 
       </div>
     {% endfor %}
