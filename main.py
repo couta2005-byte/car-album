@@ -1746,12 +1746,12 @@ def add_comment(
             VALUES (%s, %s, %s, %s, %s)
         """, (post_id, me_username, me_user_id, comment, utcnow_naive()))
 
-        # 🔥通知追加（自分の投稿には通知しない）
-        if post_owner_id and post_owner_id != me_user_id:
+        # 通知追加
+        if post_owner_id and post_owner_id != str(me_user_id):
             cur.execute("""
-                INSERT INTO notifications (user_id, actor_id, type, post_id)
-                VALUES (%s, %s, 'comment', %s)
-            """, (post_owner_id, me_user_id, post_id))
+                INSERT INTO notifications (target_user_id, actor_id, type, post_id, is_read, created_at)
+                VALUES (%s, %s, 'comment', %s, FALSE, %s)
+            """, (post_owner_id, me_user_id, post_id, utcnow_naive()))
 
     run_db(_do)
     return redirect_back(request, fallback=f"/post/{post_id}")
@@ -2242,7 +2242,6 @@ def follow(key: str, request: Request, user: str = Cookie(default=None), uid: st
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        # 対象ユーザー取得（handle or username対応）
         cur.execute("""
             SELECT id FROM users
             WHERE handle = %s OR username = %s
@@ -2255,8 +2254,7 @@ def follow(key: str, request: Request, user: str = Cookie(default=None), uid: st
 
         target_user_id = str(row[0])
 
-        # 自分フォロー防止
-        if me_user_id == target_user_id:
+        if str(me_user_id) == str(target_user_id):
             return RedirectResponse(f"/user/{key}", status_code=303)
 
     finally:
@@ -2264,33 +2262,28 @@ def follow(key: str, request: Request, user: str = Cookie(default=None), uid: st
         db.close()
 
     def _do(db, cur):
-        # 既にフォローしてるか
         cur.execute("""
             SELECT 1 FROM follows
             WHERE follower_id=%s AND followee_id=%s
         """, (me_user_id, target_user_id))
-
         exists = cur.fetchone() is not None
 
         if not exists:
-            # フォロー追加
             cur.execute("""
                 INSERT INTO follows (follower_id, followee_id)
                 VALUES (%s, %s)
                 ON CONFLICT DO NOTHING
             """, (me_user_id, target_user_id))
 
-            # 🔥通知（フォロー時のみ）
-            if me_user_id != target_user_id:
+            if str(me_user_id) != str(target_user_id):
                 cur.execute("""
-                    INSERT INTO notifications (user_id, actor_id, type)
-                    VALUES (%s, %s, 'follow')
-                """, (target_user_id, me_user_id))
+                    INSERT INTO notifications (target_user_id, actor_id, type, is_read, created_at)
+                    VALUES (%s, %s, 'follow', FALSE, %s)
+                """, (target_user_id, me_user_id, utcnow_naive()))
 
         return {"ok": True}
 
     run_db(_do)
-
     return RedirectResponse(f"/user/{key}", status_code=303)
 
 @app.post("/unfollow/{key}")
@@ -2651,7 +2644,6 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
         if not me_user_id:
             return JSONResponse({"ok": False, "error": "login_required"}, status_code=401)
 
-        # BANチェック
         cur.execute("SELECT is_banned FROM users WHERE id=%s", (me_user_id,))
         row = cur.fetchone()
         if row and row[0]:
@@ -2662,33 +2654,31 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
         db.close()
 
     def _do(db, cur):
-        # 既にいいねしてるか
         cur.execute("SELECT 1 FROM likes WHERE user_id=%s AND post_id=%s", (me_user_id, post_id))
         liked = cur.fetchone() is not None
 
         if liked:
-            # いいね解除
             cur.execute("DELETE FROM likes WHERE user_id=%s AND post_id=%s", (me_user_id, post_id))
             liked = False
         else:
-            # いいね追加
-            cur.execute(
-                "INSERT INTO likes (username, user_id, post_id) VALUES (%s, %s, %s) ON CONFLICT DO NOTHING",
-                (me_username, me_user_id, post_id)
-            )
+            cur.execute("""
+                INSERT INTO likes (username, user_id, post_id)
+                VALUES (%s, %s, %s)
+                ON CONFLICT DO NOTHING
+            """, (me_username, me_user_id, post_id))
             liked = True
 
-            # 🔥通知（いいね時のみ）
             cur.execute("SELECT user_id FROM posts WHERE id=%s", (post_id,))
             row = cur.fetchone()
 
-            if row and str(row[0]) != me_user_id:
-                cur.execute("""
-                    INSERT INTO notifications (user_id, actor_id, type, post_id)
-                    VALUES (%s, %s, 'like', %s)
-                """, (str(row[0]), me_user_id, post_id))
+            if row:
+                post_owner_id = str(row[0]) if row[0] is not None else None
+                if post_owner_id and post_owner_id != str(me_user_id):
+                    cur.execute("""
+                        INSERT INTO notifications (target_user_id, actor_id, type, post_id, is_read, created_at)
+                        VALUES (%s, %s, 'like', %s, FALSE, %s)
+                    """, (post_owner_id, me_user_id, post_id, utcnow_naive()))
 
-        # 件数取得
         cur.execute("SELECT COUNT(*) FROM likes WHERE post_id=%s", (post_id,))
         likes_count = cur.fetchone()[0]
 
@@ -3875,68 +3865,75 @@ def add_user_car(
         db.close()
 
 @app.get("/notifications", response_class=HTMLResponse)
-def notifications_page(request: Request, user: str = Cookie(None)):
-    if not user:
-        return RedirectResponse("/login")
+def notifications_page(
+    request: Request,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
+    db = get_db()
+    cur = db.cursor()
 
-    conn = psycopg2.connect(os.environ["DATABASE_URL"], sslmode="require")
-    cur = conn.cursor()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
 
-    # 自分のuser_id取得
-    cur.execute("SELECT id FROM users WHERE handle = %s", (user,))
-    row = cur.fetchone()
-    if not row:
-        conn.close()
-        return RedirectResponse("/login")
+        me_handle = get_me_handle(db, me_user_id)
+        user_icon = get_my_icon(db, me_user_id)
+        unread_dm = has_unread_dm(db, me_user_id)
 
-    me_user_id = str(row[0])
+        cur.execute("""
+            SELECT
+                n.id,
+                n.type,
+                n.post_id,
+                n.created_at,
+                u.handle,
+                u.display_name
+            FROM notifications n
+            JOIN users u ON n.actor_id = u.id
+            WHERE n.target_user_id = %s
+            ORDER BY n.created_at DESC
+            LIMIT 50
+        """, (me_user_id,))
+        rows = cur.fetchall()
 
-    # 通知取得
-    cur.execute("""
-        SELECT 
-            n.id,
-            n.type,
-            n.post_id,
-            n.created_at,
-            u.handle,
-            u.display_name
-        FROM notifications n
-        JOIN users u ON n.actor_id = u.id
-        WHERE n.target_user_id = %s
-        ORDER BY n.created_at DESC
-        LIMIT 50
-    """, (me_user_id,))
+        notifications = []
+        for r in rows:
+            notif_id, ntype, post_id, created_at, handle, display_name = r
+            name = display_name if display_name else handle
 
-    rows = cur.fetchall()
-    conn.close()
+            if ntype == "like":
+                message = f"{name} がいいねしました"
+                link = f"/post/{post_id}" if post_id else "#"
+            elif ntype == "follow":
+                message = f"{name} がフォローしました"
+                link = f"/user/{handle}" if handle else "#"
+            elif ntype == "comment":
+                message = f"{name} がコメントしました"
+                link = f"/post/{post_id}" if post_id else "#"
+            else:
+                message = f"{name} から通知"
+                link = "#"
 
-    notifications = []
-    for r in rows:
-        nid, ntype, post_id, created_at, handle, display_name = r
+            notifications.append({
+                "type": ntype,
+                "message": message,
+                "link": link,
+                "created_at": fmt_jst(created_at),
+            })
 
-        name = display_name if display_name else handle
+        cur.execute("""
+            UPDATE notifications
+            SET is_read = TRUE
+            WHERE target_user_id = %s
+              AND is_read = FALSE
+        """, (me_user_id,))
+        db.commit()
 
-        if ntype == "like":
-            message = f"{name} がいいねしました"
-            link = f"/post/{post_id}" if post_id else "#"
-
-        elif ntype == "follow":
-            message = f"{name} がフォローしました"
-            link = f"/user/{handle}"
-
-        elif ntype == "comment":
-            message = f"{name} がコメントしました"
-            link = f"/post/{post_id}" if post_id else "#"
-
-        else:
-            message = f"{name} から通知"
-            link = "#"
-
-        notifications.append({
-            "type": ntype,
-            "message": message,
-            "link": link
-        })
+    finally:
+        cur.close()
+        db.close()
 
     return templates.TemplateResponse(
         request,
@@ -3944,7 +3941,11 @@ def notifications_page(request: Request, user: str = Cookie(None)):
         {
             "request": request,
             "notifications": notifications,
-            "user": user,
-            "mode": "notifications"
+            "user": me_username,
+            "me_user_id": me_user_id,
+            "me_handle": me_handle,
+            "user_icon": user_icon,
+            "unread_dm": unread_dm,
+            "mode": "notifications",
         }
     )
