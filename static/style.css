@@ -4806,3 +4806,22 @@ body {
 .home-notif-btn::after {
   content: none !important;
 }
+
+/* ===== 最終FIX（タブ中央＆通知右固定） ===== */
+.home-tabs-row {
+  position: relative !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.home-tabs {
+  display: flex !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+.home-notif-btn {
+  position: absolute !important;
+  right: 0 !important;
+}
