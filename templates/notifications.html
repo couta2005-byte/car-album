@@ -22,6 +22,8 @@
             ❤️ {{ n.message }}
           {% elif n.type == "follow" %}
             👤 {{ n.message }}
+          {% elif n.type == "comment" %}
+            💬 {{ n.message }}
           {% else %}
             🔔 {{ n.message }}
           {% endif %}
