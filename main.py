@@ -1749,7 +1749,7 @@ def add_comment(
         # 通知追加
         if post_owner_id and post_owner_id != str(me_user_id):
             cur.execute("""
-                INSERT INTO notifications (target_user_id, actor_id, type, post_id, is_read, created_at)
+                INSERT INTO notifications (user_id, actor_id, type, post_id, is_read, created_at)
                 VALUES (%s, %s, 'comment', %s, FALSE, %s)
             """, (post_owner_id, me_user_id, post_id, utcnow_naive()))
 
@@ -2277,7 +2277,7 @@ def follow(key: str, request: Request, user: str = Cookie(default=None), uid: st
 
             if str(me_user_id) != str(target_user_id):
                 cur.execute("""
-                    INSERT INTO notifications (target_user_id, actor_id, type, is_read, created_at)
+                    INSERT INTO notifications (user_id, actor_id, type, is_read, created_at)
                     VALUES (%s, %s, 'follow', FALSE, %s)
                 """, (target_user_id, me_user_id, utcnow_naive()))
 
@@ -2285,7 +2285,6 @@ def follow(key: str, request: Request, user: str = Cookie(default=None), uid: st
 
     run_db(_do)
     return RedirectResponse(f"/user/{key}", status_code=303)
-
 @app.post("/unfollow/{key}")
 def unfollow(key: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     key = unquote(key)
@@ -2675,7 +2674,7 @@ def api_like(post_id: int, request: Request, user: str = Cookie(default=None), u
                 post_owner_id = str(row[0]) if row[0] is not None else None
                 if post_owner_id and post_owner_id != str(me_user_id):
                     cur.execute("""
-                        INSERT INTO notifications (target_user_id, actor_id, type, post_id, is_read, created_at)
+                        INSERT INTO notifications (user_id, actor_id, type, post_id, is_read, created_at)
                         VALUES (%s, %s, 'like', %s, FALSE, %s)
                     """, (post_owner_id, me_user_id, post_id, utcnow_naive()))
 
@@ -3892,7 +3891,7 @@ def notifications_page(
                 u.display_name
             FROM notifications n
             JOIN users u ON n.actor_id = u.id
-            WHERE n.target_user_id = %s
+            WHERE n.user_id = %s
             ORDER BY n.created_at DESC
             LIMIT 50
         """, (me_user_id,))
@@ -3926,7 +3925,7 @@ def notifications_page(
         cur.execute("""
             UPDATE notifications
             SET is_read = TRUE
-            WHERE target_user_id = %s
+            WHERE user_id = %s
               AND is_read = FALSE
         """, (me_user_id,))
         db.commit()
@@ -3949,4 +3948,3 @@ def notifications_page(
             "mode": "notifications",
         }
     )
-
