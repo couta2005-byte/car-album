@@ -3949,3 +3949,72 @@ def notifications_page(
             "mode": "notifications",
         }
     )
+
+@app.post("/api/like/{post_id}")
+def api_like(
+    post_id: int,
+    request: Request,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None),
+):
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return JSONResponse({"ok": False}, status_code=401)
+
+        # いいね状態確認
+        cur.execute("""
+            SELECT 1 FROM likes
+            WHERE user_id=%s AND post_id=%s
+        """, (me_user_id, post_id))
+        liked = cur.fetchone() is not None
+
+        if liked:
+            # いいね解除
+            cur.execute("""
+                DELETE FROM likes
+                WHERE user_id=%s AND post_id=%s
+            """, (me_user_id, post_id))
+            liked = False
+
+        else:
+            # いいね追加
+            cur.execute("""
+                INSERT INTO likes (username, user_id, post_id)
+                VALUES (%s, %s, %s)
+                ON CONFLICT DO NOTHING
+            """, (me_username, me_user_id, post_id))
+            liked = True
+
+            # 投稿者取得
+            cur.execute("SELECT user_id FROM posts WHERE id=%s", (post_id,))
+            row = cur.fetchone()
+
+            if row:
+                post_owner_id = str(row[0])
+
+                if post_owner_id != str(me_user_id):
+                    cur.execute("""
+                        INSERT INTO notifications
+                        (target_user_id, actor_id, type, post_id, is_read, created_at)
+                        VALUES (%s, %s, 'like', %s, FALSE, %s)
+                    """, (post_owner_id, me_user_id, post_id, utcnow_naive()))
+
+        # いいね数
+        cur.execute("SELECT COUNT(*) FROM likes WHERE post_id=%s", (post_id,))
+        likes_count = cur.fetchone()[0]
+
+        db.commit()
+
+        return JSONResponse({
+            "ok": True,
+            "liked": liked,
+            "likes": likes_count
+        })
+
+    finally:
+        cur.close()
+        db.close()
