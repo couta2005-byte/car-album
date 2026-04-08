@@ -3882,20 +3882,32 @@ def notifications_page(request: Request, user: str = Cookie(None)):
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
 
-    # 通知取得（例：likes / follows / comments）
+    # 🔥 user_id取得（これ重要）
+    cur.execute("SELECT id FROM users WHERE handle = %s", (user,))
+    row = cur.fetchone()
+    if not row:
+        return RedirectResponse("/login")
+
+    me_user_id = row[0]
+
+    # 🔥 通知取得（ここ修正済み）
     cur.execute("""
-        SELECT n.id, n.type, n.post_id, n.created_at,
-               u.handle, u.display_name
+        SELECT 
+            n.id,
+            n.type,
+            n.post_id,
+            n.created_at,
+            u.handle,
+            u.display_name
         FROM notifications n
-        LEFT JOIN users u ON n.actor_id = u.id
-        WHERE n.target_handle = %s
+        JOIN users u ON n.actor_id = u.id
+        WHERE n.target_user_id = %s
         ORDER BY n.created_at DESC
         LIMIT 50
-    """, (user,))
+    """, (me_user_id,))
 
     rows = cur.fetchall()
 
-    # 🔥 tuple → dict変換（ここが重要）
     notifications = []
 
     for r in rows:
@@ -3922,8 +3934,7 @@ def notifications_page(request: Request, user: str = Cookie(None)):
         notifications.append({
             "type": ntype,
             "message": message,
-            "link": link,
-            "created_at": created_at
+            "link": link
         })
 
     cur.close()
