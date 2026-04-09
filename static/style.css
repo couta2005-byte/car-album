@@ -4991,20 +4991,77 @@ body {
   display: block !important;
 }
 
-/* 他のimgに絶対影響させない */
-.notif-card img {
-  all: unset !important;
+/* =========================
+   Notifications 完全FIX（最終）
+========================= */
+
+.notifications-page {
+  max-width: 700px !important;
+  margin: 20px auto !important;
+  padding: 0 16px !important;
 }
 
-.notif-avatar {
-  all: unset !important;
+.notifications {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
 
+/* カード */
+.notif-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  background: #fff !important;
+  padding: 16px !important;
+  border-radius: 16px !important;
+  text-decoration: none !important;
+  color: #111 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+
+/* アイコン */
+.notif-avatar {
   width: 52px !important;
   height: 52px !important;
-
+  min-width: 52px !important;
+  max-width: 52px !important;
   border-radius: 50% !important;
   object-fit: cover !important;
-
-  display: block !important;
   flex-shrink: 0 !important;
+  display: block !important;
+}
+
+/* notif-avatar クラス付き img にも確実に効かせる */
+img.notif-avatar {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  max-width: 52px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+  display: block !important;
+}
+
+.notif-avatar.fallback {
+  background: linear-gradient(135deg, #d7d7d7, #bfbfbf) !important;
+}
+
+.notif-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.notif-text {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  line-height: 1.5 !important;
+  word-break: break-word !important;
+}
+
+.notif-time {
+  font-size: 12px !important;
+  color: #777 !important;
+  margin-top: 4px !important;
 }
