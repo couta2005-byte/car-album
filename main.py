@@ -3899,7 +3899,7 @@ def notifications_page(
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
-        # 🔥 通知取得（アイコン付き）
+        # 通知取得
         cur.execute("""
             SELECT
                 n.id,
@@ -3923,24 +3923,17 @@ def notifications_page(
         for r in rows:
             notif_id, ntype, post_id, created_at, handle, display_name, icon = r
 
-            # 🔥 名前安定化（ズレ防止）
-            name = display_name or handle or "ユーザー"
-
-            # 🔥 プロフィールキー（handle優先）
-            profile_key = handle if handle else name
+            name = display_name if display_name else handle
 
             if ntype == "like":
                 message = f"{name} がいいねしました"
                 link = f"/post/{post_id}" if post_id else "#"
-
             elif ntype == "follow":
                 message = f"{name} がフォローしました"
-                link = f"/user/{profile_key}"
-
+                link = f"/user/{handle}" if handle else "#"
             elif ntype == "comment":
                 message = f"{name} がコメントしました"
                 link = f"/post/{post_id}" if post_id else "#"
-
             else:
                 message = f"{name} から通知"
                 link = "#"
@@ -3950,10 +3943,10 @@ def notifications_page(
                 "message": message,
                 "link": link,
                 "created_at": fmt_jst(created_at),
-                "icon": icon if icon else None,
+                "icon": icon,
             })
 
-        # 🔥 既読化
+        # 🔥 既読化（←ここ同じインデント）
         cur.execute("""
             UPDATE notifications
             SET is_read = TRUE
