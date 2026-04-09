@@ -11,28 +11,48 @@
 {% include "_nav.html" %}
 
 <main class="container">
-  <h2>🔔 通知</h2>
+  <h2 class="page-title">🔔 通知</h2>
 
   {% if notifications %}
-    {% for n in notifications %}
-      <div class="notif-item">
+    <div class="notifications">
+      {% for n in notifications %}
 
-        <a href="{{ n['link'] if n['link'] else '#' }}">
-          {% if n['type'] == "like" %}
-            ❤️ {{ n['message'] }}
-          {% elif n['type'] == "follow" %}
-            👤 {{ n['message'] }}
-          {% elif n['type'] == "comment" %}
-            💬 {{ n['message'] }}
+        <a href="{{ n['link'] if n['link'] else '#' }}" class="notif-card">
+
+          <!-- アイコン -->
+          {% if n['icon'] %}
+            <img src="{{ n['icon'] }}" class="notif-avatar">
           {% else %}
-            🔔 {{ n['message'] }}
+            <div class="notif-avatar fallback"></div>
           {% endif %}
+
+          <!-- 本文 -->
+          <div class="notif-body">
+
+            <div class="notif-text">
+              {% if n['type'] == "like" %}
+                ❤️ {{ n['message'] }}
+              {% elif n['type'] == "follow" %}
+                👤 {{ n['message'] }}
+              {% elif n['type'] == "comment" %}
+                💬 {{ n['message'] }}
+              {% else %}
+                🔔 {{ n['message'] }}
+              {% endif %}
+            </div>
+
+            <div class="notif-time">
+              {{ n['created_at'] }}
+            </div>
+
+          </div>
+
         </a>
 
-      </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
   {% else %}
-    <p>通知なし</p>
+    <p class="empty-text">通知なし</p>
   {% endif %}
 
 </main>
