@@ -644,25 +644,23 @@ def init_db():
             created_at TIMESTAMP DEFAULT NOW()
         );
         """)
-# ======================
-# 🔔 notifications
-# ======================
-cur.execute("""
-CREATE TABLE IF NOT EXISTS notifications (
-    id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL,
-    actor_id UUID,
-    type TEXT,
-    post_id INTEGER,
-    is_read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-""")
+        # 🔔 notifications
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS notifications (
+            id SERIAL PRIMARY KEY,
+            user_id UUID NOT NULL,
+            actor_id UUID,
+            type TEXT,
+            post_id INTEGER,
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+        """)
 
-cur.execute("""
-CREATE INDEX IF NOT EXISTS notifications_user_id_idx
-ON notifications(user_id);
-""")
+        cur.execute("""
+        CREATE INDEX IF NOT EXISTS notifications_user_id_idx
+        ON notifications(user_id);
+        """)
         # ✅ DM tables
         cur.execute("""
         CREATE TABLE IF NOT EXISTS dm_rooms (
