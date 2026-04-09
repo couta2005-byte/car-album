@@ -4890,44 +4890,38 @@ body {
 }
 
 /* =========================
-   Notifications PC 完全修正
+   Notifications Page FIX
 ========================= */
 
-/* 背景を活かす */
-body {
-  background: #f5f5f5;
-}
-
-/* 通知エリア */
-.notifications {
-  max-width: 720px;
-  margin: 24px auto;
+.notifications-page {
+  max-width: 900px;
+  margin: 20px auto;
   padding: 0 16px;
 }
 
-/* PCだけ中央カード感を強化 */
+/* 通知リスト */
+.notifications {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* PC最適化 */
 @media (min-width: 900px) {
-
-  .notifications {
-    max-width: 760px;
+  .notifications-page {
+    max-width: 820px;
   }
 
-  /* カードをしっかり浮かせる */
   .notif-card {
-    border-radius: 18px;
     padding: 18px;
-    margin-bottom: 14px;
-
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    border-radius: 18px;
   }
 
-  /* アイコン少し大きく */
   .notif-avatar {
     width: 56px;
     height: 56px;
   }
 
-  /* テキストも少し大きく */
   .notif-text {
     font-size: 16px;
   }
