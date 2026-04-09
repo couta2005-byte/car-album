@@ -4889,3 +4889,38 @@ body {
   margin-top: 18px;
 }
 
+/* =========================
+   Notifications PC FIX（最終）
+========================= */
+
+.notifications {
+  max-width: 640px !important;
+  margin: 20px auto !important;
+  padding: 0 16px !important;
+}
+
+/* カードを中央で綺麗に */
+.notif-card {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* PCだけ余白広げる */
+@media (min-width: 900px) {
+  .notifications {
+    max-width: 720px !important;
+  }
+}
+
+/* アイコン暴走防止（←これ結構大事） */
+.notif-avatar {
+  width: 52px !important;
+  height: 52px !important;
+}
+
+/* 文字サイズPC最適化 */
+@media (min-width: 900px) {
+  .notif-text {
+    font-size: 16px;
+  }
+}
