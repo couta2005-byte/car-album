@@ -5065,3 +5065,38 @@ img.notif-avatar {
   color: #777 !important;
   margin-top: 4px !important;
 }
+
+/* =========================
+   Notifications Image FIX（スマホ崩れ修正）
+========================= */
+
+/* 通知カード内の画像は全部固定 */
+.notif-card img {
+  width: 52px !important;
+  height: 52px !important;
+  min-width: 52px !important;
+  max-width: 52px !important;
+
+  border-radius: 50% !important;
+  object-fit: cover !important;
+
+  flex-shrink: 0 !important;
+  display: block !important;
+}
+
+/* 本文は横に広がる */
+.notif-body {
+  flex: 1 !important;
+}
+
+/* スマホ専用 微調整 */
+@media (max-width: 600px) {
+  .notif-card {
+    padding: 14px !important;
+    gap: 12px !important;
+  }
+
+  .notif-text {
+    font-size: 14px !important;
+  }
+}
