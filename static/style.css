@@ -4947,11 +4947,6 @@ body {
   margin-top: 4px !important;
 }
 
-/* 🔥 これが最重要（画像暴走完全停止） */
-.notif-card img:not(.notif-avatar) {
-  display: none !important;
-}
-
 /* ===== 通知アイコン完全固定 ===== */
 .notif-card img{
   width:52px !important;
@@ -4971,5 +4966,45 @@ body {
   border-radius: 50% !important;
   object-fit: cover !important;
 
+  flex-shrink: 0 !important;
+}
+
+/* ===== 通知アイコン 完全最終FIX ===== */
+
+.notif-card {
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* アイコン専用 */
+.notif-avatar {
+  width: 52px !important;
+  height: 52px !important;
+
+  min-width: 52px !important;
+  max-width: 52px !important;
+
+  border-radius: 50% !important;
+  object-fit: cover !important;
+
+  flex-shrink: 0 !important;
+  display: block !important;
+}
+
+/* 他のimgに絶対影響させない */
+.notif-card img {
+  all: unset !important;
+}
+
+.notif-avatar {
+  all: unset !important;
+
+  width: 52px !important;
+  height: 52px !important;
+
+  border-radius: 50% !important;
+  object-fit: cover !important;
+
+  display: block !important;
   flex-shrink: 0 !important;
 }
