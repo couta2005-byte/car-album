@@ -3899,7 +3899,6 @@ def notifications_page(
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
-        # 通知取得
         cur.execute("""
             SELECT
                 n.id,
@@ -3946,7 +3945,7 @@ def notifications_page(
                 "icon": icon,
             })
 
-        # 🔥 既読化（←ここ同じインデント）
+        # ✅ 既読化（ここ重要：forの外・tryの中）
         cur.execute("""
             UPDATE notifications
             SET is_read = TRUE
