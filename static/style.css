@@ -4890,39 +4890,64 @@ body {
 }
 
 /* =========================
-   Notifications Page FIX
+   Notifications 完全FIX（最終）
 ========================= */
 
 .notifications-page {
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 0 16px;
+  max-width: 700px !important;
+  margin: 20px auto !important;
+  padding: 0 16px !important;
 }
 
-/* 通知リスト */
 .notifications {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
 }
 
-/* PC最適化 */
-@media (min-width: 900px) {
-  .notifications-page {
-    max-width: 820px;
-  }
+/* カード */
+.notif-card {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
 
-  .notif-card {
-    padding: 18px;
-    border-radius: 18px;
-  }
+  background: #fff !important;
+  padding: 16px !important;
+  border-radius: 16px !important;
 
-  .notif-avatar {
-    width: 56px;
-    height: 56px;
-  }
+  text-decoration: none !important;
+  color: #111 !important;
 
-  .notif-text {
-    font-size: 16px;
-  }
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+
+/* アイコン */
+.notif-avatar {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+}
+
+/* 本文 */
+.notif-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+.notif-text {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+}
+
+.notif-time {
+  font-size: 12px !important;
+  color: #777 !important;
+  margin-top: 4px !important;
+}
+
+/* 🔥 これが最重要（画像暴走完全停止） */
+.notif-card img:not(.notif-avatar) {
+  display: none !important;
 }
