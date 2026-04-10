@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>{{ (display_name if display_name else username) }} (@{{ handle if handle else username }}) | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=PROFILE_BIO_FIX_1">
+  <link rel="stylesheet" href="/static/style.css?v=PROFILE_FIX_UNFOLLOW">
 </head>
 <body>
 
@@ -58,12 +58,13 @@
         @{{ handle if handle else username }}
       </div>
 
-      <!-- ★ここ修正（空白バグ完全対策） -->
-      <div class="insta-bio">{{ (profile[3] if profile and profile|length > 3 and profile[3] else "自己紹介なし") | trim }}</div>
+      <div class="insta-bio">
+        {{ (profile[3] if profile and profile|length > 3 and profile[3] else "自己紹介なし") | trim }}
+      </div>
 
     </div>
 
-    <!-- アクション -->
+    <!-- 🔥 アクション（完全修正版） -->
     <div class="insta-actions">
 
       {% if me_user_id == target_user_id %}
@@ -71,12 +72,14 @@
 
       {% else %}
 
+        {% set profile_key = handle if handle else username %}
+
         {% if is_following %}
-          <form action="/unfollow/{{ target_user_id }}" method="post">
+          <form action="/unfollow/{{ profile_key }}" method="post">
             <button type="submit" class="follow-btn">フォロー解除</button>
           </form>
         {% else %}
-          <form action="/follow/{{ target_user_id }}" method="post">
+          <form action="/follow/{{ profile_key }}" method="post">
             <button type="submit" class="follow-btn">フォローする</button>
           </form>
         {% endif %}
