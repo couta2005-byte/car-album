@@ -2308,6 +2308,47 @@ def follow(
 
     # ✅ ここも修正（keyじゃなくtarget_key）
     return RedirectResponse(f"/user/{target_key}", status_code=303)
+
+@app.post("/unfollow/{key}")
+def unfollow(
+    key: str,
+    request: Request,
+    user: str = Cookie(default=None),
+    uid: str = Cookie(default=None)
+):
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+
+        if not me_user_id:
+            return RedirectResponse("/login", status_code=303)
+
+        # 対象ユーザー取得
+        result = resolve_target_user(db, key)
+
+        if not result:
+            return RedirectResponse("/", status_code=303)
+
+        target_user_id, target_username, target_key = result
+
+    finally:
+        cur.close()
+        db.close()
+
+    def _do(db, cur):
+        # ✅ UUIDで削除（ここが超重要）
+        cur.execute("""
+            DELETE FROM follows
+            WHERE follower_id=%s AND followee_id=%s
+        """, (me_user_id, target_user_id))
+
+        return {"ok": True}
+
+    run_db(_do)
+
+    return RedirectResponse(f"/user/{target_key}", status_code=303)
 # ======================
 # post（user_car_id優先）
 # ======================
