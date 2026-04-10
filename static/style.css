@@ -5100,3 +5100,17 @@ img.notif-avatar {
     font-size: 14px !important;
   }
 }
+
+.home-notif-badge{
+  position: absolute;
+  top: 6px;
+  right: 6px;
+
+  width: 10px;
+  height: 10px;
+
+  background: #ff2d55;
+  border-radius: 50%;
+
+  display: none;
+}

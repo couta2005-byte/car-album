@@ -3970,3 +3970,29 @@ def notifications_page(
             "mode": "notifications",
         }
     )
+
+@app.get("/api/notifications/unread")
+def unread_notifications(user: str = Cookie(None), uid: str = Cookie(None)):
+    db = get_db()
+    cur = db.cursor()
+
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+        if not me_user_id:
+            return {"unread": False}
+
+        cur.execute("""
+            SELECT 1
+            FROM notifications
+            WHERE user_id = %s
+              AND is_read = FALSE
+            LIMIT 1
+        """, (me_user_id,))
+
+        unread = cur.fetchone() is not None
+
+        return {"unread": unread}
+
+    finally:
+        cur.close()
+        db.close()

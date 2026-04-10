@@ -34,12 +34,10 @@
       <a href="/?tab=follow" class="home-tab {% if tab=='follow' %}active{% endif %}">フォロー中</a>
     </div>
 
-  <a href="/notifications" class="home-notif-btn" aria-label="通知">
-    🔔
-    {% if unread_notifications and unread_notifications > 0 %}
-      <span class="home-notif-badge">{{ unread_notifications }}</span>
-    {% endif %}
-  </a>
+<a href="/notifications" class="home-notif-btn" aria-label="通知">
+  🔔
+  <span id="notif-dot" class="home-notif-badge" style="display:none;"></span>
+</a>
 </div>
 <!-- Search -->
 <div class="home-search-wrap">
@@ -491,6 +489,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  fetch("/api/notifications/unread", {
+    credentials: "same-origin"
+  })
+    .then(res => res.json())
+    .then(data => {
+      const dot = document.getElementById("notif-dot");
+      if (!dot) return;
 
+      if (data.unread) {
+        dot.style.display = "inline-flex";
+      } else {
+        dot.style.display = "none";
+      }
+    })
+    .catch(() => {
+      const dot = document.getElementById("notif-dot");
+      if (dot) dot.style.display = "none";
+    });
+});
+</script>
 </body>
 </html>
