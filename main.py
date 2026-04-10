@@ -2251,30 +2251,24 @@ def resolve_target_user(db, key: str):
 
 @app.post("/follow/{key}")
 def follow(key: str, request: Request, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
+
     db = get_db()
-    cur = db.cursor()
     try:
         me_username, me_user_id = get_me_from_cookies(db, user, uid)
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        cur.execute("""
-            SELECT id FROM users
-            WHERE handle = %s OR username = %s
-            LIMIT 1
-        """, (key, key))
-        row = cur.fetchone()
-
-        if not row:
+        # 🔥 ここ修正：共通関数使う
+        target = resolve_target_user(db, key)
+        if not target:
             return RedirectResponse("/", status_code=303)
 
-        target_user_id = str(row[0])
+        target_user_id, target_username, target_key = target
 
         if str(me_user_id) == str(target_user_id):
-            return RedirectResponse(f"/user/{key}", status_code=303)
+            return RedirectResponse(f"/user/{target_key}", status_code=303)
 
     finally:
-        cur.close()
         db.close()
 
     def _do(db, cur):
@@ -2297,10 +2291,10 @@ def follow(key: str, request: Request, user: str = Cookie(default=None), uid: st
                     VALUES (%s, %s, 'follow', FALSE, %s)
                 """, (target_user_id, me_user_id, utcnow_naive()))
 
-        return {"ok": True}
-
     run_db(_do)
-    return RedirectResponse(f"/user/{key}", status_code=303)
+
+    # 🔥 redirectも安全に
+    return RedirectResponse(f"/user/{target_key}", status_code=303)
 @app.post("/unfollow/{key}")
 def unfollow(key: str, user: str = Cookie(default=None), uid: str = Cookie(default=None)):
     key = unquote(key)
