@@ -2265,32 +2265,23 @@ def follow(
         if not me_user_id:
             return RedirectResponse("/login", status_code=303)
 
-        # ✅ 相手取得（ID + username 両方）
-        cur.execute("""
-            SELECT id, username
-            FROM users
-            WHERE handle = %s OR username = %s
-            LIMIT 1
-        """, (key, key))
+        # ✅ ここを統一（超重要）
+        result = resolve_target_user(db, key)
 
-        row = cur.fetchone()
-
-        if not row:
+        if not result:
             return RedirectResponse("/", status_code=303)
 
-        target_user_id = str(row[0])
-        target_username = row[1]
+        target_user_id, target_username, target_key = result
 
         # 自分フォロー禁止
         if str(me_user_id) == str(target_user_id):
-            return RedirectResponse(f"/user/{key}", status_code=303)
+            return RedirectResponse(f"/user/{target_key}", status_code=303)
 
     finally:
         cur.close()
         db.close()
 
     def _do(db, cur):
-        # 既にフォローしてるか
         cur.execute("""
             SELECT 1 FROM follows
             WHERE follower_id=%s AND followee_id=%s
@@ -2299,14 +2290,12 @@ def follow(
         exists = cur.fetchone() is not None
 
         if not exists:
-            # ✅ ★ここが修正ポイント（usernameも入れる）
             cur.execute("""
                 INSERT INTO follows (follower, followee, follower_id, followee_id)
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT DO NOTHING
             """, (me_username, target_username, me_user_id, target_user_id))
 
-            # 通知
             if str(me_user_id) != str(target_user_id):
                 cur.execute("""
                     INSERT INTO notifications (user_id, actor_id, type, is_read, created_at)
@@ -2317,7 +2306,8 @@ def follow(
 
     run_db(_do)
 
-    return RedirectResponse(f"/user/{key}", status_code=303)
+    # ✅ ここも修正（keyじゃなくtarget_key）
+    return RedirectResponse(f"/user/{target_key}", status_code=303)
 # ======================
 # post（user_car_id優先）
 # ======================
