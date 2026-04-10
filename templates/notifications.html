@@ -15,42 +15,73 @@
 
   {% if notifications %}
     <div class="notifications">
+
       {% for n in notifications %}
 
-        <a href="{{ n['link'] if n['link'] else '#' }}" class="notif-card">
+        <!-- ===== アナウンスはリンクなし ===== -->
+        {% if n['type'] == "announcement" %}
+          <div class="notif-card announcement">
 
-          <!-- アイコン -->
-          {% if n['icon'] %}
-            <img src="{{ n['icon'] }}" class="notif-avatar">
-          {% else %}
-            <div class="notif-avatar fallback"></div>
-          {% endif %}
+            <!-- アイコン -->
+            <div class="notif-avatar fallback">📢</div>
 
-          <!-- 本文 -->
-          <div class="notif-body">
+            <div class="notif-body">
+              <div class="notif-text announcement-text">
+                📢 {{ n['message'] }}
+              </div>
 
-            <div class="notif-text">
-              {% if n['type'] == "like" %}
-                ❤️ {{ n['message'] }}
-              {% elif n['type'] == "follow" %}
-                👤 {{ n['message'] }}
-              {% elif n['type'] == "comment" %}
-                💬 {{ n['message'] }}
-              {% else %}
-                🔔 {{ n['message'] }}
-              {% endif %}
-            </div>
-
-            <div class="notif-time">
-              {{ n['created_at'] }}
+              <div class="notif-time">
+                {{ n['created_at'] }}
+              </div>
             </div>
 
           </div>
 
-        </a>
+        {% else %}
+          <!-- ===== 通常通知 ===== -->
+          <a href="{{ n['link'] if n['link'] else '#' }}" class="notif-card">
+
+            <!-- アイコン -->
+            {% if n['icon'] %}
+              <img src="{{ n['icon'] }}" class="notif-avatar">
+            {% else %}
+              <div class="notif-avatar fallback"></div>
+            {% endif %}
+
+            <!-- 本文 -->
+            <div class="notif-body">
+
+              <div class="notif-text">
+
+                {% if n['type'] == "like" %}
+                  ❤️ {{ n['message'] }}
+
+                {% elif n['type'] == "follow" %}
+                  👤 {{ n['message'] }}
+
+                {% elif n['type'] == "comment" %}
+                  💬 {{ n['message'] }}
+
+                {% else %}
+                  🔔 {{ n['message'] }}
+
+                {% endif %}
+
+              </div>
+
+              <div class="notif-time">
+                {{ n['created_at'] }}
+              </div>
+
+            </div>
+
+          </a>
+        {% endif %}
 
       {% endfor %}
+
     </div>
+
   {% else %}
     <p class="empty-text">通知なし</p>
   {% endif %}

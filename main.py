@@ -3490,7 +3490,76 @@ def admin_reports(request: Request, user: str = Cookie(None), uid: str = Cookie(
         "me_user_id": me_user_id,
         "mode": "admin",
     })
+@app.post("/admin/announce")
+def admin_announce(
+    request: Request,
+    message: str = Form(...),
+    user: str = Cookie(None),
+    uid: str = Cookie(None)
+):
+    db = get_db()
+    cur = db.cursor()
 
+    try:
+        _, me_user_id = get_me_from_cookies(db, user, uid)
+
+        # 管理者チェック
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/", status_code=303)
+
+        message = (message or "").strip()
+        if not message:
+            return RedirectResponse("/admin?error=empty", status_code=303)
+
+        # 全ユーザーに送信
+        cur.execute("SELECT id FROM users")
+        users = cur.fetchall()
+
+        for (uid_target,) in users:
+            cur.execute("""
+                INSERT INTO notifications (user_id, actor_id, type, message, is_read, created_at)
+                VALUES (%s, %s, 'announcement', %s, FALSE, %s)
+            """, (
+                uid_target,
+                me_user_id,
+                message,
+                utcnow_naive()
+            ))
+
+        db.commit()
+
+    finally:
+        cur.close()
+        db.close()
+
+    return RedirectResponse("/admin?announce=1", status_code=303)
+
+@app.get("/admin/announce", response_class=HTMLResponse)
+def admin_announce_page(
+    request: Request,
+    user: str = Cookie(None),
+    uid: str = Cookie(None)
+):
+    db = get_db()
+    try:
+        me_username, me_user_id = get_me_from_cookies(db, user, uid)
+
+        if not is_admin_user(db, me_user_id):
+            return RedirectResponse("/", status_code=303)
+
+    finally:
+        db.close()
+
+    return templates.TemplateResponse(
+        request,
+        "admin_announce.html",
+        {
+            "request": request,
+            "user": me_username,
+            "me_user_id": me_user_id,
+            "mode": "admin",
+        }
+    )
 
 @app.post("/admin/reports/delete/{report_id}")
 def admin_delete_report(
@@ -3922,42 +3991,53 @@ def notifications_page(
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
+        # 🔥 ここ修正（LEFT JOIN + message追加）
         cur.execute("""
             SELECT
                 n.id,
                 n.type,
                 n.post_id,
                 n.created_at,
+                n.message,
                 u.handle,
                 u.display_name,
                 p.icon
             FROM notifications n
-            JOIN users u ON n.actor_id = u.id
+            LEFT JOIN users u ON n.actor_id = u.id
             LEFT JOIN profiles p ON p.user_id = u.id
             WHERE n.user_id = %s
             ORDER BY n.created_at DESC
             LIMIT 50
         """, (me_user_id,))
+
         rows = cur.fetchall()
 
         notifications = []
 
         for r in rows:
-            notif_id, ntype, post_id, created_at, handle, display_name, icon = r
+            notif_id, ntype, post_id, created_at, raw_message, handle, display_name, icon = r
 
             name = display_name if display_name else handle
 
-            if ntype == "like":
+            # 🔥 announcement対応
+            if ntype == "announcement":
+                message = raw_message or "お知らせ"
+                link = "#"
+
+            elif ntype == "like":
                 message = f"{name} がいいねしました"
                 link = f"/post/{post_id}" if post_id else "#"
+
             elif ntype == "follow":
                 message = f"{name} がフォローしました"
                 link = f"/user/{handle}" if handle else "#"
+
             elif ntype == "comment":
                 message = f"{name} がコメントしました"
                 link = f"/post/{post_id}" if post_id else "#"
+
             else:
-                message = f"{name} から通知"
+                message = raw_message or f"{name} から通知"
                 link = "#"
 
             notifications.append({
@@ -3968,7 +4048,7 @@ def notifications_page(
                 "icon": icon,
             })
 
-        # ✅ 既読化（ここ重要：forの外・tryの中）
+        # ✅ 既読化
         cur.execute("""
             UPDATE notifications
             SET is_read = TRUE
@@ -3995,7 +4075,6 @@ def notifications_page(
             "mode": "notifications",
         }
     )
-
 @app.get("/api/notifications/unread")
 def unread_notifications(user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()
