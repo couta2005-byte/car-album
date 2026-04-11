@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>通知 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css?v=ANNOUNCE_ICON_FIX">
 </head>
 <body>
 
@@ -22,9 +22,9 @@
           <div class="notif-card announcement">
 
             {% if n['icon'] %}
-              <img src="{{ n['icon'] }}" class="notif-avatar">
+              <img src="{{ n['icon'] }}" class="announce-avatar">
             {% else %}
-              <div class="notif-avatar fallback">📢</div>
+              <div class="announce-avatar fallback">📢</div>
             {% endif %}
 
             <div class="notif-body">

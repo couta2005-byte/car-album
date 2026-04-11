@@ -5128,5 +5128,7 @@ img.notif-avatar {
   background:#111 !important;
   padding:4px !important;
 
-  box-shadow:0 4px 10px rgba(0,0,0,.18);
+  display:block !important;
+  flex-shrink:0 !important;
 }
+更新コマンド
