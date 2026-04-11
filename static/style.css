@@ -5139,3 +5139,23 @@ img.notif-avatar {
   border-left:4px solid #ff2d55 !important;
   background:linear-gradient(135deg,#fff,#fff7f9) !important;
 }
+
+/* ===== ANNOUNCEMENT ICON HARD FIX ===== */
+.notif-card.announcement .announce-avatar,
+.notif-card.announcement img.announce-avatar{
+  width: 52px !important;
+  height: 52px !important;
+
+  min-width: 52px !important;
+  max-width: 52px !important;
+
+  border-radius: 50% !important;
+  object-fit: cover !important;
+
+  display: block !important;
+  flex-shrink: 0 !important;
+
+  background: #111 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
