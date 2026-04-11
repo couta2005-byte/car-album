@@ -5114,3 +5114,19 @@ img.notif-avatar {
 
   display: none;
 }
+
+/* 運営通知専用アイコン */
+.announce-avatar{
+  width:52px !important;
+  height:52px !important;
+  min-width:52px !important;
+  max-width:52px !important;
+
+  border-radius:14px !important;
+  object-fit:contain !important;
+
+  background:#111 !important;
+  padding:4px !important;
+
+  box-shadow:0 4px 10px rgba(0,0,0,.18);
+}
