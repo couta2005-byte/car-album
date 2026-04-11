@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>通知 | Carbum</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/static/style.css?v=ANNOUNCE_ICON_FIX">
+  <link rel="stylesheet" href="/static/style.css?v=ANNOUNCE_NO_ICON">
 </head>
 <body>
 
@@ -19,13 +19,7 @@
       {% for n in notifications %}
 
         {% if n['type'] == "announcement" %}
-          <div class="notif-card announcement">
-
-            {% if n['icon'] %}
-              <img src="{{ n['icon'] }}" class="announce-avatar">
-            {% else %}
-              <div class="announce-avatar fallback">📢</div>
-            {% endif %}
+          <div class="notif-card announcement no-icon">
 
             <div class="notif-body">
               <div class="notif-text announcement-text">
