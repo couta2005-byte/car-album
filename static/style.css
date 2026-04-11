@@ -5116,45 +5116,26 @@ img.notif-avatar {
 }
 
 /* 運営通知専用アイコン */
-.announce-avatar{
-  width:52px !important;
-  height:52px !important;
-  min-width:52px !important;
-  max-width:52px !important;
-
-  border-radius:14px !important;
-  object-fit:contain !important;
-
-  background:#111 !important;
-  padding:4px !important;
-
-  display:block !important;
-  flex-shrink:0 !important;
-}
-
-/* =========================
-   運営通知専用アイコン（最優先上書き）
-========================= */
 .notif-card.announcement .announce-avatar{
   width:52px !important;
   height:52px !important;
   min-width:52px !important;
   max-width:52px !important;
 
-  border-radius:14px !important;
-  object-fit:contain !important;
+  border-radius:50% !important;
+  object-fit:cover !important;
 
   background:#111 !important;
-  padding:4px !important;
+  padding:0 !important;
 
   display:block !important;
   flex-shrink:0 !important;
 
-  box-shadow:0 4px 14px rgba(255,45,85,0.20) !important;
+  box-shadow:0 4px 14px rgba(255,45,85,0.18) !important;
 }
 
-/* announcementカード専用 */
+/* 運営通知カード */
 .notif-card.announcement{
   border-left:4px solid #ff2d55 !important;
-  background:linear-gradient(135deg,#fff,#fff5f7) !important;
+  background:linear-gradient(135deg,#fff,#fff7f9) !important;
 }
