@@ -652,15 +652,23 @@ def init_db():
             actor_id UUID,
             type TEXT,
             post_id INTEGER,
+            message TEXT,
             is_read BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT NOW()
         );
+        """)
+
+        # 既存DB救済（旧テーブルにmessage無い場合追加）
+        cur.execute("""
+        ALTER TABLE notifications
+        ADD COLUMN IF NOT EXISTS message TEXT;
         """)
 
         cur.execute("""
         CREATE INDEX IF NOT EXISTS notifications_user_id_idx
         ON notifications(user_id);
         """)
+
         # ✅ DM tables
         cur.execute("""
         CREATE TABLE IF NOT EXISTS dm_rooms (
@@ -682,9 +690,11 @@ def init_db():
             FOREIGN KEY (room_id) REFERENCES dm_rooms(id)
         );
         """)
+
         cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS media_url TEXT;")
         cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS media_type TEXT;")
         cur.execute("ALTER TABLE dm_messages ADD COLUMN IF NOT EXISTS read_at TIMESTAMP;")
+
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user1_idx ON dm_rooms(user1_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_rooms_user2_idx ON dm_rooms(user2_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS dm_messages_room_time_idx ON dm_messages(room_id, created_at);")
@@ -704,6 +714,12 @@ def init_db():
                 maker_id TEXT NOT NULL,
                 name TEXT NOT NULL
             );
+        """)
+
+        # car_models.category 追加（重要）
+        cur.execute("""
+            ALTER TABLE car_models
+            ADD COLUMN IF NOT EXISTS category TEXT;
         """)
 
         # 🔥 旧バグ対策：name単体UNIQUEは削除
@@ -734,7 +750,9 @@ def init_db():
                 created_at TIMESTAMP NOT NULL DEFAULT NOW()
             );
         """)
+
         cur.execute("CREATE INDEX IF NOT EXISTS user_cars_user_id_idx ON user_cars(user_id);")
+
         cur.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS user_cars_user_id_maker_car_unique
             ON user_cars(user_id, maker, car_name);
@@ -776,7 +794,6 @@ def init_db():
         """)
 
     run_db(_do)
-
 
 @app.on_event("startup")
 def startup():
@@ -3991,7 +4008,6 @@ def notifications_page(
         user_icon = get_my_icon(db, me_user_id)
         unread_dm = has_unread_dm(db, me_user_id)
 
-        # 🔥 ここ修正（LEFT JOIN + message追加）
         cur.execute("""
             SELECT
                 n.id,
@@ -4019,10 +4035,10 @@ def notifications_page(
 
             name = display_name if display_name else handle
 
-            # 🔥 announcement対応
             if ntype == "announcement":
                 message = raw_message or "お知らせ"
                 link = "#"
+                icon = "/static/admin-announce-icon.png"
 
             elif ntype == "like":
                 message = f"{name} がいいねしました"
@@ -4048,7 +4064,6 @@ def notifications_page(
                 "icon": icon,
             })
 
-        # ✅ 既読化
         cur.execute("""
             UPDATE notifications
             SET is_read = TRUE
@@ -4075,6 +4090,8 @@ def notifications_page(
             "mode": "notifications",
         }
     )
+
+
 @app.get("/api/notifications/unread")
 def unread_notifications(user: str = Cookie(None), uid: str = Cookie(None)):
     db = get_db()

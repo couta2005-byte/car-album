@@ -18,12 +18,14 @@
 
       {% for n in notifications %}
 
-        <!-- ===== アナウンスはリンクなし ===== -->
         {% if n['type'] == "announcement" %}
           <div class="notif-card announcement">
 
-            <!-- アイコン -->
-            <div class="notif-avatar fallback">📢</div>
+            {% if n['icon'] %}
+              <img src="{{ n['icon'] }}" class="notif-avatar">
+            {% else %}
+              <div class="notif-avatar fallback">📢</div>
+            {% endif %}
 
             <div class="notif-body">
               <div class="notif-text announcement-text">
@@ -38,19 +40,15 @@
           </div>
 
         {% else %}
-          <!-- ===== 通常通知 ===== -->
           <a href="{{ n['link'] if n['link'] else '#' }}" class="notif-card">
 
-            <!-- アイコン -->
             {% if n['icon'] %}
               <img src="{{ n['icon'] }}" class="notif-avatar">
             {% else %}
               <div class="notif-avatar fallback"></div>
             {% endif %}
 
-            <!-- 本文 -->
             <div class="notif-body">
-
               <div class="notif-text">
 
                 {% if n['type'] == "like" %}
@@ -72,7 +70,6 @@
               <div class="notif-time">
                 {{ n['created_at'] }}
               </div>
-
             </div>
 
           </a>
